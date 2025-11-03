@@ -1,0 +1,21 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+.icon-box {
+    border-color: $border-color;
+    color: $secondary;
+    .overlay {
+        background-color: $body-bg;
+    }
+    &:hover {
+        .overlay{
+            .btn{
+                color: $white;
+            }
+        }
+    }
+}

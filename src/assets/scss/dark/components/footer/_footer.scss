@@ -1,0 +1,18 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+.footer {
+    background-color: $card-bg !important;
+    a {
+        color: $body-color;
+        transition: all 400ms ease;
+        &:hover {
+            transition: all 400ms ease;
+            color: $primary;
+        }
+    }
+}

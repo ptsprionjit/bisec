@@ -1,0 +1,36 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+/*!
+
+
+* Version: 1.2.0
+* Template: Example Project
+* Author: iqonic.design
+* Design and Developed by: iqonic.design
+* NOTE: This file contains the styling for Template.
+*
+*/
+
+// Configuration
+@import "./bootstrap/functions";
+// Variables
+@import "./bisec/variable";
+@import "./bisec/variables/index";
+@import "./bootstrap/variables";
+
+@import "./bootstrap/mixins";
+
+// Hope Ui Design System Mixin And Helper
+@import "./bisec/helper/functions";
+@import "./bisec/helper/mixins";
+@import "./bisec/helper/reboot";
+
+@import "./custom/auth/authentication";
+@import "./custom/kanban/kanban";
+@import "./custom/pricing/pricing";
+@import "./custom/ui-kit/ui-kit";

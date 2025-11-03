@@ -1,0 +1,18 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+.card {
+	.card-body {
+		.iq-media-group-1 {
+			.iq-media-1 {
+				&:first-child {
+                    margin-left: -1.25rem;
+				}
+			}
+		}
+	}
+}

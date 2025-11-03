@@ -1,0 +1,20 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+.dual-compact {
+    padding-top: 58px;
+}
+@media all and (max-width: 1024px) {
+    .dual-compact {
+        padding-top: 90px;
+    }
+}
+@media all and (max-width: 991px) {
+    .dual-compact {
+        padding-top: 65px;
+    }
+}

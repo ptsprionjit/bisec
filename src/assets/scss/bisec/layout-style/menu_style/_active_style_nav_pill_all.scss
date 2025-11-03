@@ -1,0 +1,22 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+// nav-pill all
+
+
+
+.sidebar{
+    &.navs-pill-all{
+        .sidebar-body{
+            .nav-item {
+                .nav-link{
+                    border-radius: $border-radius-pill !important;
+                }
+            }
+        }
+    }
+}

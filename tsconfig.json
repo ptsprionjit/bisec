@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "allowJs": true,
+        "noEmit": true, // 👈 don’t output compiled JS files
+        "jsx": "react-jsx",
+    },
+    "include": [
+        "src"
+    ]
+}

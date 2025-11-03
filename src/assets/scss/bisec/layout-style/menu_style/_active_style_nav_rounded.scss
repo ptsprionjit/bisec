@@ -1,0 +1,28 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+// nav-rounded
+
+
+
+.sidebar{
+    &.navs-rounded{
+        .sidebar-body{
+            .nav-item {
+                &.static-item {
+                    padding: 0;
+                }
+                padding: 0;
+                .nav-link{
+                    padding: 0.625rem 1.125rem;
+                    border-top-right-radius: $border-radius-sm;
+                    border-bottom-right-radius: $border-radius-sm;
+                }
+            }
+        }
+    }
+}

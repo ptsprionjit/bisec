@@ -1,0 +1,20 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+.sidebar-default {
+    .navbar-nav {
+        .nav-item {
+            .nav-link {
+                &:not(.disabled) {
+                    &:hover:not(.active):not([aria-expanded=true]) {
+                        background-color: rgba(var(--bs-primary-rgb), .2);
+                    }
+                }
+            }
+        }
+    }
+}

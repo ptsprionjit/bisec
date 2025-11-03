@@ -1,0 +1,35 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+.sidebar {
+    &.sidebar-hover {
+        &:hover {
+            --sidebar-width: #{$navbar-vertical-width};
+            max-width: var(--sidebar-width);
+            .sidebar-logo {
+                transform: translateX(0%);
+                opacity: 1;
+            }
+            .navbar-brand {
+                .logo-title {
+                    transform: translateX(0%);
+                    opacity: 1;
+                }
+            }
+        }
+        &.sidebar-mini{
+            &.sidebar-transparent{
+                &:hover{
+                    +.main-content{
+                        --sidebar-width: #{$navbar-vertical-width};
+                    }
+                }
+            }
+        }
+    }
+}
+

@@ -1,0 +1,16 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+.sign-bg {
+	right: 0;
+	left: 0;
+
+	&.sign-bg-right {
+		left: 0;
+		right: auto;
+	}
+}

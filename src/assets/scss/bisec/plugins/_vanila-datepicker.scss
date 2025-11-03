@@ -1,0 +1,32 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+.datepicker-cell {
+    &:not(.disabled):hover {
+        background: $gray-300;
+    }
+    &.prev,
+    &.next {
+      &:not(.disabled) {
+          font-weight: 500;
+          color: $gray-500;
+      }
+    }
+    &.selected {
+        box-shadow: $component-active-shadow;
+        &:hover {
+            background-color: $primary;
+        }
+    }
+}
+.datepicker-view{
+    &.datepicker-grid {
+        .datepicker-cell {
+            height: inset;
+        }
+    }
+}

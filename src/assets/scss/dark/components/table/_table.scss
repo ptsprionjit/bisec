@@ -1,0 +1,23 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+.table {
+	thead {
+		tr {
+			th {
+                background-color: $body-bg;
+			}
+		}
+	}
+    tbody {
+        tr {
+            td {
+               color: $light;
+            }
+        }
+    }
+}

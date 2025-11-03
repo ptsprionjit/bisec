@@ -1,0 +1,11 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+.table-primary{
+    --bs-table-bg: var(--#{$variable-prefix}primary-tint-80);
+    border-color: var(--#{$variable-prefix}primary-tint-80);
+}

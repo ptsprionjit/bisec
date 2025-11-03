@@ -1,0 +1,33 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+// List Groups
+
+// scss-docs-start list-group-mixin
+
+
+@mixin list-group-item-variant($state, $background, $color) {
+  .list-group-item-#{$state} {
+    color: $color;
+    background-color: $background;
+
+    &.list-group-item-action {
+      &:hover,
+      &:focus {
+        color: $color;
+        background-color: shade-color($background, 10%);
+      }
+
+      &.active {
+        color: $white;
+        background-color: $color;
+        border-color: $color;
+      }
+    }
+  }
+}
+// scss-docs-end list-group-mixin

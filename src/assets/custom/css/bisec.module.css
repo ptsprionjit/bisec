@@ -1,0 +1,149 @@
+@font-face {
+    font-family: 'SolaimanLipi';
+    src: url('../fonts/SolaimanLipi.ttf') format('truetype');
+}
+
+@font-face {
+    font-family: 'Siyamrupali';
+    src: url('../fonts/Siyamrupali.ttf') format('truetype');
+}
+
+.SiyamRupaliFont {
+    font-family: 'Siyamrupali', sans-serif;
+}
+
+.SolaimanLipiFont {
+    font-family: 'SolaimanLipi', sans-serif;
+}
+
+* {
+    font-family: 'Siyamrupali', sans-serif;
+}
+
+.bgImageLogin {
+    background-image: url('../../images/brands/bisec_main.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 100dvh;
+    width: 100dvw;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.glassCard {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 15px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+    /* Blur effect */
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    color: white;
+}
+
+.opacityCard {
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 15px;
+    padding: 20px;
+    backdrop-filter: blur(10px);
+    /* Blur effect */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+    color: black;
+}
+
+.image_upload {
+    width: 30px;
+    height: 30px;
+    background: #7074f7;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border: 2px solid #000;
+}
+
+.print_hide {
+    display: block;
+}
+
+.print_show {
+    display: none;
+}
+
+.text_justify {
+    text-align: justify;
+    text-justify: inter-word;
+}
+
+/*Dash Board Loader Start*/
+
+.dashboard_loader {
+  position: relative;
+  width: 120px;
+  height: 90px;
+  margin: 0 auto;
+  background: transparent;
+}
+
+.dashboard_loader:before {
+  content: "";
+  position: absolute;
+  bottom: 30px;
+  left: 50px;
+  height: 30px;
+  width: 30px;
+  border-radius: 50%;
+  background: #000;
+  animation: loading-bounce 0.5s ease-in-out infinite alternate;
+}
+
+.dashboard_loader:after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 7px;
+  width: 45px;
+  border-radius: 4px;
+  box-shadow: 0 5px 0 #2f2f2f, -35px 50px 0 #2f2f2f, -70px 95px 0 #2f2f2f;
+  animation: loading-step 1s ease-in-out infinite;
+}
+
+@keyframes loading-bounce {
+  0% {
+    transform: scale(1, 0.7);
+  }
+
+  40% {
+    transform: scale(0.8, 1.2);
+  }
+
+  60% {
+    transform: scale(1, 1);
+  }
+
+  100% {
+    bottom: 140px;
+  }
+}
+
+@keyframes loading-step {
+  0% {
+    box-shadow: 0 10px 0 rgba(0, 0, 0, 0),
+            0 10px 0 #2f2f2f,
+            -35px 50px 0 #2f2f2f,
+            -70px 90px 0 #2f2f2f;
+  }
+
+  100% {
+    box-shadow: 0 10px 0 #2f2f2f,
+            -35px 50px 0 #2f2f2f,
+            -70px 90px 0 #2f2f2f,
+            -70px 90px 0 rgba(0, 0, 0, 0);
+  }
+}
+
+/*Dash Board Loader End*/

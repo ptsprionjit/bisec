@@ -1,0 +1,33 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+.dark {
+    .mode {
+        &.light-img {
+            display: none;
+        }
+        &.dark-img {
+            display: block;
+        }
+    }
+}
+[dir=rtl] {
+    .mode {
+        &.rtl-img {
+            display: block;
+        }
+    }
+}
+.mode {
+    display: none;
+    &.light-img {
+        display: block;
+    }
+    &.ltr-img {
+        display: block;
+    }
+}

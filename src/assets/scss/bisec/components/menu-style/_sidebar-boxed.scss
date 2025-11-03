@@ -1,0 +1,41 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+// Sidebar Panel
+
+
+.sidebar-boxed {
+    margin: $spacer;
+    @if $enable-rounded == true {
+        border-radius: $border-radius;
+    }
+}
+
+// Sidebar With Main Panel
+.sidebar{
+    &.sidebar-boxed {
+        &+.main-content {
+            transition: $navbar-vertical-transition;
+            margin-left: calc(#{$navbar-vertical-width} + 2rem);
+            position: relative;
+            .nav {
+                &.navbar {
+                    margin: $spacer $spacer 0 $spacer;
+                    @if $enable-rounded == true {
+                        border-radius: $border-radius;
+                    }
+                }
+            }
+            .footer {
+                margin: 0 $spacer $spacer 0;
+                @if $enable-rounded == true {
+                    border-radius: $border-radius-sm;
+                }
+            }
+        }
+    }
+}

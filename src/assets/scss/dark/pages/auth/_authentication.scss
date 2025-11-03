@@ -1,0 +1,12 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+.login-content {
+	.bg-white {
+		background: $card-bg !important;
+	}
+}

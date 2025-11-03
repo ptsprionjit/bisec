@@ -1,0 +1,44 @@
+import React, { memo, Fragment } from 'react'
+// import { Row,Col,Container} from 'react-bootstrap'
+
+//img
+import topHeader from '../../../../assets/images/dashboard/top-header.png'
+import topHeader1 from '../../../../assets/images/dashboard/top-header1.png'
+import topHeader2 from '../../../../assets/images/dashboard/top-header2.png'
+import topHeader3 from '../../../../assets/images/dashboard/top-header3.png'
+import topHeader4 from '../../../../assets/images/dashboard/top-header4.png'
+import topHeader5 from '../../../../assets/images/dashboard/top-header5.png'
+
+
+const SubHeader = memo((props) => {
+    const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
+
+    if (!ceb_session) return null;
+
+    if (ceb_session) return (
+        <Fragment>
+            <div className="iq-navbar-header" style={{ height: "150px" }}>
+                {/* <Container fluid className=" iq-container">
+                    <Row>
+                        <Col md="12">
+                            <div className="d-flex justify-content-between flex-wrap">
+                                <h3>WELCOME <i className='text-uppercase'>{window.localStorage.getItem("ceb_user_name")}</i></h3>
+                            </div>
+                        </Col>
+                    </Row>
+                </Container> */}
+                {/* {{!-- rounded-bottom if not using animation --}} */}
+                <div className="iq-header-img">
+                    <img src={topHeader} alt="header" className="theme-color-default-img img-fluid w-100 h-100 animated-scaleX" />
+                    <img src={topHeader1} alt="header" className=" theme-color-purple-img img-fluid w-100 h-100 animated-scaleX" />
+                    <img src={topHeader2} alt="header" className="theme-color-blue-img img-fluid w-100 h-100 animated-scaleX" />
+                    <img src={topHeader3} alt="header" className="theme-color-green-img img-fluid w-100 h-100 animated-scaleX" />
+                    <img src={topHeader4} alt="header" className="theme-color-yellow-img img-fluid w-100 h-100 animated-scaleX" />
+                    <img src={topHeader5} alt="header" className="theme-color-pink-img img-fluid w-100 h-100 animated-scaleX" />
+                </div>
+            </div>
+        </Fragment>
+    )
+})
+
+export default SubHeader

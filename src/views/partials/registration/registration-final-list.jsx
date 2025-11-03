@@ -1,0 +1,1967 @@
+import React, { useRef, useMemo, Fragment, useEffect, useState } from 'react'
+// import FsLightbox from 'fslightbox-react';
+import Select from 'react-select'
+
+import { Modal, Row, Col, Image, Button, Form } from 'react-bootstrap'
+import Card from '../../../components/Card'
+
+import { useNavigate } from 'react-router-dom'
+
+import error01 from '../../../assets/images/error/01.png'
+
+import * as ValidationInput from '../input_validation'
+
+import axios from 'axios';
+
+import styles from '../../../assets/custom/css/bisec.module.css'
+
+import LogoMedium from '../../../components/partials/components/logo-medium'
+
+// import Maintenance from '../errors/maintenance';
+
+const RegistrationFinalList = () => {
+   // enable axios credentials include
+   axios.defaults.withCredentials = true;
+
+   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+   const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
+
+   // Set Time for Update
+   var date = new Date();
+   date.setHours(date.getUTCHours() + 12);
+   date = date.toISOString().split('T')[0];
+
+   const curDateTime = date;
+
+   const navigate = useNavigate();
+
+   useEffect(() => {
+      if (!ceb_session?.ceb_user_id) {
+         navigate("/auth/sign-out");
+         
+      }
+   }, []);// eslint-disable-line react-hooks/exhaustive-deps
+
+   // Set EIIN Value
+   let eiin = '';
+   if (ceb_session) {
+      eiin = ceb_session.ceb_user_type === "13" ? ceb_session.ceb_user_id : '';
+   }
+
+   // Profile Image Variables
+   const [profileImagePreview, setProfileImagePreview] = useState(null);
+   const [profileImageFile, setProfileImageFile] = useState(null);
+   const [profileImageError, setProfileImageError] = useState(false);
+
+   // Profile Image List
+   const [profileImageList, setProfileImageList] = useState([]);
+
+   // Modal Variales
+   const [modalError, setModalError] = useState(false);
+   const [userBnError, setUserBnError] = useState([]);
+
+   // Form Validation Variable
+   const [validated, setValidated] = useState(false);
+
+   // Search Data Variables
+   const [searchData, setSearchData] = useState(
+      {
+         user_form: '200020711422330002', user_eiin: eiin, user_session: '', user_class: '', user_group: '', user_version: '', user_application: '', user_paid: '03'
+      }
+   );
+   const [searchDataError, setSearchDataError] = useState([]);
+   const [validSearch, setValidSearch] = useState(false);
+   const [insName, setInsName] = useState(false);
+
+   // Dates Data
+   const [datesData, setDatesData] = useState([]);
+
+   // Student Update Data Variables
+   const [userData, setUserData] = useState(
+      {
+         id: '', name: '', father: '', mother: '', gender: '', religion: '', birth_reg: '', dob: '', quota: '', disability: '', en_dist: '', upazila: '', address: '', mobile: '', class_shift: '', class_section: '', class_roll: ''
+      }
+   );
+   const [userDataError, setUserDataError] = useState([]);
+   const [dateDisability, setDateDisability] = useState(false);
+
+   // Districts and Upazilas
+   const [districts, setDistricts] = useState([]);
+   const [optionDistricts, setOptionDistricts] = useState([]);
+   const [upazilas, setUpazilas] = useState([]);
+   const [optionSections, setOptionSections] = useState([]);
+
+   // Search Data Status
+   const [searchLoading, setSearchLoading] = useState(false);
+   const [searchError, setSearchError] = useState(false);
+   const [searchSuccess, setSearchSuccess] = useState(false);
+
+   // Search Data Status
+   const [payLoading, setPayLoading] = useState(false);
+   const [payError, setPayError] = useState(false);
+   const [paySuccess, setPaySuccess] = useState(false);
+
+   // Student Registration Status
+   const [insertSuccess, setInsertSuccess] = useState(false);
+   const [insertLoading, setInsertLoading] = useState(false);
+   const [insertError, setInsertError] = useState(false);
+
+   // #########################################################################################################
+   const [stData, setStData] = useState([]);
+
+   const [prevInvoice, setPrevInvoice] = useState('');
+
+   const [studentUpdate, setStudentUpdate] = useState([]);
+   const [studentDelete, setStudentDelete] = useState([]);
+
+   const [updateShow, setUpdateShow] = useState(false);
+
+   const [deleteShow, setDeleteShow] = useState(false);
+
+   const [regPay, setRegPay] = useState(false);
+   const [totalAmount, setTotalAmount] = useState(0);
+   const [totalAmountWord, setTotalAmountWord] = useState(0);
+
+   //Pagination
+   const [totalPage, setTotalPage] = useState();
+   const [currentPage, setCurrentPage] = useState();
+   const [rowsPerPage, setRowsPerPage] = useState();
+   const [currentData, setCurrentData] = useState([]);
+   const [searchValue, setSearchValue] = useState('');
+
+   const printRef = useRef();
+
+   const handlePrint = async () => {
+      if (searchValue.length > 0) {
+         setSearchValue('');
+      } else {
+         let current_page = currentPage;
+         let current_data = currentData;
+         let rows_per_page = rowsPerPage;
+
+         await setCurrentData(stData);
+         await setRowsPerPage(stData.length);
+         await setCurrentPage(1);
+
+         const printContent = printRef.current.innerHTML;
+         const printWindow = window.open('', '', 'fullscreen=yes');
+
+         printWindow.document.write(`
+            <html>
+               <head>
+                  <title>Print</title>
+                  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+                  <link href="https://fonts.maateen.me/siyam-rupali/font.css" rel="stylesheet">
+                  <style>
+                     @page {
+                        size: A4 portrait !important;
+                        margin: 0 !important;
+                        padding: 0.5in !important;
+                        div, table, tr, th, td, p, span {
+                           page-break-inside: avoid !important;
+                        }
+                        section {
+                           page-break-after: always !important;
+                        }
+                     }
+                     *{
+                        font-family: 'Siyam Rupali', sans-serif !important;
+                        /* font-size: 15px !important; */
+                        color: #000000 !important;
+                     }
+                     .print-nowrap{
+                        white-space: nowrap !important;
+                     }
+                     .no-print {
+                        display: none !important;
+                     }
+                     .print-hide {
+                        display: none !important;
+                     }
+                     .print-show {
+                        display: block !important;
+                     }
+                  </style>
+               </head>
+               <body>
+                  <div class="d-flex flex-column justify-content-center align-items-center">${printContent}</div>
+                  <script>
+                     window.onload = function() {
+                        window.print();
+                        window.onafterprint = function() { 
+                           window.close();
+                        };
+                     };
+                  </script>
+               </body>
+            </html>
+         `);
+         printWindow.document.close();
+         window.close();
+
+         // Restore Data
+         setRowsPerPage(rows_per_page);
+         setCurrentPage(current_page);
+         setCurrentData(current_data);
+      }
+   };
+
+   const fallbackSVG = `data:image/svg+xml;base64,${btoa(`
+      <svg xmlns="http://www.w3.org/2000/svg" width="96px" height="96px" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-square-user-round-icon lucide-square-user-round"><path d="M18 21a6 6 0 0 0-12 0" /><circle cx="12" cy="11" r="4" /><rect width="18" height="18" x="3" y="3" rx="2" /></svg>
+   `)}`;
+
+   const handleImageList = async (image_blob) => {
+      await setProfileImageList(image_blob);
+      setValidSearch(true);
+   }
+
+   // Fetch Images
+   const fetchImages = async (st_data) => {
+      try {
+         const res = await axios.post(`${BACKEND_URL}/student/image-fetch?`,
+            { st_data: st_data },
+            { responseType: 'blob', });
+
+         if (res.status === 204) {
+            return { url: fallbackSVG }
+         }
+         const url = URL.createObjectURL(res.data);
+         return { url: url };
+      } catch (error) {
+
+
+    if (error.status === 401) {
+        navigate("/auth/sign-out");
+        
+    }
+// console.error('Error loading images:', error);
+         return { url: fallbackSVG }
+      }
+   };
+
+   const loadAllImages = async () => {
+      const image_blob = {};
+      let id_invoice = "";
+
+      const fetchPromises = stData.map(async (st_data) => {
+         const blobUrl = await fetchImages(st_data); // fetch blob & convert to URL
+         image_blob[st_data.st_id] = blobUrl;
+         if (st_data.id_invoice && String(st_data.id_invoice).length > 0 && !prevInvoice) {
+            id_invoice = st_data.id_invoice; // Set the first invoice found
+         }
+      });
+
+      await Promise.all(fetchPromises); // wait for all to finish
+      // console.log(image_blob);
+      setPrevInvoice(id_invoice);
+      handleImageList(image_blob);
+   };
+
+   useEffect(() => {
+      if (stData.length > 0) {
+         setCurrentData(stData.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage > stData.length ? stData.length : currentPage * rowsPerPage));
+         setTotalPage(Math.ceil(stData.length / rowsPerPage));
+
+         loadAllImages();
+      }
+   }, [stData]);// eslint-disable-line react-hooks/exhaustive-deps
+
+   const useDebounce = (value, delay = 500) => {
+      const [debouncedValue, setDebouncedValue] = useState(value);
+      useEffect(() => {
+         const timer = setTimeout(() => {
+            setDebouncedValue(value);
+         }, delay);
+
+         return () => clearTimeout(timer); // Cleanup if value changes before delay
+      }, [value, delay]); // eslint-disable-line react-hooks/exhaustive-deps
+
+      return debouncedValue;
+   }
+
+   const debouncedSearchValue = useDebounce(searchValue, 500);
+
+   const filteredData = useMemo(() => {
+      if (!debouncedSearchValue) return currentData;      // If no search, show all
+
+      const search = debouncedSearchValue.toUpperCase();
+
+      return stData.filter((item) =>
+         [item.st_name, item.st_father, item.st_mother, item.en_gender, item.en_religion, item.st_breg, item.st_dob, item.en_user].some((field) =>
+            field.toUpperCase().includes(search)
+         )
+      );
+   }, [debouncedSearchValue, currentData, stData]); // eslint-disable-line react-hooks/exhaustive-deps
+
+   //Handle Page Row Number Change
+   const handleRowsPerPageChange = (data_per_page) => {
+      data_per_page = Number(data_per_page);
+      setRowsPerPage(data_per_page);
+      setTotalPage(Math.ceil(stData.length / data_per_page));
+      setCurrentPage(1);
+      setCurrentData(stData.slice(0, data_per_page > stData.length ? stData.length : data_per_page));
+   };
+
+   //Handle Page Change
+   const handleSetCurrentPage = (page_num) => {
+      page_num = Number(page_num);
+      if (page_num >= 1 && page_num <= totalPage) {
+         setCurrentPage(page_num);
+         setCurrentData(stData.slice((page_num - 1) * rowsPerPage, page_num * rowsPerPage > stData.length ? stData.length : page_num * rowsPerPage));
+      }
+   };
+
+   //TC Reject
+   async function handleStudentDelete(st_id, st_photo) {
+      setDeleteShow(false);
+      setSearchLoading("সম্পাদনা চলছে...। অপেক্ষা করুন।");
+      setSearchSuccess(false);
+      setSearchError(false);
+
+      const userData = {
+         st_photo: st_photo, st_id: st_id
+      }
+
+      try {
+         await axios.post(`${BACKEND_URL}/student/registration/delete`, { userData });
+         setStData(((prevData) => prevData.filter((item) => item.st_id !== st_id)));
+         setSearchSuccess("আবেদন বাতিল সফল হয়েছে!");
+      } catch (err) {
+
+
+    if (err.status === 401) {
+        navigate("/auth/sign-out");
+        
+    }
+setSearchError("আবেদন বাতিল সফল হয়নি!");
+         // console.log(err);
+      } finally {
+         setSearchLoading(false);
+      }
+   };
+
+   //Handle Details Click
+   function handleEditClick(item) {
+      setStudentUpdate(item);
+      setUserData({
+         id: item.st_id, name: item.st_name, father: item.st_father, mother: item.st_mother, gender: item.id_gender, religion: item.id_religion, birth_reg: item.st_breg, dob: item.st_dob, quota: item.id_quota, disability: item.id_disability, upazila: item.id_uzps, address: item.st_address, mobile: item.st_mobile, class_shift: item.id_shift, class_section: item.st_section, class_roll: item.st_ins_roll, en_dist: item.en_dist
+      });
+      setInsertSuccess(false);
+      setProfileImageError(false);
+      setProfileImageFile(null);
+      setProfileImagePreview(null);
+      setValidated(false);
+      setUpdateShow(true);
+   };
+   //Handle Details Click
+   function handleDeleteClick(item) {
+      setStudentDelete(item);
+      setDeleteShow(true);
+   };
+   // #########################################################################################################
+
+   const removeCookie = (name) => {
+      document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+   };
+
+   const calculateWord = (totalAmount) => {
+      const words = [
+         '', 'এক', 'দুই', 'তিন', 'চার', 'পাঁচ', 'ছয়', 'সাত', 'আট', 'নয়', 'দশ', 'এগারো', 'বারো', 'তেরো', 'চৌদ্দ', 'পনেরো', 'ষোলো', 'সতেরো', 'আঠারো', 'ঊনিশ', 'বিশ', 'একুশ', 'বাইশ', 'তেইশ', 'চব্বিশ', 'পঁচিশ', 'ছাব্বিশ', 'সাতাশ', 'আটাশ', 'ঊনত্রিশ', 'ত্রিশ', 'একত্রিশ', 'বত্রিশ', 'তেত্রিশ', 'চৌত্রিশ', 'পঁয়ত্রিশ', 'ছত্রিশ', 'সাঁইত্রিশ', 'আটত্রিশ', 'ঊনচল্লিশ', 'চল্লিশ', 'একচল্লিশ', 'বিয়াল্লিশ', 'তেতাল্লিশ', 'চুয়াল্লিশ', 'পঁয়তাল্লিশ', 'ছেচল্লিশ', 'সাতচল্লিশ', 'আটচল্লিশ', 'ঊনপঞ্চাশ', 'পঞ্চাশ', 'একান্ন', 'বাহান্ন', 'তিপ্পান্ন', 'চুয়ান্ন', 'পঞ্চান্ন', 'ছাপান্ন', 'সাতান্ন', 'আটান্ন', 'ঊনষাট', 'ষাট', 'একষট্টি', 'বাষট্টি', 'তেষট্টি', 'চৌষট্টি', 'পঁয়ষট্টি', 'ছেষট্টি', 'সাতষট্টি', 'আটষট্টি', 'ঊনসত্তর', 'সত্তর', 'একাত্তর', 'বাহাত্তর', 'তিয়াত্তর', 'চুয়াত্তর', 'পঁচাত্তর', 'ছিয়াত্তর', 'সাতাত্তর', 'আটাত্তর', 'ঊনআশি', 'আশি', 'একাশি', 'বিরাশি', 'তিরাশি', 'চুরাশি', 'পঁচাশি', 'ছিয়াশি', 'সাতাশি', 'আটাশি', 'ঊননব্বই', 'নব্বই', 'নব্বই', 'একানব্বই', 'বিরানব্বই', 'তিরানব্বই', 'চুরানব্বই', 'পঁচানব্বই', 'ছিয়ানব্বই', 'সাতানব্বই', 'আটানব্বই', 'নিরানব্বই'
+      ];
+
+      let paisa, taka, num_word;
+      let wordAmount = "";
+
+      paisa = Math.floor((totalAmount - Math.floor(totalAmount)) * 100);                        // Calculate Total Paisas
+      wordAmount = paisa > 0 ? wordAmount + words[paisa] + " পয়সা মাত্র" : wordAmount + " মাত্র";  // Convert Paisa to Word
+
+      taka = Math.floor(totalAmount);                                                           // Calculate Total Takas
+
+      // Convert to Words
+      if (taka > 0) {
+         num_word = taka % 100;                                                                 // Calculate Takas
+         wordAmount = words[num_word] + " টাকা " + wordAmount;
+         taka = Math.floor(taka / 100);                                                         // Remove Takas
+         if (taka > 0) {
+            num_word = taka % 10;                                                               // Calculate Hundreds
+            wordAmount = num_word > 0 ? words[num_word] + "শত " + wordAmount : wordAmount;
+            taka = Math.floor(taka / 10);                                                       // Remove Hundres
+            if (taka > 0) {
+               num_word = taka % 100;                                                           // Calculate Thousands
+               wordAmount = num_word > 0 ? words[num_word] + " হাজার " + wordAmount : wordAmount;
+               taka = Math.floor(taka / 100);                                                   // Remove Thousands
+               if (taka > 0) {
+                  num_word = taka % 100;                                                        // Calculate Lakhs
+                  wordAmount = num_word > 0 ? words[num_word] + " লক্ষ " + wordAmount : wordAmount;
+                  taka = Math.floor(taka / 100);                                                // Remove Lakhs
+                  if (taka > 0) {
+                     num_word = taka % 100;                                                     // Calculate Crores
+                     wordAmount = num_word > 0 ? words[num_word] + " কোটি " + wordAmount : wordAmount;
+                     taka = Math.floor(taka / 100);                                             // Remove Crores
+                     if (taka > 0) {
+                        num_word = taka % 10;                                                   // Calculate Crore Hundreds
+                        wordAmount = num_word > 0 ? words[num_word] + "শত " + wordAmount : wordAmount;
+                        taka = Math.floor(taka / 10);                                           // Remove Crore Hundreds
+                        if (taka > 0) {
+                           num_word = taka % 100;                                               // Calculate Crore Thousands
+                           wordAmount = num_word > 0 ? words[num_word] + " হাজার " + wordAmount : wordAmount;
+                           taka = Math.floor(taka / 100);                                       // Remove Crore Thousands
+                           if (taka > 0) {
+                              num_word = taka % 100;                                            // Calculate Crore Lakhs
+                              wordAmount = num_word > 0 ? words[num_word] + " লক্ষ " + wordAmount : wordAmount;
+                              taka = Math.floor(taka / 100);                                    // Remove Crore Lakhs
+                              if (taka > 0) {
+                                 num_word = taka % 100;                                         // Calculate Crore Crore
+                                 wordAmount = num_word > 0 ? words[num_word] + " কোটি " + wordAmount : wordAmount;
+                                 taka = Math.floor(taka / 100);                                 // Remove Crore Lakhs
+                              }
+                           }
+                        }
+                     }
+                  }
+               }
+            }
+         }
+      }
+      setTotalAmountWord(wordAmount);
+   }
+
+   const handleProfileImageSelect = (e) => {
+      const file = e.target.files[0];
+      if (profileImagePreview) URL.revokeObjectURL(profileImagePreview); // Free up memory
+      if (file) {
+         setProfileImageError(false);
+         setProfileImageFile(file);
+         setProfileImagePreview(URL.createObjectURL(file));
+      } else {
+         setProfileImageError("ছবি নির্বাচন সফল হয়নি!");
+      }
+   };
+
+   const handleSearch = async (event) => {
+      event.preventDefault();
+      removeCookie('jwEntry');
+      const form = event.currentTarget;
+      let isValid = true;
+
+      setDatesData([]);
+      setSearchDataError([]);
+      setSearchSuccess(false);
+      setSearchError(false);
+
+      const newErrors = {}; // Collect errors in one place
+
+      if (form.checkValidity() === false) {
+         setValidated(false);
+         event.stopPropagation();
+      } else {
+         const requiredFields = [
+            'user_form', 'user_eiin', 'user_session', 'user_class', 'user_group', 'user_version', 'user_application', 'user_paid'
+         ];
+
+         requiredFields.forEach(field => {
+            let dataError = null;
+
+            switch (field) {
+               case 'user_form':
+               case 'user_eiin':
+               case 'user_session':
+               case 'user_class':
+               case 'user_group':
+               case 'user_version':
+               case 'user_application':
+               case 'user_paid':
+                  dataError = ValidationInput.numberCheck(searchData[field]);
+                  break;
+               default:
+                  break;
+            }
+
+            if (dataError) {
+               newErrors[field] = dataError;
+               isValid = false;
+               setValidated(false);
+            }
+         });
+
+         // Update once
+         setSearchDataError(newErrors);
+
+         // console.log(newErrors);
+
+         if (!isValid) {
+            event.stopPropagation();
+            setValidated(true);
+         } else {
+            setSearchLoading("তথ্য খুঁজা হচ্ছে! অপেক্ষা করুন...");
+            try {
+               const user_data = await axios.post(`${BACKEND_URL}/student/registration/list?`, { user_form: searchData.user_form, user_eiin: searchData.user_eiin, user_session: searchData.user_session, user_class: searchData.user_class, user_group: searchData.user_group, user_version: searchData.user_version, user_application: searchData.user_application, user_paid: searchData.user_paid });
+               // console.log(user_data.data.data);
+               if (user_data.status === 200) {
+                  setSearchSuccess(`সেশনঃ ${searchData.user_session}, শ্রেণীঃ ${searchData.user_class}, বিভাগঃ ${user_data.data.dates_data.en_group} / ${user_data.data.dates_data.bn_group}`);
+                  setInsName(user_data.data.ins_name);
+                  setUserBnError({
+                     name: 'শিক্ষার্থীর নাম', father: 'পিতার নাম', mother: 'মাতার নাম', gender: 'লিঙ্গ', religion: 'ধর্ম', birth_reg: 'জন্ম নিবন্ধন নম্বর', dob: 'জন্ম তারিখ', quota: 'কোটা', disability: 'অক্ষমতা', upazila: 'উডজেলা', address: 'ঠিকানা', mobile: 'মোবাইল নম্বর', class_shift: 'শিফট', class_section: 'শাখা', class_roll: 'রোল নম্বর'
+                  });
+                  // setSearchData(user_data.data.dates_data);
+                  setDatesData(user_data.data.dates_data);
+                  setStData(user_data.data.st_list);
+                  // console.log(user_data.data.st_list);
+                  setTotalAmount(user_data.data.total_amount);
+                  calculateWord(user_data.data.total_amount);
+                  //Set Data for Pagination
+                  setRowsPerPage(10);
+                  setTotalPage(Math.ceil(user_data.data.st_list.length / 10));
+                  setCurrentPage(1);
+                  setCurrentData(user_data.data.st_list.slice(0, 10));
+                  setValidated(false);
+               } else {
+                  setSearchError(`${user_data.data.message}`);
+                  setValidSearch(false);
+                  setValidated(true);
+               }
+            } catch (err) {
+
+               setSearchError("নিবন্ধন তথ্য পাওয়া যায়নি!");
+               setValidSearch(false);
+               setValidated(true);
+               // console.log(err);
+               if (err.status === 401) {
+                  navigate("/auth/sign-out");
+                  
+               } else if (err.status === 403) {
+                  navigate("/registration/temp-list");
+                  return null;
+               }
+            } finally {
+               setSearchLoading(false);
+            }
+         }
+      }
+   };
+
+   const handleSubmit = async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget;
+      let isValid = true;
+      setUserDataError([]);
+      setInsertSuccess(false);
+      setInsertError(false);
+      setInsertLoading("শিক্ষার্থী নিবন্ধন আপডেট করা হচ্ছে! অপেক্ষা করুন...");
+
+      const newErrors = {}; // Collect errors in one place
+
+      if (form.checkValidity() === false) {
+         setValidated(false);
+         event.stopPropagation();
+      } else {
+         const requiredFields = [
+            'name', 'father', 'mother', 'gender', 'religion', 'birth_reg', 'dob', 'quota', 'disability', 'upazila', 'address', 'mobile', 'class_shift', 'class_section', 'class_roll'
+         ];
+
+         requiredFields.forEach(field => {
+            let dataError = null;
+
+            switch (field) {
+               case 'name':
+               case 'father':
+               case 'mother':
+               case 'class_section':
+                  dataError = ValidationInput.alphaCheck(userData[field]);
+                  dataError = !dataError ? ValidationInput.namePartCheck(userData[field]) : dataError;
+                  break;
+
+               case 'dob':
+                  dataError = userData.disability === "01" ? ValidationInput.dateCheck(userData[field], datesData.dob_start, datesData.dob_end) : ValidationInput.dateCheck(userData[field], dateDisability, datesData.dob_end);
+                  break;
+
+               case 'gender':
+               case 'religion':
+               case 'birth_reg':
+               case 'quota':
+               case 'disability':
+               case 'upazila':
+               case 'mobile':
+               case 'class_shift':
+               case 'class_roll':
+                  dataError = ValidationInput.numberCheck(userData[field]);
+                  break;
+
+               case 'address':
+                  dataError = ValidationInput.addressCheck(userData[field]);
+                  break;
+
+               default:
+                  break;
+            }
+
+            if (dataError) {
+               newErrors[field] = dataError;
+               isValid = false;
+               setValidated(false);
+            }
+         });
+
+         // Update once
+         setUserDataError(newErrors);
+
+         // console.log(newErrors);
+
+         if (!isValid || !profileImageFile) {
+            if (!profileImageFile) setProfileImageError("ছবি নির্বাচন করুন");
+            setModalError(true);
+            setInsertLoading(false);
+            setInsertError("শিক্ষার্থীর তথ্য সঠিকভাবে পূরণ করতে হবে!");
+            event.stopPropagation();
+         } else {
+            const formData = new FormData();
+            formData.append('student_data', JSON.stringify(userData));
+            formData.append('image', profileImageFile);
+            // console.log(userData);
+            try {
+               const user_data = await axios.post(`${BACKEND_URL}/student/registration/update`, formData, {
+                  headers: { 'Content-Type': 'multipart/form-data' },
+               });
+               if (user_data.status === 200) {
+                  setInsertSuccess(user_data.data.message);
+                  // Reset Form
+                  setUserData({
+                     ...userData, name: '', father: '', mother: '', gender: '', religion: '', birth_reg: '', dob: '', quota: '', disability: '', en_dist: '', upazila: '', address: '', mobile: '', class_roll: ''
+                  });
+                  setUpdateShow(false);
+                  setProfileImageError(false);
+                  setProfileImageFile(null);
+                  setProfileImagePreview(null);
+                  alert(user_data.data.message);
+               } else {
+                  setInsertError(user_data.data.message);
+                  alert(user_data.data.message);
+               }
+            } catch (err) {
+
+               setInsertError('শিক্ষার্থীর নিবন্ধন আপডেট করা সম্ভব হয়নি!');
+               // console.log(err);
+               if (err.status === 401) {
+                  navigate("/auth/sign-out");
+                  
+               }
+               alert('শিক্ষার্থীর নিবন্ধন আপডেট করা সম্ভব হয়নি!');
+            } finally {
+               setInsertLoading(false);
+            }
+         }
+      }
+      setValidated(true);
+   };
+
+   //Handle Search Data Change
+   const handleSearchDataChange = (dataName, dataValue) => {
+      setSearchData({ ...searchData, [dataName]: String(dataValue).toUpperCase() });
+      setSearchDataError(prev => ({ ...prev, [dataName]: '' }));
+   }
+
+   // Handle User Data Change
+   const handleStudentDataChange = (dataName, dataValue) => {
+      setUserData({ ...userData, [dataName]: dataValue.toUpperCase() });
+      setUserDataError(prev => ({ ...prev, [dataName]: '' }));
+   }
+
+   const handleStudentReset = (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setUserDataError([]);
+      setUpazilas([]);
+      setValidated(false);
+
+      setInsertSuccess(false);
+      setInsertError(false);
+      setInsertLoading(false);
+
+      setUserData({
+         ...userData, name: '', father: '', mother: '', gender: '', religion: '', birth_reg: '', dob: '', quota: '', disability: '', upazila: '', address: '', mobile: '', class_shift: '', class_section: '', class_roll: ''
+      });
+      setProfileImageError(false);
+      setProfileImageFile(null);
+      setProfileImagePreview(null);
+   };
+
+   const handleSearchReset = (event) => {
+      event.preventDefault();
+      removeCookie('jwEntry');
+      setSearchDataError([]);
+      setValidated(false);
+
+      setSearchSuccess(false);
+      setSearchError(false);
+      setSearchLoading(false);
+
+      setInsertSuccess(false);
+      setInsertError(false);
+      setInsertLoading(false);
+
+      setValidSearch(false);
+
+      setSearchData({
+         user_form: '200020711422330002', user_eiin: eiin, user_session: '', user_class: '', user_group: '', user_version: '', user_application: '', user_paid: '03'
+      });
+      setPrevInvoice('');
+      setDatesData([]);
+   };
+
+   //Handle District Change
+   const handleDistrictChange = (value) => {
+      setUserData({ ...userData, en_dist: value });
+      setUpazilas([]);
+   };
+
+   // Hanlde Payment
+   const handlePayment = async () => {
+      const payInitiate = async () => {
+         setPayLoading(`পেমেন্ট ‍শুরু হচ্ছে... অপেক্ষা করুন...`);
+         setPayError(false);
+         setPaySuccess(false);
+         try {
+            const response = await axios.post(`${BACKEND_URL}/student/registration/payment/initiate?`, { user_form: searchData.user_form, user_eiin: searchData.user_eiin, user_session: searchData.user_session, user_class: searchData.user_class, user_group: searchData.user_group, user_version: searchData.user_version, user_application: searchData.user_application, user_paid: searchData.user_paid, user_st_total: String(stData.length), user_pay_total: String(totalAmount), prev_invoice: prevInvoice });
+            if (response.status === 200) {
+               setPaySuccess(response.data.message);
+               // console.log(response.data.data);
+               window.location.href = response.data.data.RedirectToGateway;
+            } else {
+               setPayError(response.data.message);
+            }
+         } catch (err) {
+
+
+    if (err.status === 401) {
+        navigate("/auth/sign-out");
+        
+    }
+setPayError(err.message);
+         } finally {
+            setPayLoading(false);
+         }
+      }
+      payInitiate();
+   };
+
+   // List of Sections
+   useEffect(() => {
+      const sections = [];
+      for (let i = 0; i < 26; i++) {
+         sections.push({ value: String.fromCharCode(65 + i), label: String.fromCharCode(65 + i) });
+      }
+      setOptionSections(sections);
+      if (!validSearch) removeCookie('jwEntry');
+   }, []);// eslint-disable-line react-hooks/exhaustive-deps
+
+   // Cleanup Old Blob URL
+   useEffect(() => {
+      return () => {
+         if (profileImagePreview) {
+            URL.revokeObjectURL(profileImagePreview);
+         }
+      };
+   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+   // Date Set for Disability
+   useEffect(() => {
+      if (userData.disability) {
+         let startDob = new Date(datesData.dob_start);
+         startDob.setFullYear(startDob.getFullYear() - 5);
+         startDob = startDob.toISOString().split('T')[0];
+         userData.disability === "01" ? setDateDisability(false) : setDateDisability(startDob);
+      }
+   }, [userData.disability]);// eslint-disable-line react-hooks/exhaustive-deps
+
+   // Fetch District
+   useEffect(() => {
+      const fetchDistrict = async () => {
+         setOptionDistricts([]);
+         setInsertLoading("জেলার তথ্য খুঁজা হচ্ছে! অপেক্ষা করুন!");
+         try {
+            const response = await axios.post(`${BACKEND_URL}/district-list`);
+            setDistricts(response.data);
+         } catch (err) {
+
+
+    if (err.status === 401) {
+        navigate("/auth/sign-out");
+        
+    }
+// console.error(`Error Fetching Districts: ${err}`);
+            setInsertError("জেলার তথ্য খুঁজে পাওয়া যায়নি! আবার প্রথম থেকে চেষ্টা করুন!");
+            if (err.status === 401) {
+               navigate("/auth/sign-out");
+               
+            }
+         } finally {
+            setInsertLoading(false);
+         }
+      }
+
+      fetchDistrict();
+   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+   // Districts Option
+   useEffect(() => {
+      if (districts.length > 0) {
+         const newOptions = districts.map(district => ({
+            value: district.en_dist,
+            label: district.en_dist
+         }));
+         setOptionDistricts(newOptions);
+      }
+   }, [districts]); // eslint-disable-line react-hooks/exhaustive-deps
+
+   //Fetch Upazila List
+   useEffect(() => {
+      const fetchUpazila = async () => {
+         if (userData.en_dist) {
+            var selectedDistrict = userData.en_dist;
+            setInsertLoading("উপজেলার তথ্য খুঁজা হচ্ছে! অপেক্ষা করুন!");
+            try {
+               const response = await axios.post(`${BACKEND_URL}/district-list/upzila?`, { selectedDistrict });
+               setUpazilas(response.data);
+            } catch (err) {
+
+
+    if (err.status === 401) {
+        navigate("/auth/sign-out");
+        
+    }
+// console.error(`Error Fetching Upazilas: ${err}`);
+               setInsertError("উপজেলার তথ্য খুঁজে পাওয়া যায়নি! আবার জেলা নির্বাচন করুন!");
+               if (err.status === 401) {
+                  navigate("/auth/sign-out");
+                  return null;
+               }
+            } finally {
+               setInsertLoading(false);
+            }
+         }
+      };
+      fetchUpazila();
+   }, [userData.en_dist]);// eslint-disable-line react-hooks/exhaustive-deps
+
+   // Return if no session
+   if (!ceb_session) {
+      return null;
+   }
+
+   if (regPay && validSearch && profileImageList && (ceb_session.ceb_user_type === '13' || ceb_session.ceb_user_office === '05' || ceb_session.ceb_user_role === '17')) return (
+      <Fragment>
+         <Row>
+            <Col md={12}>
+               <Card className='p-0 m-0'>
+                  <Card.Body className='m-0 p-2 d-flex flex-column justify-content-center align-items-center'>
+                     <h4 className={styles.SiyamRupaliFont + " text-center text-uppercase card-title py-1"}>নিবন্ধিত (অপেক্ষমান/Pending) শিক্ষার্থীদের ফি</h4>
+                     {insName && <h5 className="text-uppercase text-center py-1 text-primary">{insName}</h5>}
+                     {searchLoading && <h6 className="text-uppercase text-center py-1 text-info">{searchLoading}</h6>}
+                     {searchError && <h6 className="text-uppercase text-center py-1 text-danger">{searchError}</h6>}
+                     {searchSuccess && <p className="text-uppercase text-center py-1 text-success"><small><i>{searchSuccess}</i></small></p>}
+                     {payLoading && <p className="text-uppercase text-center py-1 text-primary"><small><i>{payLoading}</i></small></p>}
+                     {payError && <p className="text-uppercase text-center py-1 text-danger"><small><i>{payError}</i></small></p>}
+                     {paySuccess && <p className="text-uppercase text-center py-1 text-success"><small><i>{paySuccess}</i></small></p>}
+                  </Card.Body>
+               </Card>
+            </Col>
+            <Col md="12">
+               <Card>
+                  <Card.Body className="p-0 m-0">
+                     <Row ref={printRef} className="d-flex justify-content-center align-items-center">
+                        <Col md={12} className={styles.print_show + " pb-2 border-2 border-bottom border-dark"}>
+                           <div className="d-flex justify-content-center align-items-start gap-2">
+                              <LogoMedium color={true} />
+                              <div className='flex-fill'>
+                                 {/* <p className="logo-title text-center border border-1 border-dark fs-6 m-0  p-0"><span className={styles.SiyamRupaliFont}>নকলকে না বলি, দিন বদলের দৃঢ় প্রত্যয়ে দেশটাকে গড়ে তুলি</span></p> */}
+                                 <h4 className="logo-title text-center p-1"><span className={styles.SiyamRupaliFont}>মাধ্যমিক ও উচ্চমাধ্যমিক শিক্ষা বোর্ড, কুমিল্লা</span></h4>
+                                 <h5 className="logo-title text-center p-1"><span className={styles.SiyamRupaliFont}>লাকসাম রোড, কান্দিরপাড়, কুমিল্লা</span></h5>
+                                 <h6 className="logo-title text-center p-1"><small className={styles.SiyamRupaliFont}>ফোনঃ <i>(+৮৮০) ২৩৩৪৪০৬৩২৮</i>, ইমেইলঃ <i>admin@cumillaboard.gov.bd</i></small></h6>
+                              </div>
+                           </div>
+                        </Col>
+                        <Col md={12} className={styles.print_show + " p-2 border-1 border-bottom border-dark"}>
+                           {insName && <h6 className="text-uppercase card-title text-center py-1">{insName} ({searchData.user_eiin})</h6>}
+                           <h6 className={styles.SiyamRupaliFont + " text-center text-uppercase p-0 m-0"}>নিবন্ধিত (অপেক্ষমান/Pending) শিক্ষার্থীদের ফি বিবরণী</h6>
+                        </Col>
+                        <Col md={10} className="mt-3 table-responsive">
+                           <table id="user-list-table" className="table table-bordered">
+                              <thead>
+                                 <tr className='border border-secondary'>
+                                    <th className='text-center align-top p-1 m-0'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-primary print-nowrap"}>ক্রমিক</span>
+                                    </th>
+                                    <th className='text-center align-top p-1 m-0'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-primary print-nowrap"}>বিবরণ</span>
+                                    </th>
+                                    <th className='text-center align-top p-1 m-0'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-primary print-nowrap"}>পরিমাণ</span>
+                                    </th>
+                                 </tr>
+                              </thead>
+                              <tbody>
+                                 <tr className='border border-secondary'>
+                                    <td className='text-center align-top text-wrap'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-dark print-wrap"}>০১</span>
+                                    </td>
+                                    <td className='text-center align-top'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-dark print-nowrap"}>প্রতিষ্ঠানের নাম</span>
+                                    </td>
+                                    <td className='text-center align-top'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-dark print-wrap"}>{insName}</span>
+                                    </td>
+                                 </tr>
+                                 <tr className='border border-secondary'>
+                                    <td className='text-center align-top text-wrap'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-dark print-wrap"}>০২</span>
+                                    </td>
+                                    <td className='text-center align-top'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-dark print-nowrap"}>সেশন/বছর</span>
+                                    </td>
+                                    <td className='text-center align-top'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-dark print-wrap"}>{searchData.user_session}</span>
+                                    </td>
+                                 </tr>
+                                 <tr className='border border-secondary'>
+                                    <td className='text-center align-top text-wrap'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-dark print-wrap"}>০৩</span>
+                                    </td>
+                                    <td className='text-center align-top'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-dark print-nowrap"}>শ্রেণী</span>
+                                    </td>
+                                    <td className='text-center align-top'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-dark print-wrap"}>{searchData.user_class}</span>
+                                    </td>
+                                 </tr>
+                                 <tr className='border border-secondary'>
+                                    <td className='text-center align-top text-wrap'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-dark print-wrap"}>০৪</span>
+                                    </td>
+                                    <td className='text-center align-top'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-dark print-nowrap"}>মাধ্যম</span>
+                                    </td>
+                                    <td className='text-center align-top'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-dark print-wrap"}>{stData[0].bn_version}</span>
+                                    </td>
+                                 </tr>
+                                 <tr className='border border-secondary'>
+                                    <td className='text-center align-top text-wrap'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-dark print-wrap"}>০৫</span>
+                                    </td>
+                                    <td className='text-center align-top'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-dark print-nowrap"}>বিভাগ</span>
+                                    </td>
+                                    <td className='text-center align-top'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-dark print-wrap"}>{stData[0].bn_group}</span>
+                                    </td>
+                                 </tr>
+                                 <tr className='border border-secondary'>
+                                    <td className='text-center align-top text-wrap'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-dark print-wrap"}>০৬</span>
+                                    </td>
+                                    <td className='text-center align-top'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-dark print-nowrap"}>নিবন্ধনের ধরণ</span>
+                                    </td>
+                                    <td className='text-center align-top'>
+                                       {searchData.user_application === '01' && (
+                                          <span className={styles.SiyamRupaliFont + " text-center text-dark print-wrap"}>
+                                             রেগুলার/সাধারণ নিবন্ধন
+                                          </span>
+                                       )}
+                                       {searchData.user_application === '02' && (
+                                          <span className={styles.SiyamRupaliFont + " text-center text-dark print-wrap"}>
+                                             লেট/বিলম্ব নিবন্ধন
+                                          </span>
+                                       )}
+                                       {searchData.user_application === '03' && (
+                                          <span className={styles.SiyamRupaliFont + " text-center text-dark print-wrap"}>
+                                             স্পেশাল/বিশেষ বিবেচনায় নিবন্ধন
+                                          </span>
+                                       )}
+                                    </td>
+                                 </tr>
+                                 <tr className='border border-secondary'>
+                                    <td className='text-center align-top text-wrap'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-dark print-wrap"}>০৭</span>
+                                    </td>
+                                    <td className='text-center align-top'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-dark print-nowrap"}>মোট শিক্ষার্থী</span>
+                                    </td>
+                                    <td className='text-center align-top'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-dark print-wrap"}>{stData.length}</span>
+                                    </td>
+                                 </tr>
+                                 <tr className='border border-secondary'>
+                                    <td className='text-center align-top text-wrap'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-dark print-wrap"}>০৮</span>
+                                    </td>
+                                    <td className='text-center align-top'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-dark print-nowrap"}>মোট আবেদন ফি</span>
+                                    </td>
+                                    <td className='text-center align-top'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-dark print-wrap"}>{totalAmount}</span>
+                                    </td>
+                                 </tr>
+                              </tbody>
+                              <tfoot>
+                                 <tr className='border border-secondary'>
+                                    <td colSpan={3} className='text-center align-top py-2'>
+                                       <span className={styles.SiyamRupaliFont + " text-center text-dark print-wrap"}>কথায়ঃ {totalAmountWord}</span>
+                                    </td>
+                                 </tr>
+                              </tfoot>
+                           </table>
+                        </Col>
+                     </Row>
+                     {stData.length > 0 && <Row className='d-flex justify-content-center align-items-center my-5'>
+                        <Col md={10} className='d-flex justify-content-center align-items-center gap-5'>
+                           <Button onClick={() => handlePrint()} className='flex-fill' variant="btn btn-primary">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-printer-check-icon lucide-printer-check"><path d="M13.5 22H7a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v.5" /><path d="m16 19 2 2 4-4" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2" /><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6" /></svg> প্রিন্ট
+                           </Button>
+                           <Button type="button" className='flex-fill' onClick={() => setRegPay(false)} variant="btn btn-outline-warning"><span className={styles.SiyamRupaliFont + " text-center"}>ফিরে যান</span></Button>
+                           <Button onClick={() => handlePayment()} className='flex-fill' variant="btn btn-success">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-credit-card-icon lucide-credit-card"><rect width="20" height="14" x="2" y="5" rx="2" /><line x1="2" x2="22" y1="10" y2="10" /></svg> পেমেন্ট করুন
+                           </Button>
+                        </Col>
+                     </Row>}
+                  </Card.Body>
+               </Card>
+            </Col>
+         </Row>
+      </Fragment >
+   )
+
+   // Return if Search is Valid
+   if (validSearch && profileImageList && (ceb_session.ceb_user_type === '13' || ceb_session.ceb_user_office === '05' || ceb_session.ceb_user_role === '17')) return (
+      <Fragment>
+         <Row>
+            <Col md={12}>
+               <Card className='p-0 m-0 py-2'>
+                  <Card.Body className='p-0 m-0 py-2 d-flex flex-column justify-content-center align-items-center'>
+                     <h4 className={styles.SiyamRupaliFont + " text-center text-uppercase card-title py-1"}>নিবন্ধিত (চুড়ান্ত/Final) শিক্ষার্থীদের তালিকা</h4>
+                     {insName && <h5 className="text-uppercase text-center py-1 text-primary">{insName}</h5>}
+                     {searchLoading && <h6 className="text-uppercase text-center py-1 text-info">{searchLoading}</h6>}
+                     {searchError && <h6 className="text-uppercase text-center py-1 text-danger">{searchError}</h6>}
+                     {searchSuccess && <p className="text-uppercase text-center py-1 text-success"><small><i>{searchSuccess}</i></small></p>}
+                  </Card.Body>
+               </Card>
+            </Col>
+            <Col sm="12">
+               <Card>
+                  <Card.Header className='py-1 m-0 d-flex flex-column justify-content-center align-items-center'>
+                     {insertSuccess && <h6 className="text-uppercase text-center py-1 text-success">{insertSuccess}</h6>}
+                     {insertError && <h6 className="text-uppercase text-center py-1 text-danger">{insertError}</h6>}
+                     {insertLoading && <h6 className="text-uppercase text-center py-1 text-primary">{insertLoading}</h6>}
+                  </Card.Header>
+                  <Card.Body className="px-0">
+                     <Row className='d-flex flex-row justify-content-between align-items-center px-4'>
+                        <Col md="5">
+                           <Row>
+                              <Form.Label className="text-primary" htmlFor="per_page_data"><small className={styles.SiyamRupaliFont + " text-wrap text-center text-primary"}>প্রতি পাতায় শিক্ষার্থীর সংখ্যা (সর্বমোট শিক্ষার্থীঃ {stData.length})</small></Form.Label>
+                              <Col md={6}>
+                                 <Form.Select
+                                    id="per_page_data"
+                                    value={rowsPerPage || 10}
+                                    onChange={(e) => handleRowsPerPageChange(e.target.value)}
+                                 // disabled={!uniqueEcoCode || loadingAccountCodes || uniqueEcoCode.length === 0}
+                                 >
+                                    <option disabled value="" className={styles.SiyamRupaliFont + " text-wrap text-center"}>-- শিক্ষার্থীর সংখ্যা সিলেক্ট করুন --</option>
+                                    <option value="10">১০</option>
+                                    <option value="20">২০</option>
+                                    <option value="50">৫০</option>
+                                    <option value="100">১০০</option>
+                                 </Form.Select>
+                              </Col>
+                           </Row>
+                        </Col>
+                        <Col md="2">
+                           <Form.Label className="w-100 text-light text-center" htmlFor="per_page_data">{'.'}</Form.Label>
+                           <Button className="w-100" type="button" onClick={() => setValidSearch(false)} variant="btn btn-outline-primary"><span className={styles.SiyamRupaliFont + " text-center"}>ফিরে যান</span></Button>
+                        </Col>
+                        <Col md="5">
+                           <Row>
+                              <Form.Label className='d-flex justify-content-end text-primary' htmlFor="search_info"> <small className={styles.SiyamRupaliFont + ' text-end text-primary'}>শিক্ষার্থী খুঁজতে নিচের বক্সে লিখুন</small> </Form.Label>
+                              <Col md={4}>
+                                 { }
+                              </Col>
+                              <Col md={8}>
+                                 <Form.Control
+                                    className='bg-transparent text-uppercase form-control-sm'
+                                    type="search"
+                                    id="search_info"
+                                    value={searchValue}
+                                    onChange={(e) => setSearchValue(e.target.value)}
+                                    placeholder="তথ্য খুঁজুন..."
+                                 />
+                              </Col>
+                           </Row>
+                        </Col>
+                     </Row>
+                     <Row ref={printRef} className="table-responsive p-4">
+                        <div className={styles.print_show + ' mb-1'}>
+                           <h4 className={styles.SiyamRupaliFont + " w-100 text-center text-primary text-uppercase py-1"}>মাধ্যমিক ও উচ্চমাধ্যমিক শিক্ষা বোর্ড কুমিল্লা</h4>
+                           {insName && <h6 className="text-uppercase card-title text-center py-1">{insName}</h6>}
+                           <h6 className={styles.SiyamRupaliFont + " text-center text-uppercase py-1"}>নিবন্ধিত (চুড়ান্ত/Final) শিক্ষার্থীদের তালিকা</h6>
+                           <p className='text-center'>
+                              <small className={styles.SiyamRupaliFont + " w-100 text-center text-uppercase py-1"}>
+                                 সর্বমোট ‍শিক্ষার্থীঃ {stData.length} আবেদনের ধরণঃ
+                                 {searchData.user_application === '01' && <span> রেগুলার আবেদন</span>}
+                                 {searchData.user_application === '02' && <span> লেট আবেদন</span>}
+                                 {searchData.user_application === '03' && <span> স্পেশাল আবেদন</span>}
+                              </small>
+                           </p>
+                        </div>
+                        <table id="user-list-table" className="table table-bordered">
+                           <thead>
+                              <tr className='border border-secondary'>
+                                 <th className='text-center align-top p-1 m-0'>
+                                    <span className={styles.SiyamRupaliFont + " text-center text-primary print-nowrap"}>ক্রমিক</span>
+                                 </th>
+                                 <th className='text-center align-top p-1 m-0'>
+                                    <p className={styles.SiyamRupaliFont + " text-center text-primary print-nowrap m-0 p-0"}>নাম</p>
+                                    <p className={styles.SiyamRupaliFont + " text-center text-primary print-nowrap m-0 p-0 py-1"}>পিতার নাম</p>
+                                    <p className={styles.SiyamRupaliFont + " text-center text-primary print-nowrap m-0 p-0"}>মাতার নাম</p>
+                                 </th>
+                                 <th className='text-center align-top p-1 m-0'>
+                                    <p className={styles.SiyamRupaliFont + " text-center text-primary print-nowrap m-0 p-0"}>জেন্ডার/লিঙ্গ</p>
+                                    <p className={styles.SiyamRupaliFont + " text-center text-primary print-nowrap m-0 p-0 py-1"}>ধর্ম</p>
+                                    <p className={styles.SiyamRupaliFont + " text-center text-primary print-nowrap m-0 p-0"}>ভার্সন/মাধ্যম</p>
+                                 </th>
+                                 <th className='text-center align-top p-1 m-0'>
+                                    <p className={styles.SiyamRupaliFont + " text-center text-primary print-nowrap m-0 p-0"}>জন্মনিবন্ধন নম্বর</p>
+                                    <p className={styles.SiyamRupaliFont + " text-center text-primary print-nowrap m-0 p-0 py-1"}>জন্ম তারিখ</p>
+                                    <p className={styles.SiyamRupaliFont + " text-center text-primary print-nowrap m-0 p-0"}>প্রতিষ্ঠান</p>
+                                 </th>
+                                 <th className='text-center align-top p-1 m-0'>
+                                    <p className={styles.SiyamRupaliFont + " text-center text-primary print-nowrap m-0 p-0"}>শিফট</p>
+                                    <p className={styles.SiyamRupaliFont + " text-center text-primary print-nowrap m-0 p-0 py-1"}>শাখা</p>
+                                    <p className={styles.SiyamRupaliFont + " text-center text-primary print-nowrap m-0 p-0"}>রোল নম্বর</p>
+                                 </th>
+                                 <th className='text-center align-top p-1 m-0'>
+                                    <p className={styles.SiyamRupaliFont + " text-center text-primary print-nowrap"}>ছবি</p>
+                                 </th>
+                                 <th className='text-center align-top p-1 m-0 print-hide'>
+                                    <span className={styles.SiyamRupaliFont + " text-center text-primary"}>সম্পাদনা</span>
+                                 </th>
+                              </tr>
+                           </thead>
+                           <tbody>
+                              {
+                                 filteredData.map((item, idx) => (
+                                    <tr key={idx} className='border border-secondary'>
+                                       <td className='text-center align-top text-wrap'>
+                                          {(currentPage - 1) * rowsPerPage + idx + 1}
+                                       </td>
+                                       <td className='text-center align-top'>
+                                          <p className='text-center text-wrap m-0 p-0'>{item.st_name}</p>
+                                          <p className='text-center text-wrap m-0 p-0'>{item.st_father}</p>
+                                          <p className='text-center text-wrap m-0 p-0'>{item.st_mother}</p>
+                                       </td>
+                                       <td className='text-center align-top'>
+                                          <p className='text-center text-wrap m-0 p-0'>{item.en_gender}</p>
+                                          <p className='text-center text-wrap m-0 p-0'>{item.en_religion}</p>
+                                          <p className='text-center text-wrap m-0 p-0'>{item.en_version}</p>
+                                       </td>
+                                       <td className='text-center align-top'>
+                                          <p className='text-center text-wrap m-0 p-0'>{item.st_breg}</p>
+                                          <p className='text-center text-wrap m-0 p-0'>{item.st_dob}</p>
+                                          <p className='text-uppercase text-center text-wrap m-0 p-0'>{item.st_eiin}</p>
+                                       </td>
+                                       <td className='text-center align-top'>
+                                          <p className='text-center text-wrap m-0 p-0'>{item.en_shift}</p>
+                                          <p className='text-center text-wrap m-0 p-0'>{item.st_section}</p>
+                                          <p className='text-center text-wrap m-0 p-0'>{item.st_ins_roll}</p>
+                                       </td>
+                                       <td className='text-center align-center'>
+                                          <Image className="text-center  m-0 p-0" style={{ minWidth: "96px", minHeight: "96px", maxWidth: "96px", maxHeight: "96px" }} src={profileImageList[item.st_id].url} alt={`Profile Image of ${item.st_name}`} />
+                                       </td>
+                                       <td className="text-center align-center print-hide">
+                                          <div className='d-flex justify-content-center align-items-center gap-3'>
+                                             <Button className='m-0 p-1' type="button" onClick={() => handleEditClick(item)} variant="btn btn-success" data-toggle="tooltip" data-placement="top" title="সম্পাদনা" data-original-title="সম্পাদনা">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-square-pen-icon lucide-square-pen"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z" /></svg>
+                                             </Button>
+                                             <Button className='m-0 p-1' type="button" onClick={() => handleDeleteClick(item)} variant="btn btn-danger" data-toggle="tooltip" data-placement="top" title="বাতিল" data-original-title="বাতিল">
+                                                <span className="btn-inner">
+                                                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-square-x"><rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><path d="m15 9-6 6" /><path d="m9 9 6 6" /></svg>
+                                                </span>
+                                             </Button>
+                                          </div>
+                                       </td>
+                                    </tr>
+                                 ))
+                              }
+                           </tbody>
+                        </table>
+                     </Row>
+                     {totalPage > 0 && <Row className='d-flex justify-content-center align-items-center px-4'>
+                        <Col md={5}>
+                           <Button className='m-0 p-0 py-1 bg-transparent' variant="btn btn-link"><span className={styles.SiyamRupaliFont}>শিক্ষার্থী {((currentPage - 1) * rowsPerPage) + 1} থেকে {currentPage * rowsPerPage > stData.length ? stData.length : currentPage * rowsPerPage} পর্যন্ত</span></Button>
+                        </Col>
+                        <Col md={2} className='d-flex justify-content-center align-items-center'>
+                           { }
+                        </Col>
+                        <Col md={5} className='d-flex justify-content-end align-items-end gap-1'>
+                           <Button className='flex-fill m-0 p-0 py-1' disabled={currentPage === 1} value={1} onClick={(e) => handleSetCurrentPage(e.target.value)} variant="btn btn-light">{"<<"}</Button>
+                           <Button className='flex-fill m-0 p-0 py-1' disabled={currentPage === 1} value={currentPage - 1} onClick={(e) => handleSetCurrentPage(e.target.value)} variant="btn btn-light">{"<"}</Button>
+                           {currentPage > 1 && <Button value={currentPage - 1} onClick={(e) => handleSetCurrentPage(e.target.value)} className='flex-fill m-0 p-0  py-1' variant="btn btn-light">{currentPage - 1}</Button>}
+                           <Button value={currentPage} onClick={(e) => handleSetCurrentPage(e.target.value)} className='flex-fill m-0 p-0 py-1' variant="btn btn-primary">{currentPage}</Button>
+                           {totalPage - currentPage > 0 && <Button value={currentPage + 1} onClick={(e) => handleSetCurrentPage(e.target.value)} className='flex-fill m-0 p-0 py-1' variant="btn btn-light">{currentPage + 1}</Button>}
+                           <Button disabled={currentPage === totalPage} value={currentPage + 1} onClick={(e) => handleSetCurrentPage(e.target.value)} className='flex-fill m-0 p-0 py-1' variant="btn btn-light">{">"}</Button>
+                           <Button disabled={currentPage === totalPage} value={totalPage} onClick={(e) => handleSetCurrentPage(e.target.value)} className='flex-fill m-0 p-0 py-1' variant="btn btn-light">{">>"}</Button>
+                        </Col>
+                     </Row>}
+                     {totalPage > 0 && <Row>
+                        <Col md={12} className='d-flex justify-content-center align-items-center m-0 p-5 gap-5'>
+                           <Button onClick={() => handlePrint()} className='flex-fill' variant="btn btn-primary">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-printer-check-icon lucide-printer-check"><path d="M13.5 22H7a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v.5" /><path d="m16 19 2 2 4-4" /><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v2" /><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6" /></svg> প্রিন্ট লিস্ট
+                           </Button>
+                           <Button className="flex-fill" type="button" onClick={() => setValidSearch(false)} variant="btn btn-outline-warning"><span className={styles.SiyamRupaliFont + " text-center"}>ফিরে যান</span></Button>
+                           {curDateTime >= datesData.pay_start && curDateTime <= datesData.pay_end &&
+                              <Button onClick={() => setRegPay(true)} className='flex-fill' variant="btn btn-success">
+                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-credit-card-icon lucide-credit-card"><rect width="20" height="14" x="2" y="5" rx="2" /><line x1="2" x2="22" y1="10" y2="10" /></svg> পেমেন্ট বিস্তারিত
+                              </Button>
+                           }
+                        </Col>
+                     </Row>}
+                  </Card.Body>
+               </Card>
+            </Col>
+         </Row>
+         {studentUpdate && (
+            <Modal
+               show={updateShow}
+               onHide={() => setUpdateShow(false)}
+               backdrop="static"
+               keyboard={false}
+               fullscreen={false}
+               className='modal-xl'
+            >
+               <Modal.Header closeButton>
+                  <Modal.Title className='text-center w-100'>
+                     <span className={styles.SiyamRupaliFont + ' text-center'}>শিক্ষার্থীর তথ্য সংশোধন ফর্ম</span>
+                     <br />
+                     {insName && <h6 className="text-uppercase text-center text-primary">({insName})</h6>}
+                  </Modal.Title>
+               </Modal.Header>
+               <Modal.Body>
+                  <Row className='d-flex justify-content-center align-items-center'>
+                     {/* <Col md={12}>
+                        <Card className='p-0 m-0'>
+                           <Card.Body className='p-0 m-0'>
+                              {insName && <h6 className="text-uppercase text-center text-primary">{insName}</h6>}
+                           </Card.Body>
+                        </Card>
+                     </Col> */}
+                     <Col md={12}>
+                        <Form noValidate onSubmit={handleSubmit} onReset={handleStudentReset}>
+                           <Card>
+                              <Card.Header className="m-0 p-0">
+                                 <Col md={12}>
+                                    {insertSuccess && <h6 className="text-uppercase text-center py-1 text-success">{insertSuccess}</h6>}
+                                    {insertError && <h6 className="text-uppercase text-center py-1 text-danger">{insertError}</h6>}
+                                    {insertLoading && <h6 className="text-uppercase text-center py-1 text-primary">{insertLoading}</h6>}
+                                    <h5 className="text-center card-title">ব্যক্তিগত তথ্য</h5>
+                                 </Col>
+                              </Card.Header>
+                              <Card.Body>
+                                 <Row>
+                                    <Col className='my-2' md={9}>
+                                       <Row>
+                                          <Col className='my-2' md={12}>
+                                             <Form.Label className="text-primary" htmlFor="user_name">Name</Form.Label>
+                                             <Form.Control
+                                                className='bg-transparent text-uppercase'
+                                                type="text"
+                                                maxLength={40}
+                                                id="user_name"
+                                                value={userData.name}
+                                                isInvalid={validated && !!userDataError.name}
+                                                isValid={validated && userData.name && !userDataError.name}
+                                                onChange={(e) => handleStudentDataChange('name', e.target.value)}
+                                             />
+                                             {validated && userDataError.name && (
+                                                <Form.Control.Feedback type="invalid">
+                                                   {userDataError.name}
+                                                </Form.Control.Feedback>
+                                             )}
+                                          </Col>
+                                          <Col className='my-2' md={12}>
+                                             <Form.Label className="text-primary" htmlFor="user_father">Father's Name</Form.Label>
+                                             <Form.Control
+                                                className='bg-transparent text-uppercase'
+                                                type="text"
+                                                maxLength={40}
+                                                id="user_father"
+                                                value={userData.father}
+                                                isInvalid={validated && !!userDataError.father}
+                                                isValid={validated && userData.father && !userDataError.father}
+                                                onChange={(e) => handleStudentDataChange('father', e.target.value)}
+                                             />
+                                             {validated && userDataError.father && (
+                                                <Form.Control.Feedback type="invalid">
+                                                   {userDataError.father}
+                                                </Form.Control.Feedback>
+                                             )}
+                                          </Col>
+                                          <Col className='my-2' md={12}>
+                                             <Form.Label className="text-primary" htmlFor="user_mother">Mother's Name</Form.Label>
+                                             <Form.Control
+                                                className='bg-transparent text-uppercase'
+                                                type="text"
+                                                maxLength={40}
+                                                id="user_mother"
+                                                value={userData.mother}
+                                                isInvalid={validated && !!userDataError.mother}
+                                                isValid={validated && userData.mother && !userDataError.mother}
+                                                onChange={(e) => handleStudentDataChange('mother', e.target.value)}
+                                             />
+                                             {validated && userDataError.mother && (
+                                                <Form.Control.Feedback type="invalid">
+                                                   {userDataError.mother}
+                                                </Form.Control.Feedback>
+                                             )}
+                                          </Col>
+                                       </Row>
+                                    </Col>
+                                    <Col md={3}>
+                                       <Card>
+                                          <Card.Header className="mb-0 pb-0">
+                                             <label className="text-primary w-100 text-center" htmlFor='profile_image'>Student's Image</label>
+                                          </Card.Header>
+                                          <Card.Body className="position-relative m-0 p-0 d-flex justify-content-center align-items-center">
+                                             {profileImagePreview && <Image className="w-50 h-50 img-thumbnail text-center" src={profileImagePreview} alt="Student's Image" />}
+                                             {!profileImagePreview && <svg xmlns="http://www.w3.org/2000/svg" width="50%" height="50%" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-square-user-round-icon lucide-square-user-round"><path d="M18 21a6 6 0 0 0-12 0" /><circle cx="12" cy="11" r="4" /><rect width="18" height="18" x="3" y="3" rx="2" /></svg>}
+                                             <div className="upload-icone bg-primary position-absolute top-100 start-50 translate-middle">
+                                                <svg className="upload-button" width="14" height="14" viewBox="0 0 24 24">
+                                                   <path fill="#ffffff" d="M14.06,9L15,9.94L5.92,19H5V18.08L14.06,9M17.66,3C17.41,3 17.15,3.1 16.96,3.29L15.13,5.12L18.88,8.87L20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18.17,3.09 17.92,3 17.66,3M14.06,6.19L3,17.25V21H6.75L17.81,9.94L14.06,6.19Z" />
+                                                </svg>
+                                                <input id='profile_image' className="form-control-file position-absolute top-100 start-50 translate-middle opacity-0" type="file" accept=".jpg,.jpeg" onChange={handleProfileImageSelect} />
+                                             </div>
+                                          </Card.Body>
+                                          <small className='my-2 pt-2 text-center'>
+                                             <i>
+                                                Only <span className='text-primary'>.jpeg & .jpg</span> allowed
+                                             </i>
+                                             <br />
+                                             <i>
+                                                Max Size <span className='text-primary'>100kb</span>
+                                             </i>
+                                             <br />
+                                             <i>
+                                                Dimension <span className='text-primary'>300x300</span>
+                                             </i>
+                                          </small>
+                                          {profileImageError && <small className='text-center'>
+                                             <i className='text-danger'>
+                                                {profileImageError}
+                                             </i>
+                                          </small>}
+                                       </Card>
+                                    </Col>
+                                 </Row>
+                                 <Row>
+                                    <Col className='my-2' md={4}>
+                                       <Form.Group className="bg-transparent">
+                                          <Form.Label className="text-primary" htmlFor='user_gender'>Gender</Form.Label>
+                                          <Form.Select
+                                             id="user_gender"
+                                             value={userData.gender}
+                                             isInvalid={validated && !!userDataError.gender}
+                                             isValid={validated && userData.gender && !userDataError.gender}
+                                             onChange={(e) => handleStudentDataChange('gender', e.target.value)}
+                                             className="selectpicker form-control"
+                                             data-style="py-0"
+                                          >
+                                             <option value=''>--Select Gender--</option>
+                                             <option value='01'>Male</option>
+                                             <option value='02'>Female</option>
+                                             <option value='03'>Other</option>
+                                          </Form.Select>
+                                          {validated && userDataError.gender && (
+                                             <Form.Control.Feedback type="invalid">
+                                                {userDataError.gender}
+                                             </Form.Control.Feedback>
+                                          )}
+                                       </Form.Group>
+                                    </Col>
+                                    <Col className='my-2' md={4}>
+                                       <Form.Group className="bg-transparent">
+                                          <Form.Label className="text-primary" htmlFor='user_religion'>Religion</Form.Label>
+                                          <Form.Select
+                                             id="user_religion"
+                                             value={userData.religion}
+                                             isInvalid={validated && !!userDataError.religion}
+                                             isValid={validated && userData.religion && !userDataError.religion}
+                                             onChange={(e) => handleStudentDataChange('religion', e.target.value)}
+                                             className="selectpicker form-control"
+                                             data-style="py-0"
+                                          >
+                                             <option value=''>--Select Religion--</option>
+                                             <option value='01'>Islam</option>
+                                             <option value='02'>Sanatan</option>
+                                             <option value='03'>Buddhist</option>
+                                             <option value='04'>Christian</option>
+                                          </Form.Select>
+                                          {validated && userDataError.religion && (
+                                             <Form.Control.Feedback type="invalid">
+                                                {userDataError.religion}
+                                             </Form.Control.Feedback>
+                                          )}
+                                       </Form.Group>
+                                    </Col>
+                                    <Col className='my-2' md={4}>
+                                       <Form.Group className="bg-transparent">
+                                          <Form.Label className="text-primary" htmlFor='user_disability'>Disability</Form.Label>
+                                          <Form.Select
+                                             id="user_disability"
+                                             value={userData.disability}
+                                             isInvalid={validated && !!userDataError.disability}
+                                             isValid={validated && userData.disability && !userDataError.disability}
+                                             onChange={(e) => handleStudentDataChange('disability', e.target.value)}
+                                             className="selectpicker form-control"
+                                             data-style="py-0"
+                                          >
+                                             <option value=''>--Select Disability--</option>
+                                             <option value='01'>None</option>
+                                             <option value='02'>Hearing</option>
+                                             <option value='03'>Vission</option>
+                                             <option value='04'>Intellectual</option>
+                                             <option value='05'>Speaking</option>
+                                             <option value='99'>Multiple</option>
+                                          </Form.Select>
+                                          {validated && userDataError.disability && (
+                                             <Form.Control.Feedback type="invalid">
+                                                {userDataError.disability}
+                                             </Form.Control.Feedback>
+                                          )}
+                                       </Form.Group>
+                                    </Col>
+                                    <Col className='my-2' md={4}>
+                                       <Form.Group className="bg-transparent">
+                                          <Form.Label className="text-primary" htmlFor='user_quota'>Quota</Form.Label>
+                                          <Form.Select
+                                             id="user_quota"
+                                             value={userData.quota}
+                                             isInvalid={validated && !!userDataError.quota}
+                                             isValid={validated && userData.quota && !userDataError.quota}
+                                             onChange={(e) => handleStudentDataChange('quota', e.target.value)}
+                                             className="selectpicker form-control"
+                                             data-style="py-0"
+                                          >
+                                             <option value=''>--Select Quota--</option>
+                                             <option value='01'>General</option>
+                                             <option value='02'>Freedom Fighter</option>
+                                             <option value='03'>Ethnic Minority</option>
+                                             <option value='04'>Disability</option>
+                                             <option value='99'>Others</option>
+                                          </Form.Select>
+                                          {validated && userDataError.quota && (
+                                             <Form.Control.Feedback type="invalid">
+                                                {userDataError.quota}
+                                             </Form.Control.Feedback>
+                                          )}
+                                       </Form.Group>
+                                    </Col>
+                                    <Col className='my-2' md={4}>
+                                       <Form.Label className="text-primary" htmlFor="birth_reg">Birth Registration Number</Form.Label>
+                                       <Form.Control
+                                          className='bg-transparent text-uppercase'
+                                          type="text"
+                                          minLength={17}
+                                          maxLength={17}
+                                          id="birth_reg"
+                                          value={userData.birth_reg}
+                                          isInvalid={validated && !!userDataError.birth_reg}
+                                          isValid={validated && userData.birth_reg && !userDataError.birth_reg}
+                                          onChange={(e) => handleStudentDataChange('birth_reg', e.target.value)}
+                                       />
+                                       {validated && userDataError.birth_reg && (
+                                          <Form.Control.Feedback type="invalid">
+                                             {userDataError.birth_reg}
+                                          </Form.Control.Feedback>
+                                       )}
+                                    </Col>
+                                    <Col className='my-2' md={4}>
+                                       <Form.Label className="text-primary" htmlFor="user_dob">Birth Date</Form.Label>
+                                       <Form.Control
+                                          className='bg-transparent text-uppercase'
+                                          type="date"
+                                          id="user_dob"
+                                          value={userData.dob}
+                                          min={dateDisability || datesData.dob_start}
+                                          max={datesData.dob_end}
+                                          isInvalid={validated && !!userDataError.dob}
+                                          isValid={validated && userData.dob && !userDataError.dob}
+                                          onChange={(e) => handleStudentDataChange('dob', e.target.value)}
+                                       />
+                                       {validated && userDataError.dob && (
+                                          <Form.Control.Feedback type="invalid">
+                                             {userDataError.dob}
+                                          </Form.Control.Feedback>
+                                       )}
+                                    </Col>
+                                    <Col className='my-2' md={6}>
+                                       <Form.Group>
+                                          <label className="text-primary mb-2" htmlFor='user_dist'>District</label>
+                                          <Select
+                                             inputId="user_dist"
+                                             placeholder="--Select District--"
+                                             value={
+                                                optionDistricts.find(opt => opt.value === userData.en_dist) || null
+                                             }
+                                             onChange={(value) =>
+                                                value ? handleDistrictChange(value.value) : handleDistrictChange('')
+                                             }
+                                             options={optionDistricts}
+                                             isClearable={true}
+                                             isSearchable={true}
+                                          />
+                                       </Form.Group>
+                                    </Col>
+                                    <Col className='my-2' md={6}>
+                                       <Form.Label className="text-primary" htmlFor="user_upz">Upazila</Form.Label>
+                                       <Form.Select
+                                          id="user_upz"
+                                          value={userData.upazila}
+                                          onChange={(e) => handleStudentDataChange('upazila', e.target.value)}
+                                          isInvalid={validated && !!userDataError.upazila}
+                                          isValid={validated && userData.upazila && !userDataError.upazila}
+                                          disabled={upazilas.length === 0}
+                                       >
+                                          <option value="">-- Select Upazila --</option>
+                                          {upazilas.map((upazila, index) => (
+                                             <option key={index} value={upazila.id_uzps}>
+                                                {upazila.en_uzps}
+                                             </option>
+                                          ))}
+                                       </Form.Select>
+                                       {validated && userDataError.upazila && (
+                                          <Form.Control.Feedback type="invalid">
+                                             {userDataError.upazila}
+                                          </Form.Control.Feedback>
+                                       )}
+                                    </Col>
+                                    <Col className='my-2' md={6}>
+                                       <Form.Label className="text-primary" htmlFor="user_address">Address</Form.Label>
+                                       <Form.Control
+                                          className='bg-transparent text-uppercase'
+                                          type="text"
+                                          id="user_address"
+                                          value={userData.address}
+                                          isInvalid={validated && !!userDataError.address}
+                                          isValid={validated && userData.address && !userDataError.address}
+                                          onChange={(e) => handleStudentDataChange('address', e.target.value)}
+                                       />
+                                       {validated && userDataError.address && (
+                                          <Form.Control.Feedback type="invalid">
+                                             {userDataError.address}
+                                          </Form.Control.Feedback>
+                                       )}
+                                    </Col>
+                                    <Col className='my-2' md={6}>
+                                       <Form.Label className="text-primary" htmlFor="user_mobile">Guardian's Mobile</Form.Label>
+                                       <Form.Control
+                                          className='bg-transparent text-lowercase'
+                                          type="text"
+                                          minLength={11}
+                                          maxLength={11}
+                                          id="user_mobile"
+                                          value={userData.mobile}
+                                          isInvalid={validated && !!userDataError.mobile}
+                                          isValid={validated && userData.mobile && !userDataError.mobile}
+                                          onChange={(e) => handleStudentDataChange('mobile', e.target.value)}
+                                       />
+                                       {validated && userDataError.mobile && (
+                                          <Form.Control.Feedback type="invalid">
+                                             {userDataError.mobile}
+                                          </Form.Control.Feedback>
+                                       )}
+                                    </Col>
+                                 </Row>
+                              </Card.Body>
+                           </Card>
+                           <Card>
+                              <Card.Header>
+                                 <h5 className="text-center w-100 card-title">প্রাতিষ্ঠানিক তথ্য</h5>
+                              </Card.Header>
+                              <Card.Body>
+                                 <Row>
+                                    <Col className='my-2' md={4}>
+                                       <Form.Group className="bg-transparent">
+                                          <Form.Label className="text-primary" htmlFor='class_shift'>Shift</Form.Label>
+                                          <Form.Select
+                                             id="class_shift"
+                                             value={userData.class_shift}
+                                             isInvalid={validated && !!userDataError.class_shift}
+                                             isValid={validated && userData.class_shift && !userDataError.class_shift}
+                                             onChange={(e) => handleStudentDataChange('class_shift', e.target.value)}
+                                             className="selectpicker form-control"
+                                             data-style="py-0"
+                                          >
+                                             <option value=''>--Select Shift--</option>
+                                             <option value='01'>Morning</option>
+                                             <option value='02'>Day</option>
+                                             <option value='03'>Noon</option>
+                                          </Form.Select>
+                                          {validated && userDataError.class_shift && (
+                                             <Form.Control.Feedback type="invalid">
+                                                {userDataError.class_shift}
+                                             </Form.Control.Feedback>
+                                          )}
+                                       </Form.Group>
+                                    </Col>
+                                    <Col className='my-2' md={4}>
+                                       <Form.Group>
+                                          <label className="text-primary mb-2" htmlFor='class_section'>Section</label>
+                                          <Select
+                                             inputId="class_section"
+                                             placeholder="--Select Section--"
+                                             value={
+                                                optionSections.find(opt => opt.value === userData.class_section) || null
+                                             }
+                                             onChange={(e) => e ? handleStudentDataChange('class_section', e.value) : handleStudentDataChange('class_section', '')}
+                                             options={optionSections}
+                                             isClearable={true}
+                                             isSearchable={true}
+                                          />
+                                       </Form.Group>
+                                       {validated && userDataError.class_section && (
+                                          <small className='text-danger'>{userDataError.class_section}</small>
+                                       )}
+                                    </Col>
+                                    <Col className='my-2' md={4}>
+                                       <Form.Label className="text-primary" htmlFor="class_roll">Class Roll</Form.Label>
+                                       <Form.Control
+                                          className='bg-transparent text-lowercase'
+                                          type="text"
+                                          minLength={1}
+                                          maxLength={5}
+                                          id="class_roll"
+                                          value={userData.class_roll}
+                                          isInvalid={validated && !!userDataError.class_roll}
+                                          isValid={validated && userData.class_roll && !userDataError.class_roll}
+                                          onChange={(e) => handleStudentDataChange('class_roll', e.target.value)}
+                                       />
+                                       {validated && userDataError.class_roll && (
+                                          <Form.Control.Feedback type="invalid">
+                                             {userDataError.class_roll}
+                                          </Form.Control.Feedback>
+                                       )}
+                                    </Col>
+                                 </Row>
+                              </Card.Body>
+                              <Card.Footer>
+                                 <Col md={12} className='d-flex justify-content-center gap-3 py-1 mt-4'>
+                                    <Button className='flex-fill' variant="secondary" onClick={() => setUpdateShow(false)}> ফিরে যান </Button>
+                                    <Button className='flex-fill' type="reset" variant="btn btn-danger">রিসেট</Button>
+                                    <Button className='flex-fill' type="submit" variant="btn btn-success">সাবমিট</Button>
+                                 </Col>
+                              </Card.Footer>
+                           </Card>
+                        </Form>
+                     </Col>
+                  </Row>
+               </Modal.Body>
+               <Modal.Footer></Modal.Footer>
+            </Modal>
+         )}
+         {studentDelete && (
+            <Modal
+               show={deleteShow}
+               onHide={() => setDeleteShow(false)}
+               backdrop="static"
+               keyboard={false}
+            >
+               <Modal.Header closeButton>
+                  <Modal.Title><span className={styles.SiyamRupaliFont}>শিক্ষার্থীর নিবন্ধন বাতিল করতে চান?</span></Modal.Title>
+               </Modal.Header>
+               <Modal.Body>
+                  <Row>
+                     <Col md={12} className='table table-responsive'>
+                        <table className='table table-bordered w-100'>
+                           <tbody>
+                              <tr>
+                                 <th className="m-0 p-2 align-center">নাম</th>
+                                 <td className="m-0 p-2 align-center text-center">:</td>
+                                 <td className="m-0 p-2 align-center text-primary" colSpan={4}>{studentDelete.st_name}</td>
+                              </tr>
+                              <tr>
+                                 <th className="m-0 p-2 align-center">পিতার নাম</th>
+                                 <td className="m-0 p-2 align-center text-center">:</td>
+                                 <td className="m-0 p-2 align-center text-primary" colSpan={4}>{studentDelete.st_father}</td>
+                              </tr>
+                              <tr>
+                                 <th className="m-0 p-2 align-center">মাতার নাম</th>
+                                 <td className="m-0 p-2 align-center text-center">:</td>
+                                 <td className="m-0 p-2 align-center text-primary" colSpan={4}>{studentDelete.st_mother}</td>
+                              </tr>
+                              <tr>
+                                 <th className="m-0 p-2 align-center">বিভাগ</th>
+                                 <td className="m-0 p-2 align-center text-center">:</td>
+                                 <td className="m-0 p-2 align-center text-primary" >{studentDelete.bn_group}</td>
+                                 <th className="m-0 p-2 align-center">শিফট</th>
+                                 <td className="m-0 p-2 align-center text-center">:</td>
+                                 <td className="m-0 p-2 align-center text-primary" >{studentDelete.bn_shift}</td>
+                              </tr>
+                              <tr>
+                                 <th className="m-0 p-2 align-center">শাখা</th>
+                                 <td className="m-0 p-2 align-center text-center">:</td>
+                                 <td className="m-0 p-2 align-center text-primary" >{studentDelete.st_section}</td>
+                                 <th className="m-0 p-2 align-center">রোল</th>
+                                 <td className="m-0 p-2 align-center text-center">:</td>
+                                 <td className="m-0 p-2 align-center text-primary" >{studentDelete.st_ins_roll}</td>
+                              </tr>
+                           </tbody>
+                        </table>
+                     </Col>
+                     <Col md={12} className='d-flex justify-content-center align-items-center gap-3 my-3'>
+                        <Button className="flex-fill" variant="danger" onClick={() => handleStudentDelete(studentDelete.st_id, studentDelete.st_photo)}>
+                           সম্মত
+                        </Button>
+                        <Button className="flex-fill" variant="secondary" onClick={() => setDeleteShow(false)}>
+                           ফিরে যান
+                        </Button>
+                     </Col>
+                  </Row>
+               </Modal.Body>
+               <Modal.Footer></Modal.Footer>
+            </Modal>
+         )}
+         {modalError && (
+            <Modal
+               show={modalError}
+               onHide={() => setModalError(false)}
+               backdrop="static"
+               keyboard={false}
+            >
+               <Modal.Header closeButton>
+                  <Modal.Title><span className={styles.SiyamRupaliFont}>নিচের তথ্য/তথ্যগুলো সঠিকভাবে এন্ট্রি করতে হবে</span></Modal.Title>
+               </Modal.Header>
+               <Modal.Body>
+                  {Object.entries(userDataError).map(([field, error]) => (
+                     <i className='text-danger' key={field}>{userBnError[field]}, </i>
+                  ))}
+                  {profileImageError && <i className='text-danger'>শিক্ষার্থীর ছবি</i>}
+               </Modal.Body>
+               <Modal.Footer>
+                  <Button variant="secondary" onClick={() => setModalError(false)}>
+                     ফিরে যান
+                  </Button>
+               </Modal.Footer>
+            </Modal>
+         )}
+      </Fragment>
+   )
+
+   // Return if User is Authorized
+   if (ceb_session.ceb_user_type === '13' || ceb_session.ceb_user_office === '05' || ceb_session.ceb_user_role === '17') return (
+      <Fragment>
+         <Row>
+            <Col md={12}>
+               <Card>
+                  <Card.Body>
+                     <h4 className={styles.SiyamRupaliFont + " text-center text-uppercase card-title"}>নিবন্ধিত (চুড়ান্ত/Final) শিক্ষার্থীদের তালিকা</h4>
+                  </Card.Body>
+               </Card>
+            </Col>
+
+            <Col md={12}>
+               <Form noValidate onSubmit={handleSearch} onReset={handleSearchReset}>
+                  <Card>
+                     <Card.Header>
+                        <h5 className="text-center w-100 card-title">নিবন্ধনের তথ্য</h5>
+                     </Card.Header>
+                     <Card.Body>
+                        <Row>
+                           <Col md={12}>
+                              {searchLoading && <h6 className="text-uppercase text-center py-2 text-info">{searchLoading}</h6>}
+                              {searchError && <h6 className="text-uppercase text-center py-2 text-danger">{searchError}</h6>}
+                              {searchSuccess && <h6 className="text-uppercase text-center py-2 text-success">{searchSuccess}</h6>}
+                           </Col>
+                           {ceb_session.ceb_user_type !== '13' && <Col md={4} className='my-2'>
+                              <Form.Label className="text-primary" htmlFor="user_eiin">ইআইআইএন (EIIN)</Form.Label>
+                              <Form.Control
+                                 className='bg-transparent text-uppercase'
+                                 type="text"
+                                 id="user_eiin"
+                                 maxLength={6} minLength={6}
+                                 value={searchData.user_eiin}
+                                 isInvalid={validated && !!searchDataError.user_eiin}
+                                 isValid={validated && searchData.user_eiin && !searchDataError.user_eiin}
+                                 onChange={(e) => handleSearchDataChange('user_eiin', e.target.value)}
+                              />
+                              {validated && searchDataError.user_eiin && (
+                                 <Form.Control.Feedback type="invalid">
+                                    {searchDataError.user_eiin}
+                                 </Form.Control.Feedback>
+                              )}
+                           </Col>}
+                           {ceb_session.ceb_user_type === '13' && <Col md={4} className='my-2'>
+                              <Form.Label className="text-primary" htmlFor="user_eiin">ইআইআইএন (EIIN)</Form.Label>
+                              <Form.Control
+                                 className='bg-transparent text-uppercase'
+                                 type="text"
+                                 id="user_eiin"
+                                 maxLength={6} minLength={6}
+                                 value={searchData.user_eiin}
+                                 isInvalid={validated && !!searchDataError.user_eiin}
+                                 isValid={validated && searchData.user_eiin && !searchDataError.user_eiin}
+                                 disabled={ceb_session.ceb_user_type === '13'}
+                              />
+                              {validated && searchDataError.user_eiin && (
+                                 <Form.Control.Feedback type="invalid">
+                                    {searchDataError.user_eiin}
+                                 </Form.Control.Feedback>
+                              )}
+                           </Col>}
+                           <Col md={4} className='my-2'>
+                              <Form.Label className="text-primary" htmlFor="user_session">সেশন/বছর</Form.Label>
+                              <Form.Control
+                                 className='bg-transparent text-uppercase'
+                                 type="text"
+                                 id="user_session"
+                                 maxLength={4} minLength={4}
+                                 value={searchData.user_session}
+                                 isInvalid={validated && !!searchDataError.user_session}
+                                 isValid={validated && searchData.user_session && !searchDataError.user_session}
+                                 onChange={(e) => handleSearchDataChange('user_session', e.target.value)}
+                              />
+                              {validated && searchDataError.user_session && (
+                                 <Form.Control.Feedback type="invalid">
+                                    {searchDataError.user_session}
+                                 </Form.Control.Feedback>
+                              )}
+                           </Col>
+                           <Col md={4} className='my-2'>
+                              <Form.Group className="bg-transparent">
+                                 <Form.Label className="text-primary" htmlFor='user_class'>শ্রেণী</Form.Label>
+                                 <Form.Select
+                                    id="user_class"
+                                    value={searchData.user_class}
+                                    isInvalid={validated && !!searchDataError.user_class}
+                                    isValid={validated && searchData.user_class && !searchDataError.user_class}
+                                    onChange={(e) => handleSearchDataChange('user_class', e.target.value)}
+                                    className="selectpicker form-control"
+                                    data-style="py-0"
+                                 >
+                                    <option value="">--শ্রেণী সিলেক্ট করুন--</option>
+                                    {(ceb_session.ceb_user_office === "05" || ceb_session.ceb_user_office === "81" || ceb_session.ceb_user_office === "82" || ceb_session.ceb_user_office === "83" || ceb_session.ceb_user_office === "85" || ceb_session.ceb_user_role === "17") && <>
+                                       <option value='06'>ষষ্ট শ্রেণী</option>
+                                       <option value='07'>সপ্তম শ্রেণী</option>
+                                       <option value='08'>অষ্টম শ্রেণী</option>
+                                    </>}
+                                    {(ceb_session.ceb_user_office === "05" || ceb_session.ceb_user_office === "82" || ceb_session.ceb_user_office === "83" || ceb_session.ceb_user_office === "85" || ceb_session.ceb_user_role === "17") && <>
+                                       <option value='09'>নবম শ্রেণী</option>
+                                       <option value='10'>দশম শ্রেণী</option>
+                                    </>}
+                                    {(ceb_session.ceb_user_office === "04" || ceb_session.ceb_user_type === "90" || ceb_session.ceb_user_role === "17") && <>
+                                       <option value='11'>একাদশ শ্রেণী</option>
+                                       <option value='12'>দ্বাদশ শ্রেণী</option>
+                                    </>}
+                                 </Form.Select>
+                                 {validated && searchDataError.user_class && (
+                                    <Form.Control.Feedback type="invalid">
+                                       {searchDataError.user_class}
+                                    </Form.Control.Feedback>
+                                 )}
+                              </Form.Group>
+                           </Col>
+                           <Col md={4} className='my-2'>
+                              <Form.Group className="bg-transparent">
+                                 <Form.Label className="text-primary" htmlFor='user_group'>বিভাগ</Form.Label>
+                                 <Form.Select
+                                    id="user_group"
+                                    value={searchData.user_group}
+                                    isInvalid={validated && !!searchDataError.user_group}
+                                    isValid={validated && searchData.user_group && !searchDataError.user_group}
+                                    onChange={(e) => handleSearchDataChange('user_group', e.target.value)}
+                                    className="selectpicker form-control"
+                                    data-style="py-0"
+                                 >
+                                    <option value="">--বিভাগ সিলেক্ট করুন--</option>
+                                    {(searchData.user_class < 13 && searchData.user_class > 8) && <>
+                                       <option value='01'>বিজ্ঞান বিভাগ</option>
+                                       <option value='02'>মানবিক বিভাগ</option>
+                                       <option value='03'>ব্যবসায় শিক্ষা বিভাগ</option>
+                                    </>}
+                                    {(searchData.user_class < 9 && searchData.user_class > 5) &&
+                                       <option value='10'>সাধারণ বিভাগ</option>}
+                                 </Form.Select>
+                                 {validated && searchDataError.user_group && (
+                                    <Form.Control.Feedback type="invalid">
+                                       {searchDataError.user_group}
+                                    </Form.Control.Feedback>
+                                 )}
+                              </Form.Group>
+                           </Col>
+                           <Col md={4} className='my-2'>
+                              <Form.Group className="bg-transparent">
+                                 <Form.Label className="text-primary" htmlFor='user_version'>মাধ্যম</Form.Label>
+                                 <Form.Select
+                                    id="user_version"
+                                    value={searchData.user_version}
+                                    isInvalid={validated && !!searchDataError.user_version}
+                                    isValid={validated && searchData.user_version && !searchDataError.user_version}
+                                    onChange={(e) => handleSearchDataChange('user_version', e.target.value)}
+                                    className="selectpicker form-control"
+                                    data-style="py-0"
+                                 >
+                                    <option value="">--সিলেক্ট মাধ্যম--</option>
+                                    <option value='01'>বাংলা মাধ্যম</option>
+                                    <option value='02'>ইংরেজি মাধ্যম</option>
+                                 </Form.Select>
+                                 {validated && searchDataError.user_version && (
+                                    <Form.Control.Feedback type="invalid">
+                                       {searchDataError.user_version}
+                                    </Form.Control.Feedback>
+                                 )}
+                              </Form.Group>
+                           </Col>
+                           <Col md={4} className='my-2'>
+                              <Form.Group className="bg-transparent">
+                                 <Form.Label className="text-primary" htmlFor='user_application'>আবেদনের ধরণ</Form.Label>
+                                 <Form.Select
+                                    id="user_application"
+                                    value={searchData.user_application}
+                                    isInvalid={validated && !!searchDataError.user_application}
+                                    isValid={validated && searchData.user_application && !searchDataError.user_application}
+                                    onChange={(e) => handleSearchDataChange('user_application', e.target.value)}
+                                    className="selectpicker form-control"
+                                    data-style="py-0"
+                                 >
+                                    <option value="">--আবেদনের ধরণ সিলেক্ট করুন--</option>
+                                    <option value='01'>নিয়মিত (Regular) আবেদন</option>
+                                    <option value='02'>বিলম্ব (Late) আবেদন</option>
+                                    <option value='03'>বিশেষ (Special) আবেদন</option>
+                                 </Form.Select>
+                                 {validated && searchDataError.user_application && (
+                                    <Form.Control.Feedback type="invalid">
+                                       {searchDataError.user_application}
+                                    </Form.Control.Feedback>
+                                 )}
+                              </Form.Group>
+                           </Col>
+                           <Col md={12} className="d-flex justify-content-center gap-3 my-5">
+                              <Button className='flex-fill' type="reset" variant="btn btn-danger">রিসেট</Button>
+                              <Button className='flex-fill' type="submit" variant="btn btn-success">সাবমিট</Button>
+                           </Col>
+                        </Row>
+                     </Card.Body>
+                  </Card>
+               </Form>
+            </Col>
+         </Row>
+      </Fragment>
+   )
+
+   // Return if User is not Authorized
+   return (
+      // <Maintenance />
+      <div className='d-flex flex-column justify-content-center align-items-center'>
+         <h2 className='text-center text-white mb-2'>This page is under development</h2>
+         <Image src={error01} alt="Under Development" />
+      </div>
+   )
+}
+
+export default RegistrationFinalList;

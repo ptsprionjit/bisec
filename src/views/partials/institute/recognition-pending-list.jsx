@@ -1,0 +1,2246 @@
+import React, { useEffect, useState, useMemo, useRef, Fragment } from 'react'
+import { Row, Col, Form, Button, Modal, Image } from 'react-bootstrap'
+import { useNavigate } from 'react-router-dom'
+import Card from '../../../components/Card'
+import { useSelector } from "react-redux"
+
+// import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
+
+import axios from "axios";
+
+import styles from '../../../assets/custom/css/bisec.module.css'
+
+import Logo from '../../../components/partials/components/logo'
+import * as SettingSelector from '../../../store/setting/selectors.ts'
+import * as ValidationInput from '../input_validation'
+
+import error01 from '../../../assets/images/error/01.png'
+
+const InstRecognitionTemp = () => {
+    // enable axios credentials include
+    axios.defaults.withCredentials = true;
+
+    const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
+
+    const appName = useSelector(SettingSelector.app_bn_name);
+
+    const printRef = useRef();
+
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!ceb_session?.ceb_user_id) {
+            navigate("/auth/sign-out");
+
+        }
+    }, []);// eslint-disable-line react-hooks/exhaustive-deps
+
+    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+    const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL;
+
+    const [activeAppDetails, setActiveAppDetails] = useState([]);
+    const [activeAppAuthorize, setActiveAppAuthorize] = useState([]);
+    const [activeAppReject, setActiveAppReject] = useState([]);
+    const [activeAppSendBack, setActiveAppSendBack] = useState([]);
+    const [activeAppInquery, setActiveAppInquery] = useState([]);
+
+    const [detailsShow, setDetailsShow] = useState(false);
+    const [authShow, setAuthShow] = useState(false);
+    const [rejShow, setRejShow] = useState(false);
+    const [sendBackShow, setSendBackShow] = useState(false);
+    const [inqueryShow, setInqueryShow] = useState(false);
+
+    //Student Data Fetch Status
+    const [loadingSuccess, setLoadingSuccess] = useState(false);
+    const [loadingProgress, setLoadingProgress] = useState(false);
+    const [loadingError, setLoadingError] = useState(false);
+
+    const [modifySuccess, setModifySuccess] = useState(false);
+    const [modifyError, setModifyError] = useState(false);
+    const [modifyProcess, setModifyProcess] = useState(false);
+
+    //Student Fetched Data
+    const [dataList, setDataList] = useState([]);
+
+    //Pagination
+    const [totalPage, setTotalPage] = useState();
+    const [currentPage, setCurrentPage] = useState();
+    const [rowsPerPage, setRowsPerPage] = useState();
+    const [currentData, setCurrentData] = useState([]);
+    const [searchValue, setSearchValue] = useState();
+
+    const [employeeData, setEmployeeData] = useState([]);
+    // eslint-disable-next-line
+    const [upzOfficers, setUpzOfficers] = useState([]);
+    // eslint-disable-next-line
+    const [distOfficers, setDistOfficers] = useState([]);
+
+    const [upzOfficersAll, setUpzOfficersAll] = useState([]);
+    const [distOfficersAll, setDistOfficersAll] = useState([]);
+
+    // Form Validation Variable
+    const [validated, setValidated] = useState(false);
+
+    // Data Variables
+    const [userData, setUserData] = useState({
+        id_invoice: '', inquiry_user: '', institute_message_default: '', institute_message: '', email_datetime: '', name_recipient: '', email_recipient: '', recipient_upzila: '', recipient_dist: '', name_recipient_cc1: '', email_recipient_cc1: '', name_recipient_cc2: '', email_recipient_cc2: '', name_recipient_cc3: '', email_recipient_cc3: '', email_ref: '', email_subject: '', email_topic: '', topic_uname: '', topic_uid: '', topic_uaddress: '', topic_uemail: '', topic_umobile: '', email_message: '', inquiry_details: '',
+    });
+
+    const [userDataError, setUserDataError] = useState({
+        id_invoice: '', inquiry_user: '', institute_message_default: '', institute_message: '', email_datetime: '', name_recipient: '', email_recipient: '', recipient_upzila: '', recipient_dist: '', name_recipient_cc1: '', email_recipient_cc1: '', name_recipient_cc2: '', email_recipient_cc2: '', name_recipient_cc3: '', email_recipient_cc3: '', email_ref: '', email_subject: '', email_topic: '', topic_uname: '', topic_uid: '', topic_uaddress: '', topic_uemail: '', topic_umobile: '', email_message: '', inquiry_details: '',
+    });
+
+    // File Attachment
+    const [recognitionFiles, setRecognitionFiles] = useState([]);
+
+    // Handle Print
+    const handlePrint = async () => {
+        const printContent = printRef.current.innerHTML;
+        const printWindow = window.open('', '', 'fullscreen=yes');
+
+        printWindow.document.write(`
+        <html>
+            <head>
+                <title>Print</title>
+                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+                <link href="https://fonts.maateen.me/siyam-rupali/font.css" rel="stylesheet">
+                <style>
+                    @page {
+                        size: legal portrait !important;
+                        margin: 0 !important;
+                        padding: 0.25in !important;
+                        div, table, tr, th, td, p, span {
+                            page-break-inside: avoid !important;
+                        }
+                        section {
+                            page-break-after: always !important;
+                        }
+                        *{
+                           font-family: 'Siyam Rupali', sans-serif !important;
+                           /* font-size: 15px !important; */
+                           color: #000000 !important;
+                           margin: 0 !important;
+                           padding: 0.25in !important;
+                        }
+                    }
+                    .print-wrap{
+                        white-space: nowrap !important;
+                    }
+                    .no-print {
+                        display: none !important;
+                    }
+                    .print-hide {
+                        display: none !important;
+                    }
+                    .print-show {
+                        display: block !important;
+                    }
+                </style>
+            </head>
+            <body>
+                <div class="d-flex justify-content-center align-items-center">${printContent}</div>
+                <script>
+                    window.onload = function() {
+                        window.print();
+                        window.onafterprint = function() { 
+                            window.close();
+                        };
+                    };
+                </script>
+            </body>
+        </html>
+        `);
+        printWindow.document.close();
+        window.close();
+    };
+
+    // Hanlde File View
+    const handleFileView = (field) => {
+        if (recognitionFiles[field] instanceof Blob) {
+            let pdfURL = URL.createObjectURL(recognitionFiles[field]);
+            window.open(pdfURL, '_blank');
+            URL.revokeObjectURL(pdfURL);
+            return;
+        }
+    };
+
+    // Fetch Files 
+    const fetchRecognitionFiles = async (appData) => {
+        const pdfFiles = {};
+
+        const fields = [
+            'prev_order', 'general_fund_details', 'reserved_fund_details', 'class_routine', 'mutation_details', 'dakhila_details', 'committee_order', 'student_order', 'inquiry_details'
+        ];
+
+        // console.log(appData);
+
+        const promises = fields.map(async (field) => {
+            try {
+                const res = await axios.post(
+                    `${BACKEND_URL}/institute/recognition/fetch_files`,
+                    { inst_eiin: appData.inst_eiin, recog_inst_status: appData.recog_inst_status, count_applicaton: appData.count_applicaton, file_name: field },
+                    { responseType: 'blob' }
+                );
+
+                if (res.status === 200) {
+                    const file = new File([res.data], `${field}.pdf`, {
+                        type: 'application/pdf',
+                    });
+                    pdfFiles[field] = file;
+                } else {
+                    pdfFiles[field] = null;
+                }
+            } catch (err) {
+
+
+                if (err.status === 401) {
+                    navigate("/auth/sign-out");
+
+                }
+                pdfFiles[field] = null;
+            }
+        });
+
+        await Promise.all(promises);
+        setRecognitionFiles(pdfFiles);
+    }
+
+    useEffect(() => {
+        if (dataList.length > 0) {
+            setCurrentData(dataList.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage > dataList.length ? dataList.length : currentPage * rowsPerPage));
+            setTotalPage(Math.ceil(dataList.length / rowsPerPage));
+        }
+    }, [dataList]);// eslint-disable-line react-hooks/exhaustive-deps
+
+    const useDebounce = (value, delay = 500) => {
+        const [debouncedValue, setDebouncedValue] = useState(value);
+        useEffect(() => {
+            const timer = setTimeout(() => {
+                setDebouncedValue(value);
+            }, delay);
+
+            return () => clearTimeout(timer); // Cleanup if value changes before delay
+        }, [value, delay]); // eslint-disable-line react-hooks/exhaustive-deps
+
+        return debouncedValue;
+    }
+
+    const debouncedSearchValue = useDebounce(searchValue, 500);
+
+    const filteredData = useMemo(() => {
+        if (!debouncedSearchValue) return currentData;      // If no search, show all
+
+        const search = debouncedSearchValue.toUpperCase();
+
+        return dataList.filter((item) =>
+            [item.bn_user, item.en_user, item.inst_mobile, item.inst_email, item.clst_status, item.bn_version, item.bn_coed.toString()].some((field) =>
+                field.toUpperCase().includes(search)
+            )
+        );
+    }, [debouncedSearchValue, currentData, dataList]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    //Student Data Fetch 
+    const fetchDataList = async () => {
+        setLoadingProgress("আবেদনের তথ্য খুঁজা হচ্ছে...! অপেক্ষা করুন।");
+        try {
+            const response = await axios.post(`${BACKEND_URL}/institute/recognition/list`, { app_status: '13' });
+            if (response.data.data.length !== 0) {
+                setDataList(response.data.data);
+                setLoadingSuccess(true);
+                //Set Data for Pagination
+                setRowsPerPage(10);
+                setTotalPage(Math.ceil(response.data.data.length / 10));
+                setCurrentPage(1);
+                setCurrentData(response.data.data.slice(0, 10));
+            }
+        } catch (err) {
+
+
+            if (err.status === 401) {
+                navigate("/auth/sign-out");
+
+            }
+            setLoadingError("কোন অপেক্ষমান আবেদন পাওয়া যায়নি!");
+            // console.log(err);
+        } finally {
+            setLoadingProgress(false);
+        }
+    }
+
+    // Employee List Fetch
+    const fetchEmployeeList = async () => {
+        setLoadingProgress("কর্মকর্তাদের তথ্য খুঁজা হচ্ছে...! অপেক্ষা করুন।");
+        try {
+            const response = await axios.post(`${BACKEND_URL}/employee/employee_list`, {});
+            if (response.status === 200) {
+                setEmployeeData(response.data.data);
+            }
+        } catch (err) {
+
+
+            if (err.status === 401) {
+                navigate("/auth/sign-out");
+
+            }
+            // setLoadingError("কর্মকর্তাদের তথ্য পাওয়া যায়নি!");
+            // console.log(err);
+        } finally {
+            setLoadingProgress(false);
+        }
+    }
+
+    // Set Employee List
+    useEffect(() => {
+        fetchEmployeeList();
+        setUpzOfficersAll([
+            { uid: '4201', name: 'উপজেলা নির্বাহী অফিসার', email: 'unoakhaura4@gmail.com', mobile: '+8801705411237', phone: '+880852256025' },
+            { uid: '4202', name: 'উপজেলা নির্বাহী অফিসার', email: 'unoashuganj@mopa.gov.bd', mobile: '+8801705411234', phone: '+8802334431522' },
+            { uid: '4203', name: 'উপজেলা নির্বাহী অফিসার', email: 'unobancharampur@mopa.gov.bd', mobile: '+8801705411239', phone: '+880852356002' },
+            { uid: '4209', name: 'উপজেলা নির্বাহী অফিসার', email: 'unobijoynagar@mopa.gov.bd', mobile: '+8801705411235', phone: '+8801705411235' },
+            { uid: '4204', name: 'উপজেলা নির্বাহী অফিসার', email: 'unobrahmanbaria@mopa.gov.bd', mobile: '+8801782823636', phone: '+88085161366' },
+            { uid: '4205', name: 'উপজেলা নির্বাহী অফিসার', email: 'unokasba@mopa.gov.bd', mobile: '+8801705411238', phone: '+8802334432309' },
+            { uid: '4206', name: 'উপজেলা নির্বাহী অফিসার', email: 'unonabinagar1@gmail.com', mobile: '+8801705411236', phone: '+880852575220' },
+            { uid: '4207', name: 'উপজেলা নির্বাহী অফিসার', email: 'unonasirnagar@gmail.com', mobile: '+8801705411232', phone: '+8801705411232' },
+            { uid: '4208', name: 'উপজেলা নির্বাহী অফিসার', email: 'unosarail@mopa.gov.bd', mobile: '+8801705411233', phone: '+8801705411233' },
+            { uid: '3501', name: 'উপজেলা নির্বাহী অফিসার', email: 'unochandpursadar@gmail.com', mobile: '+8801730067060', phone: '+880312334486424' },
+            { uid: '3502', name: 'উপজেলা নির্বাহী অফিসার', email: 'unofaridgonjchandpur@gmail.com', mobile: '+8801730067062', phone: '+880842264001' },
+            { uid: '3503', name: 'উপজেলা নির্বাহী অফিসার', email: 'unohaimcharchandpur@gmail.com', mobile: '+8801730067074', phone: '+88084152001' },
+            { uid: '3504', name: 'উপজেলা নির্বাহী অফিসার', email: 'jayedyean@gmil.com', mobile: '+8801730067072', phone: '+8802334448570' },
+            { uid: '3505', name: 'উপজেলা নির্বাহী অফিসার', email: 'unokachua@gmail.com', mobile: '+8801730067070', phone: '+8802334489211' },
+            { uid: '3506', name: 'উপজেলা নির্বাহী অফিসার', email: 'unomatlabnorthchandpur@gmail.com', mobile: '+8801730067066', phone: '+8801730067066' },
+            { uid: '3507', name: 'উপজেলা নির্বাহী অফিসার', email: 'unomatlabsouthchandpur@gmail.com', mobile: '+8801730067064', phone: '+8801730067064' },
+            { uid: '3508', name: 'উপজেলা নির্বাহী অফিসার', email: 'unoshahrastichandpur@gmail.com', mobile: '+8801730067068', phone: '+8802334488801' },
+            { uid: '3701', name: 'উপজেলা নির্বাহী অফিসার', email: 'unobarura@gmail.com', mobile: '+8801733354946', phone: '+880802752003' },
+            { uid: '3702', name: 'উপজেলা নির্বাহী অফিসার', email: 'unobrahmanpara@gmail.com', mobile: '+8801733354945', phone: '+8802334409601' },
+            { uid: '3703', name: 'উপজেলা নির্বাহী অফিসার', email: 'unoburichang1@gmail.com', mobile: '+8801733354937', phone: '+880802956100' },
+            { uid: '3704', name: 'উপজেলা নির্বাহী অফিসার', email: 'unochandina@gmail.com', mobile: '+8801733354938', phone: '+880802256108' },
+            { uid: '3705', name: 'উপজেলা নির্বাহী অফিসার', email: 'unochouddagram1@gmail.com', mobile: '+8801733354948', phone: '+8802334408306' },
+            { uid: '3706', name: 'উপজেলা নির্বাহী অফিসার', email: 'unocomillasadar@gmail.com', mobile: '+8801733354935', phone: '+8802334406425' },
+            { uid: '3716', name: 'উপজেলা নির্বাহী অফিসার', email: 'unocomillasadarsouth@gmail.com', mobile: '+8801733354936', phone: '+880804257230' },
+            { uid: '3707', name: 'উপজেলা নির্বাহী অফিসার', email: 'unodaudkandi@mopa.gov.bd', mobile: '+8801733354939', phone: '+880802355244' },
+            { uid: '3708', name: 'উপজেলা নির্বাহী অফিসার', email: 'unodebidwar1@gmail.com', mobile: '+8801733354944', phone: '+8801733354944' },
+            { uid: '3709', name: 'উপজেলা নির্বাহী অফিসার', email: 'unohomna@mopa.gov.bd', mobile: '+8801733354942', phone: '+8802334406812' },
+            { uid: '3710', name: 'উপজেলা নির্বাহী অফিসার', email: 'unolaksam1@gmail.com', mobile: '+8801733354949', phone: '+8802334407400' },
+            { uid: '3717', name: 'উপজেলা নির্বাহী অফিসার', email: 'unolalmai@gmail.com', mobile: '+8801733354921', phone: '+8802334448030' },
+            { uid: '3711', name: 'উপজেলা নির্বাহী অফিসার', email: 'unomeghna@mopa.gov.bd,unomeghna@gmail.com', mobile: '+8801733354940', phone: '+880803551008' },
+            { uid: '3714', name: 'উপজেলা নির্বাহী অফিসার', email: 'unomonoharganj@gmail.com', mobile: '+8801733354950', phone: '+8801733354950' },
+            { uid: '3712', name: 'উপজেলা নির্বাহী অফিসার', email: 'unomuradnagar1@gmail.com', mobile: '+8801733354943', phone: '+880802656120' },
+            { uid: '3713', name: 'উপজেলা নির্বাহী অফিসার', email: 'unonangalkot@gmail.com', mobile: '+8801733354947', phone: '+8802334409301' },
+            { uid: '3715', name: 'উপজেলা নির্বাহী অফিসার', email: 'unotitas1@gmail.com', mobile: '+8801733354941', phone: '+8802334448120' },
+            { uid: '3301', name: 'উপজেলা নির্বাহী অফিসার', email: 'unochagalnaiya@mopa.gov.bd', mobile: '+8801713187317', phone: '+8801713187317' },
+            { uid: '3302', name: 'উপজেলা নির্বাহী অফিসার', email: 'unodaganbhuiyan@mopa.gov.bd', mobile: '+8801713187318', phone: '+8802334475609' },
+            { uid: '3303', name: 'উপজেলা নির্বাহী অফিসার', email: 'unofenisadar@gmail.com', mobile: '+8801713187314', phone: '+8802337734073' },
+            { uid: '3304', name: 'উপজেলা নির্বাহী অফিসার', email: 'unofulgazi@mopa.gov.bd', mobile: '+8801713187315', phone: '+880332677232' },
+            { uid: '3305', name: 'উপজেলা নির্বাহী অফিসার', email: 'unoparshuram@mopa.gov.bd', mobile: '+8801713187316', phone: '+8801713187316' },
+            { uid: '3306', name: 'উপজেলা নির্বাহী অফিসার', email: 'unosonagazi@mopa.gov.bd', mobile: '+8801713187319', phone: '+8802334476631' },
+            { uid: '3405', name: 'উপজেলা নির্বাহী অফিসার', email: 'unokamalnagar@mopa.gov.bd', mobile: '+8801788577714', phone: '+880244381001' },
+            { uid: '3401', name: 'উপজেলা নির্বাহী অফিসার', email: 'unosadarlakshmipur@gmail.com', mobile: '+8801786375775', phone: '+8802334441004' },
+            { uid: '3404', name: 'উপজেলা নির্বাহী অফিসার', email: 'unoraipurlakshmipur@gmail.com', mobile: '+8801788577711', phone: '+8802334442311' },
+            { uid: '3402', name: 'উপজেলা নির্বাহী অফিসার', email: 'unoramganj@gmail.com', mobile: '+8801788577712', phone: '+8801788577712' },
+            { uid: '3403', name: 'উপজেলা নির্বাহী অফিসার', email: 'unoramgati@mopa.gov.bd', mobile: '+8801788577713', phone: '+8802334442811' },
+            { uid: '3001', name: 'উপজেলা নির্বাহী অফিসার', email: 'unobegumganj@mopa.gov.bd', mobile: '+8801767441101', phone: '+8801767441101' },
+            { uid: '3002', name: 'উপজেলা নির্বাহী অফিসার', email: 'unochatkhil@mopa.gov.bd', mobile: '+8801705401104', phone: '+8802334495020' },
+            { uid: '3003', name: 'উপজেলা নির্বাহী অফিসার', email: 'unocompaniganjnoakhali@mopa.gov.bd', mobile: '+8801705401106', phone: '+8802334494204' },
+            { uid: '3004', name: 'উপজেলা নির্বাহী অফিসার', email: 'unohatiya@mopa.gov.bd', mobile: '+8801705401109', phone: '+8801705401109' },
+            { uid: '3009', name: 'উপজেলা নির্বাহী অফিসার', email: 'unokabirhat@mopa.gov.bd', mobile: '+8801705401107', phone: '+8801705401107' },
+            { uid: '3005', name: 'উপজেলা নির্বাহী অফিসার', email: 'unonoakhali@mopa.gov.bd', mobile: '+8801705401101', phone: '+8802334433695' },
+            { uid: '3006', name: 'উপজেলা নির্বাহী অফিসার', email: 'unosenbug@mopa.gov.bd', mobile: '+8801705401105', phone: '+880322556001' },
+            { uid: '3007', name: 'উপজেলা নির্বাহী অফিসার', email: 'unosonaimuri@mopa.gov.bd', mobile: '+8801705405001', phone: '+8801705405001' },
+            { uid: '3008', name: 'উপজেলা নির্বাহী অফিসার', email: 'unoshubarnachar@mopa.gov.bd', mobile: '+8801705401108', phone: '+8801705401108' },
+
+            { uid: '3706', name: 'উপজেলা শিক্ষা অফিসার', email: 'ueao@meo.gov.bd', mobile: '+880170000000', phone: '+880170000000' },
+        ]);
+        setDistOfficersAll([
+            { uid: '42', name: 'জেলা প্রশাসক', email: 'dcbrahmanbaria@mopa.gov.bd', mobile: '+8801713044960', phone: '+8802334427712' },
+            { uid: '42', name: 'জেলা শিক্ষা অফিসার', email: 'brahmanbariadeo@gmail.com', mobile: '', phone: '+8802334428652' },
+            { uid: '35', name: 'জেলা প্রশাসক', email: 'dcchandpur@mopa.gov.bd', mobile: '+8801730067050', phone: '+8802334485611' },
+            { uid: '35', name: 'জেলা শিক্ষা অফিসার', email: 'chandpurdeo2008@yahoo.com', mobile: '', phone: '+8802334487314' },
+            { uid: '37', name: 'জেলা প্রশাসক', email: 'dccomilla@mopa.gov.bd', mobile: '+8802334400301', phone: '+8802334400301' },
+            { uid: '37', name: 'জেলা শিক্ষা অফিসার', email: 'deo_comilla@yahoo.com', mobile: '', phone: '+8802334406310' },
+            { uid: '33', name: 'জেলা প্রশাসক', email: 'dcfeni@mopa.gov.bd', mobile: '+8801713187300', phone: '+8802334474000' },
+            { uid: '33', name: 'জেলা শিক্ষা অফিসার', email: 'feni.deo.feni@gmail.com', mobile: '', phone: '+8802334473521' },
+            { uid: '34', name: 'জেলা প্রশাসক', email: 'dclakshmipur@mopa.gov.bd', mobile: '+8801788577701', phone: '+8802334441410' },
+            { uid: '34', name: 'জেলা শিক্ষা অফিসার', email: 'deo_laksmi@yahoo.com', mobile: '', phone: '+8802334441035' },
+            { uid: '30', name: 'জেলা প্রশাসক', email: 'dcnoakhali@mopa.gov.bd', mobile: '+8801713121154', phone: '+8802334491021' },
+            { uid: '30', name: 'জেলা শিক্ষা অফিসার', email: 'noakhalideo@yahoo.com', mobile: '', phone: '+8802334491346' },
+        ]);
+
+        const timer = setTimeout(() => {
+            fetchDataList();
+        }, 1000); // Simulate loading delay
+
+        return () => clearTimeout(timer); // Cleanup on unmount
+    }, []);// eslint-disable-line react-hooks/exhaustive-deps
+
+    //Handle Page Row Number Change
+    const handleRowsPerPageChange = (data_per_page) => {
+        data_per_page = Number(data_per_page);
+        setRowsPerPage(data_per_page);
+        setTotalPage(Math.ceil(dataList.length / data_per_page));
+        setCurrentPage(1);
+        setCurrentData(dataList.slice(0, data_per_page > dataList.length ? dataList.length : data_per_page));
+    };
+
+    //Handle Page Change
+    const handleSetCurrentPage = (page_num) => {
+        page_num = Number(page_num);
+        if (page_num >= 1 && page_num <= totalPage) {
+            setCurrentPage(page_num);
+            setCurrentData(dataList.slice((page_num - 1) * rowsPerPage, page_num * rowsPerPage > dataList.length ? dataList.length : page_num * rowsPerPage));
+        }
+    };
+
+    //Application Authorize
+    const applicationForward = async (app_data) => {
+        let isValid = true;
+        const newErrors = {};
+
+        const requiredFields = [
+            'institute_message'
+        ];
+
+        requiredFields.forEach(field => {
+            let dataError = null;
+
+            switch (field) {
+                case 'institute_message':
+                    dataError = ValidationInput.bengaliCheck(userData[field]);
+                    break;
+
+                default:
+                    break;
+            }
+
+            if (dataError) {
+                newErrors[field] = dataError;
+                isValid = false;
+                setValidated(true);
+            }
+        });
+
+        // Update once
+        setUserDataError(newErrors);
+
+        if (!isValid) {
+            setModifyProcess(false);
+            setModifySuccess(false);
+            setModifyError("মন্তব্য সঠিকভাবে পূরণ করতে হবে!");
+        } else {
+            setModifyProcess("সম্পাদনা চলছে...। অপেক্ষা করুন।");
+            setModifySuccess(false);
+            setModifyError(false);
+
+            try {
+                const response = await axios.post(`${BACKEND_URL}/institute/recognition/app_forward`, { id_invoice: app_data.id_invoice, institute_message: userData.institute_message });
+                if (response.status === 200) {
+                    setDataList(((prevData) => prevData.filter((item) => item.id_invoice !== app_data.id_invoice)));
+                    setModifySuccess(response.data.message);
+                    setAuthShow(false);
+                } else {
+                    setModifyError(response.data.message);
+                }
+            } catch (err) {
+
+
+                if (err.status === 401) {
+                    navigate("/auth/sign-out");
+
+                }
+                setModifyError(err.message);
+                // console.log(err);
+            } finally {
+                setModifyProcess(false);
+            }
+        }
+    };
+
+    //Application Reject
+    const applicationReject = async (app_data) => {
+        let isValid = true;
+        const newErrors = {};
+
+        const requiredFields = [
+            'institute_message'
+        ];
+
+        requiredFields.forEach(field => {
+            let dataError = null;
+
+            switch (field) {
+                case 'institute_message':
+                    dataError = ValidationInput.bengaliCheck(userData[field]);
+                    break;
+
+                default:
+                    break;
+            }
+
+            if (dataError) {
+                newErrors[field] = dataError;
+                isValid = false;
+                setValidated(true);
+            }
+        });
+
+        // Update once
+        setUserDataError(newErrors);
+
+        if (!isValid) {
+            setModifyProcess(false);
+            setModifySuccess(false);
+            setModifyError("মন্তব্য সঠিকভাবে পূরণ করতে হবে!");
+        } else {
+            setRejShow(false);
+            setLoadingProgress("সম্পাদনা চলছে...। অপেক্ষা করুন।");
+            setModifySuccess(false);
+            setLoadingError(false);
+
+            try {
+                await axios.post(`${BACKEND_URL}/institute/recognition/app_reject`, { id_invoice: app_data.id_invoice, institute_message: userData.institute_message });
+                setDataList(((prevData) => prevData.filter((item) => item.id_invoice !== app_data.id_invoice)));
+                setModifySuccess("আবেদন বাতিল সফল হয়েছে!");
+            } catch (err) {
+
+
+                if (err.status === 401) {
+                    navigate("/auth/sign-out");
+
+                }
+                setLoadingError("আবেদন বাতিল সফল হয়নি!");
+                // console.log(err);
+            } finally {
+                setLoadingProgress(false);
+            }
+        }
+    };
+
+    //Application SendBack
+    const applicationSendBack = async (app_data) => {
+        let isValid = true;
+        const newErrors = {};
+
+        const requiredFields = [
+            'institute_message'
+        ];
+
+        requiredFields.forEach(field => {
+            let dataError = null;
+
+            switch (field) {
+                case 'institute_message':
+                    dataError = ValidationInput.bengaliCheck(userData[field]);
+                    break;
+
+                default:
+                    break;
+            }
+
+            if (dataError) {
+                newErrors[field] = dataError;
+                isValid = false;
+                setValidated(true);
+            }
+        });
+
+        // Update once
+        setUserDataError(newErrors);
+
+        if (!isValid) {
+            setModifyProcess(false);
+            setModifySuccess(false);
+            setModifyError("মন্তব্য সঠিকভাবে পূরণ করতে হবে!");
+        } else {
+            setModifyProcess("সম্পাদনা চলছে...। অপেক্ষা করুন।");
+            setModifySuccess(false);
+            setModifyError(false);
+
+            try {
+                const response = await axios.post(`${BACKEND_URL}/institute/recognition/app_sendback`, { id_invoice: app_data.id_invoice, institute_message: userData.institute_message });
+                if (response.status === 200) {
+                    setDataList(((prevData) => prevData.filter((item) => item.id_invoice !== app_data.id_invoice)));
+                    setModifySuccess(response.data.message);
+                    setSendBackShow(false);
+                } else {
+                    setModifyError(response.data.message);
+                }
+            } catch (err) {
+
+
+                if (err.status === 401) {
+                    navigate("/auth/sign-out");
+
+                }
+                setModifyError(err.message);
+                // console.log(err);
+            } finally {
+                setModifyProcess(false);
+            }
+        }
+    };
+
+    const sendEmail = async () => {
+        try {
+            const response = await axios.post(`${BACKEND_URL}/email/send/inquiry`, { emailData: userData });
+            if (response.status === 200) {
+                alert(response.data.message);
+            }
+        } catch (err) {
+
+
+            if (err.status === 401) {
+                navigate("/auth/sign-out");
+
+            }
+            alert(err.message);
+        }
+    }
+
+    //Application SendBack
+    const applicationInquiry = async (app_data) => {
+        let isValid = true;
+        const newErrors = {};
+
+        const requiredFields = ['id_invoice', 'institute_message', 'email_datetime', 'name_recipient', 'email_recipient', 'recipient_upzila', 'recipient_dist', 'name_recipient_cc1', 'email_recipient_cc1', 'name_recipient_cc2', 'email_recipient_cc2', 'name_recipient_cc3', 'email_recipient_cc3', 'email_ref', 'email_subject', 'email_topic', 'topic_uname', 'topic_uaddress', 'topic_uemail', 'topic_umobile', 'email_message'];
+
+        requiredFields.forEach(field => {
+            let dataError = null;
+
+            switch (field) {
+                case 'institute_message':
+                    dataError = ValidationInput.bengaliCheck(userData[field]);
+                    break;
+                case 'email_datetime':
+                    dataError = ValidationInput.dateCheck(userData[field], '2025-01-01', new Date());
+                    break;
+                case 'name_recipient':
+                case 'name_recipient_cc1':
+                case 'name_recipient_cc2':
+                case 'name_recipient_cc3':
+                    dataError = activeAppDetails.inquiry_user === 'উপজেলা শিক্ষা অফিসার' ? ValidationInput.banglaAddressCheck(userData[field]) : ValidationInput.addressCheck(userData[field]);
+                    break;
+                case 'email_recipient':
+                case 'email_recipient_cc1':
+                case 'email_recipient_cc2':
+                case 'email_recipient_cc3':
+                case 'topic_uemail':
+                    dataError = ValidationInput.emailCheck(userData[field]);
+                    break;
+                case 'id_invoice':
+                case 'email_ref':
+                    dataError = ValidationInput.alphanumCheck(userData[field]);
+                    break;
+                case 'recipient_upzila':
+                case 'recipient_dist':
+                case 'email_subject':
+                case 'email_topic':
+                case 'email_message':
+                    dataError = ValidationInput.banglaAddressCheck(userData[field]);
+                    break;
+                case 'topic_umobile':
+                    dataError = ValidationInput.numberCheck(userData[field]);
+                    break;
+                case 'topic_uaddress':
+                    dataError = ValidationInput.addressCheck(userData[field]);
+                    break;
+                default:
+                    break;
+            }
+
+            if (dataError) {
+                newErrors[field] = dataError;
+                isValid = false;
+                setValidated(true);
+            }
+        });
+
+        // console.log(newErrors);
+        // Update once
+        setUserDataError(newErrors);
+
+        if (!isValid) {
+            setModifyProcess(false);
+            setModifySuccess(false);
+            setModifyError("মন্তব্য সঠিকভাবে পূরণ করতে হবে!");
+        } else {
+            setModifyProcess("সম্পাদনা চলছে...। অপেক্ষা করুন।");
+            setModifySuccess(false);
+            setModifyError(false);
+            try {
+                const response = await axios.post(`${BACKEND_URL}/institute/recognition/app_inquiry`, { userData: userData });
+                if (response.status === 200) {
+                    setDataList(((prevData) => prevData.filter((item) => item.id_invoice !== app_data.id_invoice)));
+                    setModifySuccess(response.data.message);
+                    sendEmail();
+                    setInqueryShow(false);
+                } else {
+                    setModifyError(response.data.message);
+                }
+            } catch (err) {
+
+
+                if (err.status === 401) {
+                    navigate("/auth/sign-out");
+
+                }
+                setModifyError(err.message);
+                // console.log(err);
+            } finally {
+                setModifyProcess(false);
+            }
+        }
+    };
+
+    //Reset Modify Messages
+    const resetModifyMessages = () => {
+        setUserData({ ...userData, id_invoice: '', inquiry_user: '', institute_message_default: '', institute_message: '', email_datetime: '', name_recipient: '', email_recipient: '', recipient_upzila: '', recipient_dist: '', name_recipient_cc1: '', email_recipient_cc1: '', name_recipient_cc2: '', email_recipient_cc2: '', name_recipient_cc3: '', email_recipient_cc3: '', email_ref: '', email_subject: '', email_topic: '', topic_uname: '', topic_uid: '', topic_uaddress: '', topic_uemail: '', topic_umobile: '', email_message: '', });
+        setUserDataError({ ...userDataError, id_invoice: '', inquiry_user: '', institute_message_default: '', institute_message: '', email_datetime: '', name_recipient: '', email_recipient: '', recipient_upzila: '', recipient_dist: '', name_recipient_cc1: '', email_recipient_cc1: '', name_recipient_cc2: '', email_recipient_cc2: '', name_recipient_cc3: '', email_recipient_cc3: '', email_ref: '', email_subject: '', email_topic: '', topic_uname: '', topic_uid: '', topic_uaddress: '', topic_uemail: '', topic_umobile: '', email_message: '', });
+        setModifyError(false);
+        setModifySuccess(false);
+        setModifyProcess(false);
+    }
+
+    //Handle Details Click
+    const handleDetailsClick = async (item) => {
+        await Promise.all([
+            fetchRecognitionFiles(item)
+        ]);
+        resetModifyMessages();
+        setActiveAppDetails(item);
+        setDetailsShow(true);
+    };
+
+    //Handle Authorize Click
+    const handleForwardClick = (item) => {
+        resetModifyMessages();
+        setActiveAppAuthorize(item);
+        setAuthShow(true);
+    };
+
+    //Handle Authorize Click
+    const handleInqueryClick = (item) => {
+        var curDateTime = new Date();
+        curDateTime.setHours(curDateTime.getUTCHours() + 12);
+        const email_datetime = curDateTime.toISOString().split('T')[0] + ' ' + curDateTime.toISOString().split('T')[1].split('.')[0];
+        const email_ref = "INQEMAIL" + curDateTime.toISOString().replace(/[-:.TZ\s]/ig, "");
+
+        setUpzOfficers((() => upzOfficersAll.filter((prev) => prev.uid === item.inst_uzps)));
+        setDistOfficers((() => distOfficersAll.filter((prev) => prev.uid === String(item.inst_uzps).substring(0, 2))));
+
+        setUserData({
+            ...userData,
+            id_invoice: item.id_invoice,
+            inquiry_user: '',
+            institute_message_default: '',
+            institute_message: '',
+            email_datetime: email_datetime,
+            name_recipient: '',
+            email_recipient: '',
+            recipient_upzila: item.bn_uzps,
+            recipient_dist: item.bn_dist,
+            name_recipient_cc1: '',
+            email_recipient_cc1: '',
+            name_recipient_cc2: '',
+            email_recipient_cc2: '',
+            name_recipient_cc3: '',
+            email_recipient_cc3: '',
+            email_ref: email_ref,
+            email_subject: 'তদন্তকারী কর্মকর্তা নিয়োগ প্রসঙ্গে।',
+            email_topic: 'নতুন প্রতিষ্ঠানের পাঠদানের জন্য প্রতিষ্ঠান পরিদর্শন ও তদন্ত প্রতিবেদন জমা প্রদান',
+            topic_uname: item.bn_user,
+            topic_uid: item.inst_mobile,
+            topic_uaddress: item.inst_address + ', ' + item.en_uzps + ', ' + item.en_dist,
+            topic_uemail: item.inst_email,
+            topic_umobile: item.inst_mobile,
+            email_message: 'বেসরকারি শিক্ষা প্রতিষ্ঠান (নিম্ন মাধ্যমিক, মাধ্যমিক ও উচ্চ মাধ্যমিক) স্থাপন, পাঠদান ও একাডেমিক স্বীকৃতি প্রদান নীতিমালা- ২০২২ (সংশোধিত- ২০২৩) এর অনুচ্ছেদ ৭.২ এর উপ-অনুচ্ছেদ (ক) অনুযায়ী আপনাকে নতুন প্রতিষ্ঠানের পাঠদানের আবেদনের প্রেক্ষিতে প্রতিষ্ঠান পরিদর্শন প্রদিবেদন দাখিলের জন্য তদন্তকারী কর্মকর্তা হিসেবে নিয়োগ প্রদান করা হলো। পরিদর্শন শেষে নির্ধারিত ফর্মে পরিদর্শন প্রতিবেদন নিয়োগকারী কর্তৃপক্ষের নিকট উক্ত নিয়োগের তারিখ থেকে ৩০ দিনের [অনুচ্ছেদ ৭.২ (খ)] মধ্যে দাখিল করার জন্য নির্দেশ প্রদান করা হলো।',
+        });
+
+        setUserDataError({ ...userDataError, id_invoice: '', inquiry_user: '', institute_message_default: '', institute_message: '', email_datetime: '', name_recipient: '', email_recipient: '', recipient_upzila: '', recipient_dist: '', name_recipient_cc1: '', email_recipient_cc1: '', name_recipient_cc2: '', email_recipient_cc2: '', name_recipient_cc3: '', email_recipient_cc3: '', email_ref: '', email_subject: '', email_topic: '', topic_uname: '', topic_uid: '', topic_uaddress: '', topic_uemail: '', topic_umobile: '', email_message: '', });
+
+        setModifyError(false);
+        setModifySuccess(false);
+        setModifyProcess(false);
+        setActiveAppInquery(item);
+        setInqueryShow(true);
+    };
+
+    //Handle Reject Click
+    const handleRejectClick = (item) => {
+        resetModifyMessages();
+        setActiveAppReject(item);
+        setRejShow(true);
+    };
+
+    //Handle SendBack Click
+    const handleSendBackClick = (item) => {
+        resetModifyMessages();
+        setActiveAppSendBack(item);
+        setSendBackShow(true);
+    };
+
+    // Handle User Data Change
+    const handleDataChange = (dataName, dataValue) => {
+        setUserData({ ...userData, [dataName]: dataValue.toUpperCase() });
+        setUserDataError(prev => ({ ...prev, [dataName]: '' }));
+    }
+
+    if (!ceb_session?.ceb_user_id) {
+        return null;
+    }
+
+    if ((ceb_session.ceb_user_office === "04" || ceb_session.ceb_user_office === "05" || ceb_session.ceb_user_role === "16" || ceb_session.ceb_user_role === "17") && loadingSuccess) return (
+        <Fragment>
+            <Row>
+                <Col sm="12">
+                    <Card>
+                        <Card.Header className="d-flex justify-content-between">
+                            <div className="header-title d-flex flex-column justify-content-center align-items-center w-100">
+                                <h4 className={styles.SiyamRupaliFont + " card-title text-center text-primary flex-fill"}>প্রতিষ্ঠানের স্বীকৃতি/স্বীকৃতি নবায়নের অপেক্ষমান আবেদনসমূহ</h4>
+                                {modifyError && <h6 className={styles.SiyamRupaliFont + " text-center text-danger flex-fill py-2"}>{modifyError}</h6>}
+                                {modifySuccess && <h6 className={styles.SiyamRupaliFont + " text-center text-success flex-fill py-2"}>{modifySuccess}</h6>}
+                                {modifyProcess && <h6 className={styles.SiyamRupaliFont + " text-center text-primary flex-fill py-2"}>{modifyProcess}</h6>}
+                            </div>
+                        </Card.Header>
+                        <Card.Body className="px-0">
+                            {dataList.length > 0 && <>
+                                <Row className='d-flex flex-row justify-content-between align-items-center px-4'>
+                                    <Col md="2">
+                                        <Form.Label htmlFor="per_page_data"><span className={styles.SiyamRupaliFont + " text-center"}>প্রতি পাতায় আবেদন সংখ্যা (সর্বমোট আবেদনঃ {dataList.length})</span></Form.Label>
+                                        <Form.Select
+                                            id="per_page_data"
+                                            value={rowsPerPage}
+                                            onChange={(e) => handleRowsPerPageChange(e.target.value)}
+                                        // disabled={!uniqueEcoCode || loadingAccountCodes || uniqueEcoCode.length === 0}
+                                        >
+                                            <option disabled value="" className={styles.SiyamRupaliFont + " text-center"}>-- আবেদন সংখ্যা সিলেক্ট করুন --</option>
+                                            <option value="10">১০</option>
+                                            <option value="20">২০</option>
+                                            <option value="50">৫০</option>
+                                            <option value="100">১০০</option>
+                                        </Form.Select>
+                                    </Col>
+                                    <Col md="3">
+                                        <Form.Label className='d-flex justify-content-end' htmlFor="search_info"> <span className={styles.SiyamRupaliFont}>আবেদন খুঁজতে নিচের বক্সে লিখুন</span> </Form.Label>
+                                        <Form.Control
+                                            className='bg-transparent text-uppercase'
+                                            type="search"
+                                            id="search_info"
+                                            value={searchValue}
+                                            onChange={(e) => setSearchValue(e.target.value)}
+                                            placeholder="তথ্য খুঁজুন..."
+                                        />
+                                    </Col>
+                                </Row>
+                            </>}
+                            <Row className="table-responsive p-4">
+                                <table id="data-list-table" className="table table-bordered border-dark" role="grid" data-toggle="data-table">
+                                    <thead>
+                                        <tr className='table-primary table-bordered border-dark'>
+                                            <th className={styles.SiyamRupaliFont + " text-center align-top text-wrap p-0 m-0"}>
+                                                ক্রমিক
+                                            </th>
+                                            <th className='text-center align-top text-wrap p-1 m-0'>
+                                                <p className={styles.SiyamRupaliFont + " text-nowrap text-center"}>প্রতিষ্ঠানের নাম (বাংলা)</p>
+                                                <p className={styles.SiyamRupaliFont + " text-nowrap text-center"}>প্রতিষ্ঠানের নাম (English)</p>
+                                                <p className={styles.SiyamRupaliFont + " text-nowrap text-center"}>অফিস আদেশ (তদন্ত)</p>
+                                            </th>
+                                            <th className='text-center align-top text-wrap p-1 m-0'>
+                                                <p className={styles.SiyamRupaliFont + " text-wrap text-center"}>প্রতিষ্ঠানের মোবাইল</p>
+                                                <p className={styles.SiyamRupaliFont + " text-wrap text-center"}>প্রতিষ্ঠানের ইমেইল</p>
+                                                <p className={styles.SiyamRupaliFont + " text-wrap text-center"}>পেমেন্ট ভাউচার</p>
+                                            </th>
+                                            {/* <th className='text-center align-top text-wrap p-1 m-0'>
+                                                <p className={styles.SiyamRupaliFont + " text-wrap text-center"}>প্রতিষ্ঠানের ধরণ</p>
+                                                <p className={styles.SiyamRupaliFont + " text-wrap text-center"}>প্রতিষ্ঠানের মাধ্যম</p>
+                                                <p className={styles.SiyamRupaliFont + " text-wrap text-center"}>প্রতিষ্ঠানের পর্যায়</p>
+                                            </th> */}
+                                            <th className='text-center align-top text-wrap p-1 m-0'>
+                                                <p className={styles.SiyamRupaliFont + " text-wrap text-center"}>স্বীকৃতির পর্যায়</p>
+                                            </th>
+                                            <th className='text-center align-top text-wrap p-1 m-0'>
+                                                <p className={styles.SiyamRupaliFont + " text-wrap text-center"}>আবেদনের অবস্থা</p>
+                                                <p className={styles.SiyamRupaliFont + " text-wrap text-center"}>মন্তব্য</p>
+                                            </th>
+                                            <th className={styles.SiyamRupaliFont + " text-center align-top text-wrap p-0 m-0"}>সম্পাদনা</th>
+                                        </tr>
+                                    </thead>
+                                    {dataList.length > 0 && <>
+                                        <tbody>
+                                            {
+                                                filteredData.map((item, idx) => (
+                                                    <tr key={idx}>
+                                                        <td className='text-center align-top text-wrap'>{idx + 1}</td>
+                                                        <td className='text-center align-top text-wrap'>
+                                                            <p className={styles.SiyamRupaliFont + " text-center align-center text-nowrap p-1 m-0"}>{item.bn_user}</p>
+                                                            <p className={styles.SiyamRupaliFont + " text-uppercase text-center align-center text-nowrap p-1 m-0"}>{item.en_user}</p>
+                                                            {item.email_ref && <Button type="button" variant="btn btn-outline-secondary" onClick={() => window.open(`${FRONTEND_URL}/order-emails?id_email=${item.email_ref}`, '_blank', 'noopener,noreferrer')}>তদন্তের আদেশ প্রিন্ট</Button>}
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap'>
+                                                            <p className={styles.SiyamRupaliFont + " text-center align-center text-wrap p-1 m-0"}>{item.inst_mobile}</p>
+                                                            <p className={styles.SiyamRupaliFont + " text-lowercase text-center align-center text-wrap p-1 m-0"}>{item.inst_email}</p>
+                                                            <Button type="button" variant="btn btn-outline-primary" onClick={() => window.open(`${FRONTEND_URL}/payment-response?prev_location=/establishment/pending-list&invoiceNo=${item.id_invoice}`, '_blank', 'noopener,noreferrer')}>ভাউচার</Button>
+                                                        </td>
+                                                        {/* <td className='text-center align-top text-wrap'>
+                                                            <p className={styles.SiyamRupaliFont + " text-center align-center text-wrap p-1 m-0"}>{item.bn_coed}</p>
+                                                            <p className={styles.SiyamRupaliFont + " text-center align-center text-wrap p-1 m-0"}>{item.bn_version}</p>
+                                                            <p className={styles.SiyamRupaliFont + " text-center text-dark align-center text-wrap p-1 m-0"}>{item.bn_status}</p>
+                                                        </td> */}
+                                                        <td className='text-center align-top text-wrap'>
+                                                            <p className={styles.SiyamRupaliFont + " text-center align-center text-wrap p-1 m-0"}>{item.bn_recog_status}</p>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap'>
+                                                            <p className={styles.SiyamRupaliFont + " text-center align-center text-wrap p-1 m-0"}>{item.bn_app_status}</p>
+                                                            {(item.email_ref && item.proc_status === '16') && <Button type="button" className='w-100 text-nowrap p-2 my-1' variant="btn btn-outline-success" onClick={() => alert('তদন্ত প্রতিবেদন জমা হয়েছে। প্রতিবেদন দেখতে বিস্তারিত আবেদনে প্রবেশ করুন।')}>তদন্ত প্রতিবেদন</Button>}
+                                                            <Button type="button" className='w-100 text-nowrap p-2 m-0' variant="btn btn-outline-primary" onClick={() => alert(item.message)}>সর্বশেষ মন্তব্য</Button>
+                                                        </td>
+                                                        <td>
+                                                            <div className="d-flex justify-content-center align-items-center flex-wrap gap-3">
+                                                                {item.proc_status === ceb_session.ceb_user_role && <Button className='m-0 p-1' type="button" onClick={() => handleForwardClick(item)} variant="btn btn-success" data-toggle="tooltip" data-placement="top" title="অনুমোদন" data-original-title="অনুমোদন">
+                                                                    <span className="btn-inner">
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-square-check"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="m9 12 2 2 4-4" /></svg>
+                                                                    </span>
+                                                                </Button>}
+                                                                {Number(ceb_session.ceb_user_role) >= 16 && <Button className='m-0 p-1' type="button" onClick={() => handleInqueryClick(item)} variant="btn btn-info" data-toggle="tooltip" data-placement="top" title="তদন্তের জন্য প্রেরণ" data-original-title="তদন্তের জন্য প্রেরণ">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-calendar-search-icon lucide-calendar-search"><path d="M16 2v4" /><path d="M21 11.75V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7.25" /><path d="m22 22-1.875-1.875" /><path d="M3 10h18" /><path d="M8 2v4" /><circle cx="18" cy="18" r="3" /></svg>
+                                                                </Button>}
+                                                                <Button className='m-0 p-1' type="button" onClick={() => handleDetailsClick(item)} variant="btn btn-secondary" data-toggle="tooltip" data-placement="top" title="বিস্তারিত" data-original-title="বিস্তারিত">
+                                                                    <span className="btn-inner">
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-scan-eye"><path d="M3 7V5a2 2 0 0 1 2-2h2" /><path d="M17 3h2a2 2 0 0 1 2 2v2" /><path d="M21 17v2a2 2 0 0 1-2 2h-2" /><path d="M7 21H5a2 2 0 0 1-2-2v-2" /><circle cx="12" cy="12" r="1" /><path d="M18.944 12.33a1 1 0 0 0 0-.66 7.5 7.5 0 0 0-13.888 0 1 1 0 0 0 0 .66 7.5 7.5 0 0 0 13.888 0" /></svg>
+                                                                    </span>
+                                                                </Button>
+                                                                {item.proc_status === ceb_session.ceb_user_role && <Button className='m-0 p-1' type="button" onClick={() => handleSendBackClick(item)} variant="btn btn-warning" data-toggle="tooltip" data-placement="top" title="ফের‌ৎ পাঠানো" data-original-title="ফেরৎ পাঠানো">
+                                                                    <span className="btn-inner">
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeধinecap="round" strokeধinejoin="round" className="lucide lucide-undo2-icon lucide-undo-2"><path d="M9 14 4 9l5-5" /><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11" /></svg>
+                                                                    </span>
+                                                                </Button>}
+                                                                {item.proc_status === ceb_session.ceb_user_role && Number(ceb_session.ceb_user_role) >= 16 && <Button className='m-0 p-1' type="button" onClick={() => handleRejectClick(item)} variant="btn btn-danger" data-toggle="tooltip" data-placement="top" title="বাতিল" data-original-title="বাতিল">
+                                                                    <span className="btn-inner">
+                                                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-square-x"><rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><path d="m15 9-6 6" /><path d="m9 9 6 6" /></svg>
+                                                                    </span>
+                                                                </Button>}
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            }
+                                        </tbody>
+                                    </>}
+                                </table>
+                            </Row>
+                            {dataList.length > 0 && <>
+                                <Row className='d-flex justify-content-between px-5'>
+                                    <Col md="5">
+                                        <Button className='flex-fill' disabled variant="btn btn-light"><span className={styles.SiyamRupaliFont}>আবেদন {((currentPage - 1) * rowsPerPage) + 1} থেকে {currentPage * rowsPerPage > dataList.length ? dataList.length : currentPage * rowsPerPage} পর্যন্ত</span></Button>
+                                    </Col>
+                                    <Col md="5" className='d-flex justify-content-center gap-1'>
+                                        <Button className='flex-fill' disabled={currentPage === 1} value={1} onClick={(e) => handleSetCurrentPage(e.target.value)} variant="btn btn-light">{"<<"}</Button>
+                                        <Button className='flex-fill' disabled={currentPage === 1} value={currentPage - 1} onClick={(e) => handleSetCurrentPage(e.target.value)} variant="btn btn-light">{"<"}</Button>
+                                        {currentPage > 1 && <Button value={currentPage - 1} onClick={(e) => handleSetCurrentPage(e.target.value)} className='flex-fill' variant="btn btn-light">{currentPage - 1}</Button>}
+                                        <Button value={currentPage} onClick={(e) => handleSetCurrentPage(e.target.value)} className='flex-fill' variant="btn btn-primary">{currentPage}</Button>
+                                        {totalPage - currentPage > 0 && <Button value={currentPage + 1} onClick={(e) => handleSetCurrentPage(e.target.value)} className='flex-fill' variant="btn btn-light">{currentPage + 1}</Button>}
+                                        <Button disabled={currentPage === totalPage} value={currentPage + 1} onClick={(e) => handleSetCurrentPage(e.target.value)} className='flex-fill' variant="btn btn-light">{">"}</Button>
+                                        <Button disabled={currentPage === totalPage} value={totalPage} onClick={(e) => handleSetCurrentPage(e.target.value)} className='flex-fill' variant="btn btn-light">{">>"}</Button>
+                                    </Col>
+                                </Row>
+                            </>}
+                        </Card.Body>
+                    </Card>
+                </Col>
+            </Row>
+            {activeAppDetails && (
+                <Modal
+                    show={detailsShow}
+                    onHide={() => setDetailsShow(false)}
+                    backdrop="static"
+                    keyboard={false}
+                    className='modal-xl m-0 p-0'
+                >
+                    <Modal.Header closeButton></Modal.Header>
+                    <Modal.Body className='m-0 p-0'>
+                        <Fragment>
+                            <Row className='d-flex flex-column justify-content-center align-items-center m-0 p-0'>
+                                <Col ref={printRef} md={12}>
+                                    <Card className="card-transparent shadow-none d-flex justify-content-center m-0 auth-card">
+                                        <Card.Body className='d-flex flex-column justify-content-center align-items-center table-responsive m-0 p-0'>
+                                            <table id="user-list-table" className="table table-bordered border-dark border-2 w-100 m-0 p-0">
+                                                <thead className='border-0'>
+                                                    <tr className='border-0 bg-transparent'>
+                                                        <th colSpan={6} className='border-0 text-center align-top text-wrap m-0 p-0 pt-4 pb-2'>
+                                                            <div className="d-flex border-bottom border-dark justify-content-center align-items-start w-100 gap-3">
+                                                                <Logo color={true} />
+                                                                <div className='d-flex flex-column justify-content-center align-items-center'>
+                                                                    <h2 className="logo-title text-wrap text-center p-0 m-0 pb-2">{appName}</h2>
+                                                                    <h5 className="text-wrap text-center py-1">লাকসাম রোড, কান্দিরপাড়, কুমিল্লা</h5>
+                                                                    <h6 className="text-lowercase text-wrap text-center py-1">web.comillaboard.gov.bd</h6>
+                                                                </div>
+                                                            </div>
+                                                        </th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr className='border-0'>
+                                                        <th colSpan={6} className='border-0 text-center align-top text-wrap m-0 p-0 py-1'>
+                                                            <h5 className={styles.SiyamRupaliFont + " text-center text-uppercase text-secondary card-title pt-2"}>একাডেমিক স্বীকৃতি/স্বীকৃতি নবায়নের আবেদনপত্র</h5>
+                                                        </th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th colSpan={6} className='text-center align-top text-wrap p-0 py-2'>
+                                                            <h6 className={styles.SiyamRupaliFont + " text-center text-secondary fs-6"}>আবেদনের তথ্য</h6>
+                                                        </th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>স্বীকৃতির পর্যায়</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td colSpan={4} className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-success"}>{activeAppDetails.bn_recog_status}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>পেমেন্টের বিবরণী</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-danger"}>{activeAppDetails.bn_payment}</span>
+                                                        </td>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>আবেদনের অবস্থা</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-danger"}>{activeAppDetails.bn_app_status}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th colSpan={6} className='text-center align-top text-wrap p-0 py-2'>
+                                                            <h6 className={styles.SiyamRupaliFont + " text-center text-secondary fs-6"}>পূর্ববর্তী স্বীকৃতি/পাঠদান অনুমতির তথ্য</h6>
+                                                        </th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>স্মারক নম্বর</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(activeAppDetails.prev_ref)}</span>
+                                                        </td>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>স্মারকের তারিখ</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(activeAppDetails.ref_date)}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>অনুমতির শুরুর তারিখ</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(activeAppDetails.ref_start)}</span>
+                                                        </td>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>মেয়াদোত্তীর্ণের তারিখ</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(activeAppDetails.ref_end)}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th colSpan={6} className='text-center align-top text-wrap p-0 py-2'>
+                                                            <h6 className={styles.SiyamRupaliFont + " text-center text-secondary fs-6"}>প্রতিষ্ঠানের তথ্য</h6>
+                                                        </th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>প্রতিষ্ঠানের নাম (বাংলা)</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td colSpan={4} className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.bn_user}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>প্রতিষ্ঠানের নাম (ইংরেজি)</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td colSpan={4} className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-uppercase text-center text-dark"}>{activeAppDetails.en_user}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>ইমেইল</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.inst_email}</span>
+                                                        </td>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>মোবাইল</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(activeAppDetails.inst_mobile)}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>প্রতিষ্ঠানের ধরণ</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.bn_coed}</span>
+                                                        </td>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>প্রতিষ্ঠানের মাধ্যম</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.bn_version} মাধ্যম</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>প্রতিষ্ঠানের পর্যায়</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.bn_status}</span>
+                                                        </td>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>প্রতিষ্ঠানের অবস্থান</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        {activeAppDetails.inst_region === '01' && <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>সিটি কর্পোরেশন এলাকা</span>
+                                                        </td>}
+                                                        {activeAppDetails.inst_region === '02' && <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>পৌরসভা এলাকা</span>
+                                                        </td>}
+                                                        {activeAppDetails.inst_region === '03' && <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>মফস্বল এলাকা</span>
+                                                        </td>}
+                                                    </tr>
+                                                    <tr>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>জেলা</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.bn_dist}</span>
+                                                        </td>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>উপজেলা/থানা</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.bn_uzps}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>ঠিকানা</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td colSpan={4} className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-uppercase text-left text-dark"}>{activeAppDetails.inst_address}, {activeAppDetails.en_uzps}, {activeAppDetails.en_dist}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th colSpan={6} className='text-center align-top text-wrap p-0 py-2'>
+                                                            <h6 className={styles.SiyamRupaliFont + " text-center text-secondary fs-6"}>জমির বিবরণী</h6>
+                                                        </th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>মোট জমি</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(activeAppDetails.total_land)} শতাংশ</span>
+                                                        </td>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>নামজারিকৃত জমি</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(activeAppDetails.mutation_land)} শতাংশ</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>সর্বশেষ খাজনার বছর</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(activeAppDetails.land_tax_year)}</span>
+                                                        </td>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>দাখিলা নম্বর</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(activeAppDetails.land_tax_number)}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th colSpan={6} className='text-center align-top text-wrap p-0 py-2'>
+                                                            <h6 className={styles.SiyamRupaliFont + " text-center text-secondary fs-6"}>তহবিলের বিবরণী</h6>
+                                                        </th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>সাধারণ তহবিল</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(activeAppDetails.general_fund)} টাকা</span>
+                                                        </td>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>সংরক্ষিত তহবিল</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(activeAppDetails.reserved_fund)} টাকা</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th colSpan={6} className='text-center align-top text-wrap p-0 py-2'>
+                                                            <h6 className={styles.SiyamRupaliFont + " text-center text-secondary fs-6"}>কমিটির বিবরণী</h6>
+                                                        </th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>কমিটির ধরণ</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            {activeAppDetails.committee_type === '01' && <span className={styles.SiyamRupaliFont + " text-center text-dark"}>নির্বাহী কমিটি</span>}
+                                                            {activeAppDetails.committee_type === '02' && <span className={styles.SiyamRupaliFont + " text-center text-dark"}>গর্ভর্নিং বডি</span>}
+                                                            {activeAppDetails.committee_type === '03' && <span className={styles.SiyamRupaliFont + " text-center text-dark"}>ম্যানেজিং কমিটি</span>}
+                                                            {activeAppDetails.committee_type === '04' && <span className={styles.SiyamRupaliFont + " text-center text-dark"}>এডহক কমিটি</span>}
+                                                            {activeAppDetails.committee_type === '05' && <span className={styles.SiyamRupaliFont + " text-center text-dark"}>সরকারি বা সংস্থা পরিচালিত প্রতিষ্ঠানের গর্ভর্নিং বডি/ম্যানেজিং কমিটি</span>}
+                                                        </td>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>কমিটির মেয়াদ</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(activeAppDetails.committee_expiry)}</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th colSpan={6} className='text-center align-top text-wrap p-0 py-2'>
+                                                            <h6 className={styles.SiyamRupaliFont + " text-center text-secondary fs-6"}>অবকাঠামোগত বিবরণী</h6>
+                                                        </th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>ভবন সংখ্যা</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>পাকাঃ {ValidationInput.E2BDigit(activeAppDetails.total_concrete_building)} টি, অন্যান্যঃ {ValidationInput.E2BDigit(activeAppDetails.total_other_building)} টি</span>
+                                                        </td>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>কক্ষের বিবরণ</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <p className={styles.SiyamRupaliFont + " text-center text-dark p-0 m-0"}>মোটঃ {ValidationInput.E2BDigit(activeAppDetails.total_room)} টি, ব্যবহৃতঃ {ValidationInput.E2BDigit(activeAppDetails.used_room)} টি, উদ্বৃত্তঃ {ValidationInput.E2BDigit(activeAppDetails.researved_room)} টি, বিদ্যুৎ সংযোগকৃতঃ {ValidationInput.E2BDigit(activeAppDetails.electricity_connection)} টি</p>
+                                                            <p className={styles.SiyamRupaliFont + " text-center text-dark p-0 m-0"}>মোট আয়তনঃ {ValidationInput.E2BDigit(activeAppDetails.area_room)} বর্গফুট</p>
+
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>টয়লেট সংখ্যা</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(activeAppDetails.total_toilet)} টি</span>
+                                                        </td>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>টিউবওয়েলের সংখ্যা</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(activeAppDetails.total_tubewell)} টি</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>গ্রন্থাগারের সংখ্যা ও আয়তন</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(activeAppDetails.total_library)} টি, {ValidationInput.E2BDigit(activeAppDetails.area_library)} বর্গফুট</span>
+                                                        </td>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>মোট বই</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(activeAppDetails.total_books)} টি</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>বিজ্ঞানাগারের সংখ্যা ও আয়তন</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(activeAppDetails.total_labratory)} টি, {ValidationInput.E2BDigit(activeAppDetails.area_labratory)} বর্গফুট</span>
+                                                        </td>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>বিজ্ঞানাগারের দ্রব্যাদির মূল্য</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(activeAppDetails.total_equipment_price)} টাকা</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>কম্পিউটার ল্যাবের সংখ্যা ও আয়তন</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(activeAppDetails.computer_room)} টি, {ValidationInput.E2BDigit(activeAppDetails.area_computer_room)} বর্গফুট</span>
+                                                        </td>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>মোট কম্পিউটার</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(activeAppDetails.total_computer)} টি</span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <th colSpan={6} className='text-center align-top text-wrap p-0 py-2'>
+                                                            <h6 className={styles.SiyamRupaliFont + " text-center text-secondary fs-6"}>শিক্ষার্থীদের তথ্য</h6>
+                                                        </th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>মোট অনুমোদিত শিক্ষার্থী</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td colSpan={1} className='text-center align-top text-wrap p-2 m-0'>
+                                                            {ValidationInput.E2BDigit(activeAppDetails.total_permitted_student)} জন
+                                                        </td>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>মোট নিবন্ধিত শিক্ষার্থী</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td colSpan={1} className='text-center align-top text-wrap p-2 m-0'>
+                                                            {ValidationInput.E2BDigit(Number(activeAppDetails.six_science_total) + Number(activeAppDetails.six_humanities_total) + Number(activeAppDetails.six_business_total) + Number(activeAppDetails.seven_science_total) + Number(activeAppDetails.seven_humanities_total) + Number(activeAppDetails.seven_business_total) + Number(activeAppDetails.eight_science_total) + Number(activeAppDetails.eight_humanities_total) + Number(activeAppDetails.eight_business_total) + Number(activeAppDetails.nine_science_total) + Number(activeAppDetails.nine_humanities_total) + Number(activeAppDetails.nine_business_total) + Number(activeAppDetails.ten_science_total) + Number(activeAppDetails.ten_humanities_total) + Number(activeAppDetails.ten_business_total) + Number(activeAppDetails.eleven_science_total) + Number(activeAppDetails.eleven_humanities_total) + Number(activeAppDetails.eleven_business_total) + Number(activeAppDetails.twelve_science_total) + Number(activeAppDetails.twelve_humanities_total) + Number(activeAppDetails.twelve_business_total))} জন
+                                                        </td>
+                                                    </tr>
+                                                    {(!activeAppDetails?.recog_inst_status || activeAppDetails.recog_inst_status === '11' || activeAppDetails.recog_inst_status === '20') && <>
+                                                        <tr>
+                                                            <th className='text-left align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>ষষ্ট শ্রেণী</span>
+                                                            </th>
+                                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                            </td>
+                                                            <td colSpan={4} className='text-center align-top text-wrap p-2 m-0'>
+                                                                শাখাঃ {ValidationInput.E2BDigit(activeAppDetails.six_science_section)} টি,  মোটঃ {ValidationInput.E2BDigit(activeAppDetails.six_science_total)} জন
+                                                                {/* মানবিকঃ শাখাঃ {ValidationInput.E2BDigit(activeAppDetails.six_humanities_section)} টি, মোটঃ {ValidationInput.E2BDigit(activeAppDetails.six_humanities_total)} জন; */}
+                                                                {/* ব্যবসায় শিক্ষাঃ শাখাঃ {ValidationInput.E2BDigit(activeAppDetails.six_business_section)} টি, মোটঃ {ValidationInput.E2BDigit(activeAppDetails.six_business_total)} জন */}
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th className='text-left align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>সপ্তম শ্রেণী</span>
+                                                            </th>
+                                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                            </td>
+                                                            <td colSpan={4} className='text-center align-top text-wrap p-2 m-0'>
+                                                                শাখাঃ {ValidationInput.E2BDigit(activeAppDetails.seven_science_section)} টি,  মোটঃ {ValidationInput.E2BDigit(activeAppDetails.seven_science_total)} জন
+                                                                {/* মানবিকঃ শাখাঃ {ValidationInput.E2BDigit(activeAppDetails.seven_humanities_section)} টি, মোটঃ {ValidationInput.E2BDigit(activeAppDetails.seven_humanities_total)} জন; */}
+                                                                {/* ব্যবসায় শিক্ষাঃ শাখাঃ {ValidationInput.E2BDigit(activeAppDetails.seven_business_section)} টি, মোটঃ {ValidationInput.E2BDigit(activeAppDetails.seven_business_total)} জন */}
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th className='text-left align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>অষ্টম শ্রেণী</span>
+                                                            </th>
+                                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                            </td>
+                                                            <td colSpan={4} className='text-center align-top text-wrap p-2 m-0'>
+                                                                শাখাঃ {ValidationInput.E2BDigit(activeAppDetails.eight_science_section)} টি,  মোটঃ {ValidationInput.E2BDigit(activeAppDetails.eight_science_total)} জন
+                                                                {/* মানবিকঃ শাখাঃ {ValidationInput.E2BDigit(activeAppDetails.eight_humanities_section)} টি, মোটঃ {ValidationInput.E2BDigit(activeAppDetails.eight_humanities_total)} জন; */}
+                                                                {/* ব্যবসায় শিক্ষাঃ শাখাঃ {ValidationInput.E2BDigit(activeAppDetails.eight_business_section)} টি, মোটঃ {ValidationInput.E2BDigit(activeAppDetails.eight_business_total)} জন */}
+                                                            </td>
+                                                        </tr>
+                                                    </>}
+                                                    {(!activeAppDetails?.recog_inst_status || activeAppDetails.recog_inst_status === '12' || activeAppDetails.recog_inst_status === '20') && <>
+                                                        <tr>
+                                                            <th className='text-left align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>নবম শ্রেণী</span>
+                                                            </th>
+                                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                            </td>
+                                                            <td colSpan={4} className='text-center align-top text-wrap p-2 m-0'>
+                                                                {(activeAppDetails.id_group === '01' || activeAppDetails.id_group === '04' || activeAppDetails.id_group === '05' || activeAppDetails.id_group === '07') && <>
+                                                                    বিজ্ঞানঃ শাখাঃ {ValidationInput.E2BDigit(activeAppDetails.nine_science_section)} টি,  মোটঃ {ValidationInput.E2BDigit(activeAppDetails.nine_science_total)} জন
+                                                                </>}
+                                                                {(activeAppDetails.id_group === '02' || activeAppDetails.id_group === '04' || activeAppDetails.id_group === '06' || activeAppDetails.id_group === '07') && <>
+                                                                    ; মানবিকঃ শাখাঃ {ValidationInput.E2BDigit(activeAppDetails.nine_humanities_section)} টি, মোটঃ {ValidationInput.E2BDigit(activeAppDetails.nine_humanities_total)} জন
+                                                                </>}
+                                                                {(activeAppDetails.id_group === '03' || activeAppDetails.id_group === '05' || activeAppDetails.id_group === '06' || activeAppDetails.id_group === '07') && <>
+                                                                    ; ব্যবসায় শিক্ষাঃ শাখাঃ {ValidationInput.E2BDigit(activeAppDetails.nine_business_section)} টি, মোটঃ {ValidationInput.E2BDigit(activeAppDetails.nine_business_total)} জন
+                                                                </>}
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th className='text-left align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>দশম শ্রেণী</span>
+                                                            </th>
+                                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                            </td>
+                                                            <td colSpan={4} className='text-center align-top text-wrap p-2 m-0'>
+                                                                {(activeAppDetails.id_group === '01' || activeAppDetails.id_group === '04' || activeAppDetails.id_group === '05' || activeAppDetails.id_group === '07') && <>
+                                                                    বিজ্ঞানঃ শাখাঃ {ValidationInput.E2BDigit(activeAppDetails.ten_science_section)} টি,  মোটঃ {ValidationInput.E2BDigit(activeAppDetails.ten_science_total)} জন
+                                                                </>}
+                                                                {(activeAppDetails.id_group === '02' || activeAppDetails.id_group === '04' || activeAppDetails.id_group === '06' || activeAppDetails.id_group === '07') && <>
+                                                                    ; মানবিকঃ শাখাঃ {ValidationInput.E2BDigit(activeAppDetails.ten_humanities_section)} টি, মোটঃ {ValidationInput.E2BDigit(activeAppDetails.ten_humanities_total)} জন
+                                                                </>}
+                                                                {(activeAppDetails.id_group === '03' || activeAppDetails.id_group === '05' || activeAppDetails.id_group === '06' || activeAppDetails.id_group === '07') && <>
+                                                                    ; ব্যবসায় শিক্ষাঃ শাখাঃ {ValidationInput.E2BDigit(activeAppDetails.ten_business_section)} টি, মোটঃ {ValidationInput.E2BDigit(activeAppDetails.ten_business_total)} জন
+                                                                </>}
+                                                            </td>
+                                                        </tr>
+                                                    </>}
+                                                    {(!activeAppDetails?.recog_inst_status || activeAppDetails.recog_inst_status === '13' || activeAppDetails.recog_inst_status === '20' || activeAppDetails.recog_inst_status === '26') && <>
+                                                        <tr>
+                                                            <th className='text-left align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>একাদশ শ্রেণী</span>
+                                                            </th>
+                                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                            </td>
+                                                            <td colSpan={4} className='text-center align-top text-wrap p-2 m-0'>
+                                                                {(activeAppDetails.id_group === '01' || activeAppDetails.id_group === '04' || activeAppDetails.id_group === '05' || activeAppDetails.id_group === '07') && <>
+                                                                    বিজ্ঞানঃ শাখাঃ {ValidationInput.E2BDigit(activeAppDetails.eleven_science_section)} টি,  মোটঃ {ValidationInput.E2BDigit(activeAppDetails.eleven_science_total)} জন
+                                                                </>}
+                                                                {(activeAppDetails.id_group === '02' || activeAppDetails.id_group === '04' || activeAppDetails.id_group === '06' || activeAppDetails.id_group === '07') && <>
+                                                                    ; মানবিকঃ শাখাঃ {ValidationInput.E2BDigit(activeAppDetails.eleven_humanities_section)} টি, মোটঃ {ValidationInput.E2BDigit(activeAppDetails.eleven_humanities_total)} জন
+                                                                </>}
+                                                                {(activeAppDetails.id_group === '03' || activeAppDetails.id_group === '05' || activeAppDetails.id_group === '06' || activeAppDetails.id_group === '07') && <>
+                                                                    ; ব্যবসায় শিক্ষাঃ শাখাঃ {ValidationInput.E2BDigit(activeAppDetails.eleven_business_section)} টি, মোটঃ {ValidationInput.E2BDigit(activeAppDetails.eleven_business_total)} জন
+                                                                </>}
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th className='text-left align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>দ্বাদশ শ্রেণী</span>
+                                                            </th>
+                                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                            </td>
+                                                            <td colSpan={4} className='text-center align-top text-wrap p-2 m-0'>
+                                                                {(activeAppDetails.id_group === '01' || activeAppDetails.id_group === '04' || activeAppDetails.id_group === '05' || activeAppDetails.id_group === '07') && <>
+                                                                    বিজ্ঞানঃ শাখাঃ {ValidationInput.E2BDigit(activeAppDetails.six_science_section)} টি,  মোটঃ {ValidationInput.E2BDigit(activeAppDetails.twelve_science_total)} জন
+                                                                </>}
+                                                                {(activeAppDetails.id_group === '02' || activeAppDetails.id_group === '04' || activeAppDetails.id_group === '06' || activeAppDetails.id_group === '07') && <>
+                                                                    ; মানবিকঃ শাখাঃ {ValidationInput.E2BDigit(activeAppDetails.twelve_humanities_section)} টি, মোটঃ {ValidationInput.E2BDigit(activeAppDetails.twelve_humanities_total)} জন
+                                                                </>}
+                                                                {(activeAppDetails.id_group === '03' || activeAppDetails.id_group === '05' || activeAppDetails.id_group === '06' || activeAppDetails.id_group === '07') && <>
+                                                                    ; ব্যবসায় শিক্ষাঃ শাখাঃ {ValidationInput.E2BDigit(activeAppDetails.twelve_business_section)} টি, মোটঃ {ValidationInput.E2BDigit(activeAppDetails.six_business_total)} জন
+                                                                </>}
+                                                            </td>
+                                                        </tr>
+                                                    </>}
+                                                    <tr>
+                                                        <th colSpan={6} className='text-center align-top text-wrap p-0 py-2'>
+                                                            <h6 className={styles.SiyamRupaliFont + " text-center text-secondary fs-6"}>পরীক্ষার তথ্য</h6>
+                                                        </th>
+                                                    </tr>
+                                                    {(!activeAppDetails?.recog_inst_status || activeAppDetails.recog_inst_status === '11' || activeAppDetails.recog_inst_status === '20') && <>
+                                                        <tr>
+                                                            <th className='text-left align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>জেএসসি-{ValidationInput.E2BDigit(activeAppDetails.jsc1_exam_year)}</span>
+                                                            </th>
+                                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                            </td>
+                                                            <td colSpan={4} className='text-center align-top text-wrap p-2 m-0'>
+                                                                <p className='m-0 p-0'>নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.jsc1_science_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.jsc1_science_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.jsc1_science_passed) / Number(activeAppDetails.jsc1_science_appeared) * 100).toFixed(2))}%</p>
+                                                                {/* <p className='m-0 p-0'>মানবিকঃ নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.jsc1_humanities_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.jsc1_humanities_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.jsc1_humanities_passed) / Number(activeAppDetails.jsc1_humanities_appeared) * 100).toFixed(2))}%</p> */}
+                                                                {/* <p className='m-0 p-0'>ব্যবসায় শিক্ষাঃ নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.jsc1_business_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.jsc1_business_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.jsc1_business_passed) / Number(activeAppDetails.jsc1_business_appeared) * 100).toFixed(2))}%</p> */}
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th className='text-left align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>জেএসসি-{ValidationInput.E2BDigit(activeAppDetails.jsc2_exam_year)}</span>
+                                                            </th>
+                                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                            </td>
+                                                            <td colSpan={4} className='text-center align-top text-wrap p-2 m-0'>
+                                                                <p className='m-0 p-0'>নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.jsc2_science_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.jsc2_science_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.jsc2_science_passed) / Number(activeAppDetails.jsc2_science_appeared) * 100).toFixed(2))}%</p>
+                                                                {/* <p className='m-0 p-0'>মানবিকঃ নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.jsc2_humanities_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.jsc2_humanities_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.jsc2_humanities_passed) / Number(activeAppDetails.jsc2_humanities_appeared) * 100).toFixed(2))}%</p> */}
+                                                                {/* <p className='m-0 p-0'>ব্যবসায় শিক্ষাঃ নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.jsc2_business_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.jsc2_business_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.jsc2_business_passed) / Number(activeAppDetails.jsc2_business_appeared) * 100).toFixed(2))}%</p> */}
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th className='text-left align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>জেএসসি-{ValidationInput.E2BDigit(activeAppDetails.jsc3_exam_year)}</span>
+                                                            </th>
+                                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                            </td>
+                                                            <td colSpan={4} className='text-center align-top text-wrap p-2 m-0'>
+                                                                <p className='m-0 p-0'>নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.jsc3_science_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.jsc3_science_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.jsc3_science_passed) / Number(activeAppDetails.jsc3_science_appeared) * 100).toFixed(2))}%</p>
+                                                                {/* <p className='m-0 p-0'>মানবিকঃ নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.jsc3_humanities_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.jsc3_humanities_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.jsc3_humanities_passed) / Number(activeAppDetails.jsc3_humanities_appeared) * 100).toFixed(2))}%</p> */}
+                                                                {/* <p className='m-0 p-0'>ব্যবসায় শিক্ষাঃ নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.jsc3_business_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.jsc3_business_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.jsc3_business_passed) / Number(activeAppDetails.jsc3_business_appeared) * 100).toFixed(2))}%</p> */}
+                                                            </td>
+                                                        </tr>
+                                                    </>}
+                                                    {(!activeAppDetails?.recog_inst_status || activeAppDetails.recog_inst_status === '12' || activeAppDetails.recog_inst_status === '20') && <>
+                                                        <tr>
+                                                            <th className='text-left align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>এসএসসি-{ValidationInput.E2BDigit(activeAppDetails.ssc1_exam_year)}</span>
+                                                            </th>
+                                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                            </td>
+                                                            <td colSpan={4} className='text-center align-top text-wrap p-2 m-0'>
+                                                                {(activeAppDetails.id_group === '01' || activeAppDetails.id_group === '04' || activeAppDetails.id_group === '05' || activeAppDetails.id_group === '07') && <>
+                                                                    <p className='m-0 p-0'>বিজ্ঞানঃ নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.ssc1_science_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.ssc1_science_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.ssc1_science_passed) / Number(activeAppDetails.ssc1_science_appeared) * 100).toFixed(2))}%</p>
+                                                                </>}
+                                                                {(activeAppDetails.id_group === '02' || activeAppDetails.id_group === '04' || activeAppDetails.id_group === '06' || activeAppDetails.id_group === '07') && <>
+                                                                    <p className='m-0 p-0'>মানবিকঃ নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.ssc1_humanities_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.ssc1_humanities_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.ssc1_humanities_passed) / Number(activeAppDetails.ssc1_humanities_appeared) * 100).toFixed(2))}%</p>
+                                                                </>}
+                                                                {(activeAppDetails.id_group === '03' || activeAppDetails.id_group === '05' || activeAppDetails.id_group === '06' || activeAppDetails.id_group === '07') && <>
+                                                                    <p className='m-0 p-0'>ব্যবসায় শিক্ষাঃ নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.ssc1_business_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.ssc1_business_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.ssc1_business_passed) / Number(activeAppDetails.ssc1_business_appeared) * 100).toFixed(2))}%</p>
+                                                                </>}
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th className='text-left align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>এসএসসি-{ValidationInput.E2BDigit(activeAppDetails.ssc2_exam_year)}</span>
+                                                            </th>
+                                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                            </td>
+                                                            <td colSpan={4} className='text-center align-top text-wrap p-2 m-0'>
+                                                                {(activeAppDetails.id_group === '01' || activeAppDetails.id_group === '04' || activeAppDetails.id_group === '05' || activeAppDetails.id_group === '07') && <>
+                                                                    <p className='m-0 p-0'>বিজ্ঞানঃ নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.ssc2_science_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.ssc2_science_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.ssc2_science_passed) / Number(activeAppDetails.ssc2_science_appeared) * 100).toFixed(2))}%</p>
+                                                                </>}
+                                                                {(activeAppDetails.id_group === '02' || activeAppDetails.id_group === '04' || activeAppDetails.id_group === '06' || activeAppDetails.id_group === '07') && <>
+                                                                    <p className='m-0 p-0'>মানবিকঃ নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.ssc2_humanities_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.ssc2_humanities_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.ssc2_humanities_passed) / Number(activeAppDetails.ssc2_humanities_appeared) * 100).toFixed(2))}%</p>
+                                                                </>}
+                                                                {(activeAppDetails.id_group === '03' || activeAppDetails.id_group === '05' || activeAppDetails.id_group === '06' || activeAppDetails.id_group === '07') && <>
+                                                                    <p className='m-0 p-0'>ব্যবসায় শিক্ষাঃ নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.ssc2_business_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.ssc2_business_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.ssc2_business_passed) / Number(activeAppDetails.ssc2_business_appeared) * 100).toFixed(2))}%</p>
+                                                                </>}
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th className='text-left align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>এসএসসি-{ValidationInput.E2BDigit(activeAppDetails.ssc3_exam_year)}</span>
+                                                            </th>
+                                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                            </td>
+                                                            <td colSpan={4} className='text-center align-top text-wrap p-2 m-0'>
+                                                                {(activeAppDetails.id_group === '01' || activeAppDetails.id_group === '04' || activeAppDetails.id_group === '05' || activeAppDetails.id_group === '07') && <>
+                                                                    <p className='m-0 p-0'>বিজ্ঞানঃ নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.ssc3_science_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.ssc3_science_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.ssc3_science_passed) / Number(activeAppDetails.ssc3_science_appeared) * 100).toFixed(2))}%</p>
+                                                                </>}
+                                                                {(activeAppDetails.id_group === '02' || activeAppDetails.id_group === '04' || activeAppDetails.id_group === '06' || activeAppDetails.id_group === '07') && <>
+                                                                    <p className='m-0 p-0'>মানবিকঃ নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.ssc3_humanities_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.ssc3_humanities_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.ssc3_humanities_passed) / Number(activeAppDetails.ssc3_humanities_appeared) * 100).toFixed(2))}%</p>
+                                                                </>}
+                                                                {(activeAppDetails.id_group === '03' || activeAppDetails.id_group === '05' || activeAppDetails.id_group === '06' || activeAppDetails.id_group === '07') && <>
+                                                                    <p className='m-0 p-0'>ব্যবসায় শিক্ষাঃ নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.ssc3_business_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.ssc3_business_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.ssc3_business_passed) / Number(activeAppDetails.ssc3_business_appeared) * 100).toFixed(2))}%</p>
+                                                                </>}
+                                                            </td>
+                                                        </tr>
+                                                    </>}
+                                                    {(!activeAppDetails?.recog_inst_status || activeAppDetails.recog_inst_status === '13' || activeAppDetails.recog_inst_status === '20' || activeAppDetails.recog_inst_status === '26') && <>
+                                                        <tr>
+                                                            <th className='text-left align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>এইচএসসি-{ValidationInput.E2BDigit(activeAppDetails.hsc1_exam_year)}</span>
+                                                            </th>
+                                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                            </td>
+                                                            <td colSpan={4} className='text-center align-top text-wrap p-2 m-0'>
+                                                                {(activeAppDetails.id_group === '01' || activeAppDetails.id_group === '04' || activeAppDetails.id_group === '05' || activeAppDetails.id_group === '07') && <>
+                                                                    <p className='m-0 p-0'>বিজ্ঞানঃ নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.hsc1_science_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.hsc1_science_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.hsc1_science_passed) / Number(activeAppDetails.hsc1_science_appeared) * 100).toFixed(2))}%</p>
+                                                                </>}
+                                                                {(activeAppDetails.id_group === '02' || activeAppDetails.id_group === '04' || activeAppDetails.id_group === '06' || activeAppDetails.id_group === '07') && <>
+                                                                    <p className='m-0 p-0'>মানবিকঃ নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.hsc1_humanities_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.hsc1_humanities_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.hsc1_humanities_passed) / Number(activeAppDetails.hsc1_humanities_appeared) * 100).toFixed(2))}%</p>
+                                                                </>}
+                                                                {(activeAppDetails.id_group === '03' || activeAppDetails.id_group === '05' || activeAppDetails.id_group === '06' || activeAppDetails.id_group === '07') && <>
+                                                                    <p className='m-0 p-0'>ব্যবসায় শিক্ষাঃ নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.hsc1_business_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.hsc1_business_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.hsc1_business_passed) / Number(activeAppDetails.hsc1_business_appeared) * 100).toFixed(2))}%</p>
+                                                                </>}
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th className='text-left align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>এইচএসসি-{ValidationInput.E2BDigit(activeAppDetails.hsc2_exam_year)}</span>
+                                                            </th>
+                                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                            </td>
+                                                            <td colSpan={4} className='text-center align-top text-wrap p-2 m-0'>
+                                                                {(activeAppDetails.id_group === '01' || activeAppDetails.id_group === '04' || activeAppDetails.id_group === '05' || activeAppDetails.id_group === '07') && <>
+                                                                    <p className='m-0 p-0'>বিজ্ঞানঃ নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.hsc2_science_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.hsc2_science_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.hsc2_science_passed) / Number(activeAppDetails.hsc2_science_appeared) * 100).toFixed(2))}%</p>
+                                                                </>}
+                                                                {(activeAppDetails.id_group === '02' || activeAppDetails.id_group === '04' || activeAppDetails.id_group === '06' || activeAppDetails.id_group === '07') && <>
+                                                                    <p className='m-0 p-0'>মানবিকঃ নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.hsc2_humanities_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.hsc2_humanities_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.hsc2_humanities_passed) / Number(activeAppDetails.hsc2_humanities_appeared) * 100).toFixed(2))}%</p>
+                                                                </>}
+                                                                {(activeAppDetails.id_group === '03' || activeAppDetails.id_group === '05' || activeAppDetails.id_group === '06' || activeAppDetails.id_group === '07') && <>
+                                                                    <p className='m-0 p-0'>ব্যবসায় শিক্ষাঃ নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.hsc2_business_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.hsc2_business_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.hsc2_business_passed) / Number(activeAppDetails.hsc2_business_appeared) * 100).toFixed(2))}%</p>
+                                                                </>}
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <th className='text-left align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>এইচএসসি-{ValidationInput.E2BDigit(activeAppDetails.hsc3_exam_year)}</span>
+                                                            </th>
+                                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                            </td>
+                                                            <td colSpan={4} className='text-center align-top text-wrap p-2 m-0'>
+                                                                {(activeAppDetails.id_group === '01' || activeAppDetails.id_group === '04' || activeAppDetails.id_group === '05' || activeAppDetails.id_group === '07') && <>
+                                                                    <p className='m-0 p-0'>বিজ্ঞানঃ নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.hsc3_science_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.hsc3_science_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.hsc3_science_passed) / Number(activeAppDetails.hsc3_science_appeared) * 100).toFixed(2))}%</p>
+                                                                </>}
+                                                                {(activeAppDetails.id_group === '02' || activeAppDetails.id_group === '04' || activeAppDetails.id_group === '06' || activeAppDetails.id_group === '07') && <>
+                                                                    <p className='m-0 p-0'>মানবিকঃ নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.hsc3_humanities_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.hsc3_humanities_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.hsc3_humanities_passed) / Number(activeAppDetails.hsc3_humanities_appeared) * 100).toFixed(2))}%</p>
+                                                                </>}
+                                                                {(activeAppDetails.id_group === '03' || activeAppDetails.id_group === '05' || activeAppDetails.id_group === '06' || activeAppDetails.id_group === '07') && <>
+                                                                    <p className='m-0 p-0'>ব্যবসায় শিক্ষাঃ নিবন্ধিতঃ {ValidationInput.E2BDigit(activeAppDetails.hsc3_business_registered)} জন, অংশগ্রহণকারীঃ {ValidationInput.E2BDigit(activeAppDetails.hsc3_business_appeared)} জন, পাশের হারঃ {ValidationInput.E2BDigit((Number(activeAppDetails.hsc3_business_passed) / Number(activeAppDetails.hsc3_business_appeared) * 100).toFixed(2))}%</p>
+                                                                </>}
+                                                            </td>
+                                                        </tr>
+                                                    </>}
+
+                                                    <tr className='print-hide'>
+                                                        <th colSpan={6} className='text-center align-top text-wrap p-0 py-2'>
+                                                            <h6 className={styles.SiyamRupaliFont + " text-center text-secondary fs-6"}>ডকুমেন্ট সংযুক্তি</h6>
+                                                        </th>
+                                                    </tr>
+                                                    <tr className='print-hide'>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>স্বীকৃতি/পাঠদানের আদেশ</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            {recognitionFiles.prev_order && String(recognitionFiles.prev_order.name).toLocaleLowerCase() === 'prev_order.pdf' && <Button onClick={() => handleFileView('prev_order')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>পূর্ববর্তী স্বীকৃতি/পাঠদানের আদেশ</span></Button>}
+                                                        </td>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>সাধারণ তহবিল</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            {recognitionFiles.general_fund_details && String(recognitionFiles.general_fund_details.name).toLocaleLowerCase() === 'general_fund_details.pdf' && <Button onClick={() => handleFileView('general_fund_details')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>সাধারণ তহবিলের বিবরণী</span></Button>}
+                                                        </td>
+                                                    </tr>
+                                                    <tr className='print-hide'>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>সংরক্ষিত তহবিল</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            {recognitionFiles.reserved_fund_details && String(recognitionFiles.reserved_fund_details.name).toLocaleLowerCase() === 'reserved_fund_details.pdf' && <Button onClick={() => handleFileView('reserved_fund_details')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>সংরক্ষিত তহবিলের বিবরণী</span></Button>}
+                                                        </td>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>ক্লাস রুটিন</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            {recognitionFiles.class_routine && String(recognitionFiles.class_routine.name).toLocaleLowerCase() === 'class_routine.pdf' && <Button onClick={() => handleFileView('class_routine')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>ক্লাস রুটিন (সর্বশেষ)</span></Button>}
+                                                        </td>
+                                                    </tr>
+                                                    <tr className='print-hide'>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>জমির দলিল</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            {recognitionFiles.mutation_details && String(recognitionFiles.mutation_details.name).toLocaleLowerCase() === 'mutation_details.pdf' && <Button onClick={() => handleFileView('mutation_details')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>জমির দলিল</span></Button>}
+                                                        </td>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>নামজারি ও খাজনা</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            {recognitionFiles.dakhila_details && String(recognitionFiles.dakhila_details.name).toLocaleLowerCase() === 'dakhila_details.pdf' && <Button onClick={() => handleFileView('dakhila_details')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>নামজারি খতিয়ান ও খাজনার দাখিলা</span></Button>}
+                                                        </td>
+                                                    </tr>
+                                                    <tr className='print-hide'>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>কমিটির স্মারক</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            {recognitionFiles.committee_order && String(recognitionFiles.committee_order.name).toLocaleLowerCase() === 'committee_order.pdf' && <Button onClick={() => handleFileView('committee_order')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>সর্বশেষ কমিটির স্মারক</span></Button>}
+                                                        </td>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>শিক্ষার্থী ভর্তির অনুমতি</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            {recognitionFiles.student_order && String(recognitionFiles.student_order.name).toLocaleLowerCase() === 'student_order.pdf' && <Button onClick={() => handleFileView('student_order')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>ভর্তির অনুমতির স্মারক</span></Button>}
+                                                        </td>
+                                                    </tr>
+                                                    <tr className='print-hide'>
+                                                        <th className='text-left align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>তদন্ত প্রতিবেদন</span>
+                                                        </th>
+                                                        <td className='text-center align-top text-wrap p-2 m-0'>
+                                                            <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
+                                                        </td>
+                                                        <td colSpan={4} className='text-center align-top text-wrap p-2 m-0'>
+                                                            {recognitionFiles.inquiry_details && String(recognitionFiles.inquiry_details.name).toLocaleLowerCase() === 'inquiry_details.pdf' && <Button onClick={() => handleFileView('inquiry_details')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>তদন্ত প্রতিবেদন</span></Button>}
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                                <tfoot>
+                                                    <tr>
+                                                        <th colSpan={6} className='text-center align-top text-wrap py-1 m-0'>
+                                                            <i><small className={styles.SiyamRupaliFont + " text-center text-primary"}>কম্পিউটার সিস্টেমে তৈরিকৃত আবেদনে কোন স্বাক্ষরের প্রয়োজন নাই!</small></i>
+                                                        </th>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                                <Col md={10}>
+                                    <Card className="card-transparent shadow-none d-flex justify-content-center m-0 py-5 auth-card">
+                                        <Card.Body className='d-flex flex-column justify-content-center align-items-center m-0 p-0'>
+                                            <Col md={12} className='d-flex justify-content-around align-items-center gap-5'>
+                                                <Button onClick={() => setDetailsShow(false)} className='flex-fill' type="button" variant="btn btn-warning">ফিরে যান</Button>
+                                                <Button onClick={handlePrint} className='flex-fill' type="button" variant="btn btn-primary">প্রিন্ট করুন</Button>
+                                            </Col>
+                                        </Card.Body>
+                                    </Card>
+                                </Col>
+                            </Row>
+                        </Fragment>
+                    </Modal.Body>
+                    <Modal.Footer></Modal.Footer>
+                </Modal>
+            )}
+            {activeAppAuthorize && (
+                <Modal
+                    show={authShow}
+                    onHide={() => setAuthShow(false)}
+                    backdrop="static"
+                    keyboard={false}
+                >
+                    <Modal.Header closeButton>
+                        <Modal.Title className={styles.SiyamRupaliFont + ' text-center'}>
+                            <h4 className={styles.SiyamRupaliFont + ' text-center'}>আবেদন {ceb_session.ceb_user_role !== '16' ? 'পরবর্তী ব্যবহারকারীর নিকট প্রেরণ' : 'অনুমোদন'} করতে চান?</h4>
+                            {modifyError && <h6 className={styles.SiyamRupaliFont + " text-center text-danger flex-fill py-2"}>{modifyError}</h6>}
+                            {modifySuccess && <h6 className={styles.SiyamRupaliFont + " text-center text-success flex-fill py-2"}>{modifySuccess}</h6>}
+                            {modifyProcess && <h6 className={styles.SiyamRupaliFont + " text-center text-primary flex-fill py-2"}>{modifyProcess}</h6>}
+                        </Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <Form noValidate>
+                            <Col className='my-2' md={12}>
+                                <Form.Group className="bg-transparent">
+                                    <Form.Label className="text-primary" htmlFor='institute_message_default'>মন্তব্য</Form.Label>
+                                    <Form.Select
+                                        id="institute_message_default"
+                                        value={userData.institute_message_default}
+                                        isInvalid={validated && !!userDataError.institute_message_default}
+                                        isValid={validated && userData.institute_message_default && !userDataError.institute_message_default}
+                                        onChange={
+                                            (e) => {
+                                                setUserData({ ...userData, institute_message_default: e.target.value, institute_message: e.target.value });
+                                            }
+                                        }
+                                        className="selectpicker form-control"
+                                        data-style="py-0"
+                                    >
+                                        <option value='' disabled>-- মন্তব্য সিলেক্ট করুন --</option>
+                                        {(ceb_session.ceb_user_role !== '16' || ceb_session.ceb_user_role === '17') && <>
+                                            <option>প্রতিষ্ঠানের আবেদনের প্রেক্ষিতে এবং আবেদনের প্রাথমিক তথ্য যাচাইয়ের পর সন্তোষজনক বলে প্রতিয়মান হয়েছে। আবেদনটি অনুমোদনের জন্য উত্থাপন করা হলো।</option>
+                                            <option>প্রতিষ্ঠানের আবেদনের প্রেক্ষিতে এবং আবেদনের প্রাথমিক তথ্য যাচাইয়ের পর সন্তোষজনক বলে প্রতিয়মান হয়েছে। আবেদনটি তদন্তের জন্য উত্থাপন করা হলো।</option>
+                                            <option>প্রতিষ্ঠানের আবেদনের প্রেক্ষিতে এবং আবেদনের প্রাথমিক তথ্য যাচাইয়ের পর সন্তোষজনক বলে প্রতিয়মান হয়নি বিধায় আবেদনটি বাতিলের জন্য উত্থাপন করা হলো।</option>
+                                        </>}
+                                        {(ceb_session.ceb_user_role === '16' || ceb_session.ceb_user_role === '16') && <>
+                                            <option>প্রতিষ্ঠানের আবেদনের প্রেক্ষিতে এবং আবেদনের প্রাথমিক তথ্য যাচাইয়ের পর সন্তোষজনক তদন্ত প্রতিবেদনের সাপেক্ষে স্থাপনের আবেদনটি সন্তোষজনক বলে প্রতিয়মান হয়েছে। অনুমোদন কমিটির সভায় সর্বসম্মতিক্রমে আবেদনটি গৃহীত হওয়ায় চূড়ান্ত অনুমোদন প্রদান করা হলো</option>
+                                        </>}
+                                        <option value='_'>অন্যান্য (বক্সে লিখুন)!</option>
+                                    </Form.Select>
+                                </Form.Group>
+                            </Col>
+                            <Col className='my-2' md={12}>
+                                <Form.Control
+                                    as="textarea"
+                                    className='bg-transparent text-uppercase w-100'
+                                    maxLength={240}
+                                    id="institute_message"
+                                    value={userData.institute_message}
+                                    isInvalid={validated && !!userDataError.institute_message}
+                                    isValid={validated && userData.institute_message && !userDataError.institute_message}
+                                    onChange={(e) => handleDataChange('institute_message', e.target.value)}
+                                    rows={5}
+                                />
+                                {validated && userDataError.institute_message && (
+                                    <Form.Control.Feedback type="invalid">
+                                        {userDataError.institute_message}
+                                    </Form.Control.Feedback>
+                                )}
+                            </Col>
+                        </Form>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="success" onClick={() => applicationForward(activeAppAuthorize)}>
+                            অনুমোদন করুন
+                        </Button>
+                        <Button variant="secondary" onClick={() => setAuthShow(false)}>
+                            ফিরে যান
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+            )}
+            {activeAppReject && (
+                <Modal
+                    show={rejShow}
+                    onHide={() => setRejShow(false)}
+                    backdrop="static"
+                    keyboard={false}
+                >
+                    <Modal.Header closeButton>
+                        <Modal.Title className={styles.SiyamRupaliFont + ' text-center'}>
+                            <h4 className={styles.SiyamRupaliFont + ' text-center'}>আবেদন বাতিল করতে চান?</h4>
+                            {modifyError && <h6 className={styles.SiyamRupaliFont + " text-center text-danger flex-fill py-2"}>{modifyError}</h6>}
+                            {modifySuccess && <h6 className={styles.SiyamRupaliFont + " text-center text-success flex-fill py-2"}>{modifySuccess}</h6>}
+                            {modifyProcess && <h6 className={styles.SiyamRupaliFont + " text-center text-primary flex-fill py-2"}>{modifyProcess}</h6>}
+                        </Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <p><span className={styles.SiyamRupaliFont}>আবেদনের সকল তথ্য যাচাইয়ের পর সঠিক মন্তব্য লিখে আবেদন বাতিল করুন।</span></p>
+                        <Form noValidate>
+                            <Col className='my-2' md={12}>
+                                <Form.Group className="bg-transparent">
+                                    <Form.Label className="text-primary" htmlFor='institute_message_default'>মন্তব্য</Form.Label>
+                                    <Form.Select
+                                        id="institute_message_default"
+                                        value={userData.institute_message_default}
+                                        isInvalid={validated && !!userDataError.institute_message_default}
+                                        isValid={validated && userData.institute_message_default && !userDataError.institute_message_default}
+                                        onChange={
+                                            (e) => {
+                                                setUserData({ ...userData, institute_message_default: e.target.value, institute_message: e.target.value });
+                                            }
+                                        }
+                                        className="selectpicker form-control"
+                                        data-style="py-0"
+                                    >
+                                        <option value='' disabled>-- মন্তব্য সিলেক্ট করুন --</option>
+                                        <option>আবেদনের প্রাথমিক তথ্য যাচাইয়ের পর তদন্ত প্রতিবেদনের সাপেক্ষে স্থাপনের আবেদনটি সন্তোষজনক বলে প্রতিয়মান হয়নি। অনুমোদন কমিটির সভায় সর্বসম্মতিক্রমে আবেদনটি বাতিল হওয়ায় আবেদনটি বাতিল করা হলো</option>
+                                        <option value='_'>অন্যান্য (বক্সে লিখুন)!</option>
+                                    </Form.Select>
+                                </Form.Group>
+                            </Col>
+                            <Col className='my-2' md={12}>
+                                <Form.Control
+                                    as="textarea"
+                                    className='bg-transparent text-uppercase w-100'
+                                    maxLength={240}
+                                    id="institute_message"
+                                    value={userData.institute_message}
+                                    isInvalid={validated && !!userDataError.institute_message}
+                                    isValid={validated && userData.institute_message && !userDataError.institute_message}
+                                    onChange={(e) => handleDataChange('institute_message', e.target.value)}
+                                    rows={5}
+                                />
+                                {validated && userDataError.institute_message && (
+                                    <Form.Control.Feedback type="invalid">
+                                        {userDataError.institute_message}
+                                    </Form.Control.Feedback>
+                                )}
+                            </Col>
+                        </Form>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="danger" onClick={() => applicationReject(activeAppReject)}>
+                            বাতিল করুন
+                        </Button>
+                        <Button variant="secondary" onClick={() => setRejShow(false)}>
+                            ফিরে যান
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+            )}
+            {activeAppSendBack && (
+                <Modal
+                    show={sendBackShow}
+                    onHide={() => setSendBackShow(false)}
+                    backdrop="static"
+                    keyboard={false}
+                >
+                    <Modal.Header closeButton>
+                        <Modal.Title className={styles.SiyamRupaliFont + ' text-center'}>
+                            <h4 className={styles.SiyamRupaliFont + ' text-center'}>আবেদন পূর্ববর্তী ব্যবহারকারীর নিকট হালনাগাদের জন্য ফেরৎ প্রদান?</h4>
+                            {modifyError && <h6 className={styles.SiyamRupaliFont + " text-center text-danger flex-fill py-2"}>{modifyError}</h6>}
+                            {modifySuccess && <h6 className={styles.SiyamRupaliFont + " text-center text-success flex-fill py-2"}>{modifySuccess}</h6>}
+                            {modifyProcess && <h6 className={styles.SiyamRupaliFont + " text-center text-primary flex-fill py-2"}>{modifyProcess}</h6>}
+                        </Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <p><span className={styles.SiyamRupaliFont}>সঠিক মন্তব্য লিখে পূর্ববর্তী ব্যবহারকারীর নিকট ফেরৎ প্রদান করুন।</span></p>
+                        <Form noValidate>
+                            <Col className='my-2' md={12}>
+                                <Form.Group className="bg-transparent">
+                                    <Form.Label className="text-primary" htmlFor='institute_message_default'>মন্তব্য</Form.Label>
+                                    <Form.Select
+                                        id="institute_message_default"
+                                        value={userData.institute_message_default}
+                                        isInvalid={validated && !!userDataError.institute_message_default}
+                                        isValid={validated && userData.institute_message_default && !userDataError.institute_message_default}
+                                        onChange={
+                                            (e) => {
+                                                setUserData({ ...userData, institute_message_default: e.target.value, institute_message: e.target.value });
+                                            }
+                                        }
+                                        className="selectpicker form-control"
+                                        data-style="py-0"
+                                    >
+                                        <option value='' disabled>-- মন্তব্য সিলেক্ট করুন --</option>
+                                        <option>প্রতিষ্ঠানের তথ্য সঠিকভাবে পূরণ করে হালনাগাদ আবেদন উপস্থাপন করুন!</option>
+                                        <option>সংযুক্তিগুলো সঠিকভাবে আবেদনের সাথে সংযুক্ত করে হালনাগাদ আবেদন উপস্থাপন করুন!</option>
+                                        <option>বোর্ড নির্ধারিত আবেদন ফি প্রদানের পর হালনাগাদ আবেদন উপস্থাপন করুন!</option>
+                                        <option value='_'>অন্যান্য (বক্সে লিখুন)!</option>
+                                    </Form.Select>
+                                </Form.Group>
+                            </Col>
+                            <Col className='my-2' md={12}>
+                                <Form.Control
+                                    as="textarea"
+                                    className='bg-transparent text-uppercase w-100'
+                                    maxLength={240}
+                                    id="institute_message"
+                                    value={userData.institute_message}
+                                    isInvalid={validated && !!userDataError.institute_message}
+                                    isValid={validated && userData.institute_message && !userDataError.institute_message}
+                                    onChange={(e) => handleDataChange('institute_message', e.target.value)}
+                                    rows={5}
+                                />
+                                {validated && userDataError.institute_message && (
+                                    <Form.Control.Feedback type="invalid">
+                                        {userDataError.institute_message}
+                                    </Form.Control.Feedback>
+                                )}
+                            </Col>
+                        </Form>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="warning" onClick={() => applicationSendBack(activeAppSendBack)}>
+                            ফেরৎ পাঠান
+                        </Button>
+                        <Button variant="secondary" onClick={() => setSendBackShow(false)}>
+                            ফিরে যান
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+            )}
+            {activeAppInquery && (
+                <Modal
+                    show={inqueryShow}
+                    onHide={() => setInqueryShow(false)}
+                    backdrop="static"
+                    keyboard={false}
+                >
+                    <Modal.Header closeButton>
+                        <Modal.Title className={styles.SiyamRupaliFont + ' text-center'}>
+                            <h4 className={styles.SiyamRupaliFont + ' text-center'}>আবেদন তদন্তকারী কর্মকর্তার নিকট প্রেরণ?</h4>
+                            {modifyError && <h6 className={styles.SiyamRupaliFont + " text-center text-danger flex-fill py-2"}>{modifyError}</h6>}
+                            {modifySuccess && <h6 className={styles.SiyamRupaliFont + " text-center text-success flex-fill py-2"}>{modifySuccess}</h6>}
+                            {modifyProcess && <h6 className={styles.SiyamRupaliFont + " text-center text-primary flex-fill py-2"}>{modifyProcess}</h6>}
+                        </Modal.Title>
+                    </Modal.Header>
+                    <Modal.Body>
+                        <Form noValidate>
+                            <Col className='my-2' md={12}>
+                                <Form.Group className="bg-transparent">
+                                    <Form.Label className="text-primary" htmlFor='inquiry_user'>তদন্তকারী কর্মকর্তা</Form.Label>
+                                    <Form.Select
+                                        id="inquiry_user"
+                                        value={activeAppDetails.inquiry_user}
+                                        isInvalid={validated && !!userDataError.inquiry_user}
+                                        isValid={validated && activeAppDetails.inquiry_user && !userDataError.inquiry_user}
+                                        onChange={
+                                            (e) => {
+                                                if (e.target.value === 'উপজেলা শিক্ষা অফিসার') {
+                                                    // const selectedName = upzOfficers.filter((prev) => String(prev.name).toUpperCase() === e.target.value);
+                                                    // setUserData({
+                                                    //    ...userData,
+                                                    //    inquiry_user: e.target.value,
+                                                    //    name_recipient: selectedName[0].name,
+                                                    //    email_recipient: selectedName[0].email,
+                                                    //    name_recipient_cc1: distOfficers[0].name,
+                                                    //    email_recipient_cc1: distOfficers[0].email,
+                                                    //    name_recipient_cc2: distOfficers[1].name,
+                                                    //    email_recipient_cc2: distOfficers[1].email,
+                                                    //    name_recipient_cc3: upzOfficers[0].name,
+                                                    //    email_recipient_cc3: upzOfficers[0].email,
+                                                    // });
+                                                    setUserData({
+                                                        ...userData,
+                                                        inquiry_user: e.target.value,
+                                                        name_recipient: 'প্রিয়ঞ্জিত সরকার',
+                                                        email_recipient: 'prionjit.it@gmail.com',
+                                                        name_recipient_cc1: 'প্রিয়ঞ্জিত সরকার',
+                                                        email_recipient_cc1: 'prionjit.it@gmail.com',
+                                                        name_recipient_cc2: 'প্রিয়ঞ্জিত সরকার',
+                                                        email_recipient_cc2: 'prionjit.it@gmail.com',
+                                                        name_recipient_cc3: 'প্রিয়ঞ্জিত সরকার',
+                                                        email_recipient_cc3: 'prionjit.it@gmail.com',
+                                                    });
+                                                } else {
+                                                    // const selectedName = employeeData.filter((prev) => String(prev.name).toUpperCase() === e.target.value);
+                                                    // setUserData({
+                                                    //    ...userData,
+                                                    //    inquiry_user: e.target.value,
+                                                    //    name_recipient: selectedName[0].name,
+                                                    //    email_recipient: selectedName[0].email,
+                                                    //    name_recipient_cc1: "College Inspector",
+                                                    //    email_recipient_cc1: "ic@cumillaboard.gov.bd",
+                                                    //    name_recipient_cc2: "School Inspector",
+                                                    //    email_recipient_cc2: "ic@cumillaboard.gov.bd",
+                                                    //    name_recipient_cc3: "Senior System Analyst",
+                                                    //    email_recipient_cc3: "ssa@cumillaboard.gov.bd",
+                                                    // });
+                                                    setUserData({
+                                                        ...userData,
+                                                        inquiry_user: e.target.value,
+                                                        name_recipient: 'Prionjit Sarker',
+                                                        email_recipient: 'prionjit.it@gmail.com',
+                                                        name_recipient_cc1: 'Prionjit Sarker',
+                                                        email_recipient_cc1: 'prionjit.it@gmail.com',
+                                                        name_recipient_cc2: 'Prionjit Sarker',
+                                                        email_recipient_cc2: 'prionjit.it@gmail.com',
+                                                        name_recipient_cc3: 'Prionjit Sarker',
+                                                        email_recipient_cc3: 'prionjit.it@gmail.com',
+                                                    });
+                                                }
+                                            }
+                                        }
+                                        className="selectpicker form-control"
+                                        data-style="py-0"
+                                    >
+                                        <option value="">-- তদন্তকারী কর্মকর্তা সিলেক্ট করুন --</option>
+                                        {employeeData.map((emp, idx) => (
+                                            <option key={idx} value={String(emp.name).toLocaleUpperCase()}>
+                                                {String(emp.name).toLocaleUpperCase()}
+                                            </option>
+                                        ))}
+                                        <option value='উপজেলা শিক্ষা অফিসার'>উপজেলা শিক্ষা অফিসার</option>
+                                        {/* {upzOfficers.map((emp, idx) => (
+                                                      <option key={idx}>
+                                                         {emp.name}
+                                                      </option>
+                                                   ))}
+                                                   {distOfficers.map((emp, idx) => (
+                                                      <option key={idx}>
+                                                         {emp.name}
+                                                      </option>
+                                                   ))} */}
+                                    </Form.Select>
+                                    {validated && userDataError.inquiry_user && (
+                                        <Form.Control.Feedback type="invalid">
+                                            {userDataError.inquiry_user}
+                                        </Form.Control.Feedback>
+                                    )}
+                                </Form.Group>
+                            </Col>
+                            <Col className='my-2' md={12}>
+                                <Form.Group className="bg-transparent">
+                                    <Form.Label className="text-primary" htmlFor='institute_message_default'>মন্তব্য</Form.Label>
+                                    <Form.Select
+                                        id="institute_message_default"
+                                        value={userData.institute_message_default}
+                                        isInvalid={validated && !!userDataError.institute_message_default}
+                                        isValid={validated && userData.institute_message_default && !userDataError.institute_message_default}
+                                        onChange={
+                                            (e) => {
+                                                setUserData({ ...userData, institute_message_default: e.target.value, institute_message: e.target.value });
+                                            }
+                                        }
+                                        className="selectpicker form-control"
+                                        data-style="py-0"
+                                    >
+                                        <option value='' disabled>-- মন্তব্য সিলেক্ট করুন --</option>
+                                        <option>প্রতিষ্ঠানের আবেদনের প্রেক্ষিতে তদন্তকারী কর্মকর্তা নিয়োগপূর্বক আবেদনটি  তদন্তের জন্য প্রেরণ করা হলো।</option>
+                                        <option value='_'>অন্যান্য (বক্সে লিখুন)!</option>
+                                    </Form.Select>
+                                </Form.Group>
+                            </Col>
+                            <Col className='my-2' md={12}>
+                                <Form.Control
+                                    as="textarea"
+                                    className='bg-transparent text-uppercase w-100'
+                                    maxLength={240}
+                                    id="institute_message"
+                                    value={userData.institute_message}
+                                    isInvalid={validated && !!userDataError.institute_message}
+                                    isValid={validated && userData.institute_message && !userDataError.institute_message}
+                                    onChange={(e) => handleDataChange('institute_message', e.target.value)}
+                                    rows={4}
+                                />
+                                {validated && userDataError.institute_message && (
+                                    <Form.Control.Feedback type="invalid">
+                                        {userDataError.institute_message}
+                                    </Form.Control.Feedback>
+                                )}
+                            </Col>
+                        </Form>
+                    </Modal.Body>
+                    <Modal.Footer>
+                        <Button variant="warning" onClick={() => applicationInquiry(activeAppInquery)}>
+                            তদন্তকারী কর্মকর্তার নিয়োগ করন
+                        </Button>
+                        <Button variant="secondary" onClick={() => setInqueryShow(false)}>
+                            ফিরে যান
+                        </Button>
+                    </Modal.Footer>
+                </Modal>
+            )}
+        </Fragment >
+    )
+
+    if (ceb_session.ceb_user_office === "04" || ceb_session.ceb_user_office === "05" || ceb_session.ceb_user_role === "16" || ceb_session.ceb_user_role === "17") return (
+        <Fragment>
+            <Row className='d-flex justify-content-center align-items-center'>
+                <Col md="12">
+                    <Card>
+                        <Card.Header className="d-flex justify-content-between">
+                            <div className="header-title w-100">
+                                <h4 className="card-title text-center text-primary flex-fill"><span className={styles.SiyamRupaliFont + " text-center"}>প্রতিষ্ঠানের স্বীকৃতি/স্বীকৃতি নবায়নের অপেক্ষমান আবেদনসমূহ</span></h4>
+                            </div>
+                        </Card.Header>
+                        <Card.Body className="px-0">
+                            <Row className='justify-content-center'>
+                                <Col md="8">
+                                    {loadingProgress && <h6 className="text-center rounded-1 text-info p-2 mb-2">{loadingProgress}</h6>}
+                                    {loadingError && <h6 className="text-center rounded-1 bg-danger text-white p-2 mb-2">{loadingError}</h6>}
+                                </Col>
+                            </Row>
+                        </Card.Body>
+                    </Card>
+                </Col>
+            </Row>
+        </Fragment>
+    )
+
+    return (
+        <div className='d-flex flex-column justify-content-center align-items-center'>
+            <h2 className={styles.SiyamRupaliFont + " text-center text-white mb-2"}>This page is under development</h2>
+            <Image src={error01} alt="Under Development" />
+        </div>
+    )
+}
+
+export default InstRecognitionTemp;

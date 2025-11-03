@@ -1,0 +1,16 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+.card-slide{
+    height: auto;
+    .circle-progress svg {
+        .circle-progress-text{
+            display: none;
+        }
+
+    }
+}

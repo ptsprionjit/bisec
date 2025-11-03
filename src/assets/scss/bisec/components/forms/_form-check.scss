@@ -1,0 +1,13 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+.custom-form-check-input {
+}
+.custom-form-switch {
+}
+.form-check-input:checked {
+    background-color: var(--#{$variable-prefix}primary);}

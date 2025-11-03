@@ -1,0 +1,11 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+.child-cell.active {
+	color: var(--bs-primary);
+    stroke: var(--bs-primary);
+}

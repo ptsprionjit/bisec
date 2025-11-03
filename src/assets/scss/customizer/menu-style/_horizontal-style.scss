@@ -1,0 +1,31 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+//dual-horizontal
+
+
+.dual-horizontal{
+    background: var(--#{$variable-prefix}primary);
+    .nav{
+        background: var(--#{$variable-prefix}primary);
+ 
+    }
+}
+
+//boxed
+
+    .boxed{
+        background: var(--#{$variable-prefix}primary);
+    }
+
+
+//boxed-fancy
+.boxed-fancy{
+    &::before{
+        background: var(--#{$variable-prefix}primary);
+    }
+}
