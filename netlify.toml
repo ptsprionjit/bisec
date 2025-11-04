@@ -1,7 +1,7 @@
 # netlify.toml
 [build]
   command = "npm run build"
-  publish = "dist"
+  publish = "build"
 
 # SPA routing: redirect all routes to index.html
 [[redirects]]
