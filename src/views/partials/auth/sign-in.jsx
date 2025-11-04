@@ -65,9 +65,10 @@ const SignIn = () => {
 
             window.localStorage.setItem("ceb_session", ceb_session);
 
-            if (window.localStorage.getItem("ceb_session")) {
-               userData?.type === '13' ? navigate("/home") : navigate("/dashboard");
-            }
+            // if (window.localStorage.getItem("ceb_session")) {
+            //    userData?.type === '13' ? navigate("/home") : navigate("/dashboard");
+            // }
+            console.log(ceb_session);
          }
       }
       setSession();
@@ -87,11 +88,11 @@ const SignIn = () => {
       } catch (err) {
 
 
-    if (err.status === 401) {
-        navigate("/auth/sign-out");
-        
-    }
-setValidated(false);
+         if (err.status === 401) {
+            navigate("/auth/sign-out");
+
+         }
+         setValidated(false);
          setLoginError(err.message);
       } finally {
          setLoginLoading(false);
@@ -189,7 +190,7 @@ setValidated(false);
          </section>
       </Fragment>
    )
-   
+
    return (
       <>
       </>
