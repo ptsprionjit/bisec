@@ -8,9 +8,9 @@ const VerticalNav = memo((props) => {
     axios.defaults.withCredentials = true;
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-    // const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
+    const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
 
-    const [permissionData, setPermissiondata] = useState([]);
+    const [permissionData, setPermissionData] = useState([]);
 
     const [activeMenu, setActiveMenu] = useState(false);
     const [active, setActive] = useState('');
@@ -48,21 +48,38 @@ const VerticalNav = memo((props) => {
         window.localStorage.setItem("ceb_session", ceb_session);
     }
 
+    const setPermission = (ceb_session) => {
+        const myData = JSON.stringify({
+            id: ceb_session.ceb_user_id,
+            board: ceb_session.ceb_board_id,
+            name: ceb_session.ceb_user_name,
+            type: ceb_session.ceb_user_type,
+            office: ceb_session.ceb_user_office,
+            role: ceb_session.ceb_user_role,
+            email: ceb_session.ceb_user_email,
+            post: ceb_session.ceb_user_post,
+        });
+        setPermissionData(myData);
+    }
+
     useEffect(() => {
         const fetchPermissionData = async () => {
             try {
                 const response = await axios.post(`${BACKEND_URL}/user/permission`);
                 if (response.status === 200) {
-                    setPermissiondata(response.data.permissionData);
+                    setPermissionData(response.data.permissionData);
                     setSession(response.data.permissionData);
                 } else {
-                    setPermissiondata([]);
+                    setPermissionData([]);
+                    setSession([]);
                 }
             } catch (error) {
-                setPermissiondata([]);
+                setPermissionData([]);
+                setSession([]);
             }
         }
-        fetchPermissionData();
+        setPermission(ceb_session);
+        // fetchPermissionData();
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     if (!permissionData?.id) {
