@@ -65,10 +65,9 @@ const SignIn = () => {
 
             window.localStorage.setItem("ceb_session", ceb_session);
 
-            // if (window.localStorage.getItem("ceb_session")) {
-            //    userData?.type === '13' ? navigate("/home") : navigate("/dashboard");
-            // }
-            console.log(ceb_session);
+            if (window.localStorage.getItem("ceb_session")) {
+               userData?.type === '13' ? navigate("/home") : navigate("/dashboard");
+            }
          }
       }
       setSession();
