@@ -1,5 +1,5 @@
 import React, { Fragment, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from "react-redux"
 import Select from 'react-select'
 
@@ -15,11 +15,15 @@ import Logo from '../../../../components/partials/components/logo'
 import * as SettingSelector from '../../../../store/setting/selectors.ts'
 
 const EstbAppForm = ({
-    navigateBuildUpdate, setNavigateBuildUpdate, start_dob, end_dob, handleBuildUpdateSubmit, handleBuildUpdateReset, userData, setUserData, userDataError, validated, handleDataChange, districts, files, filesPages, setFilesPages, handleFileSelect, handleFileView, modalError, setModalError, updateStatus
+    navigateBuildUpdate, setNavigateBuildUpdate, start_dob, end_dob, handleBuildUpdateSubmit, handleBuildUpdateReset, userData, setUserData, userDataError, validated, handleDataChange, districts, files, filesPages, setFilesPages, handleFileSelect, handleFileView, modalError, setModalError, updateStatus, curUrl
 }) => {
     if (!navigateBuildUpdate) return null;
 
+    const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
+
     const appName = useSelector(SettingSelector.app_bn_name);
+
+    const navigate = useNavigate();
 
     const [optionDistricts, setOptionDistricts] = useState([]);
     const [optionUpazilas, setOptionUpazilas] = useState([]);
@@ -30,7 +34,7 @@ const EstbAppForm = ({
 
         const newOptions = districts.map(data => ({
             value: data.en_dist,
-            label: data.en_dist
+            label: data.bn_dist
         }));
 
         if (!newOptions?.length) setOptionDistricts([]);
@@ -51,7 +55,7 @@ const EstbAppForm = ({
 
             const newOptions = filteredData.map(data => ({
                 value: data.id_uzps,
-                label: data.en_uzps
+                label: data.bn_uzps
             }));
 
             const uniqueValues = Array.from(
@@ -75,7 +79,7 @@ const EstbAppForm = ({
                 <Col md={10}>
                     <Card className="card-transparent shadow-none d-flex justify-content-center mb-0 auth-card">
                         <Card.Header className='d-flex flex-column mb-2 justify-content-center align-items-center'>
-                            <Link to="/institute/establishment/payment" onClick={() => setNavigateBuildUpdate(false)} className="navbar-brand d-flex justify-content-center align-items-start w-100 gap-3">
+                            <Link to={curUrl} onClick={() => setNavigateBuildUpdate(false)} className="navbar-brand d-flex justify-content-center align-items-start w-100 gap-3">
                                 <Logo color={true} />
                                 <h2 className="logo-title text-primary text-wrap text-center">{appName}</h2>
                             </Link>
@@ -1238,9 +1242,17 @@ const EstbAppForm = ({
                                         {updateStatus.error && <i className="text-uppercase text-center pt-4 text-danger">{updateStatus.error}</i>}
                                         {updateStatus.loading && <i className="text-uppercase text-center pt-4 text-primary">{updateStatus.loading}</i>}
                                         <Card.Body className="d-flex justify-content-center gap-3">
-                                            <Button className='flex-fill' type="button" onClick={() => setNavigateBuildUpdate(false)} variant="btn btn-warning">ফিরে যান</Button>
+                                            {setNavigateBuildUpdate && <Button className='flex-fill' type="button" onClick={() => setNavigateBuildUpdate(false)} variant="btn btn-warning">ফিরে যান</Button>}
+                                            {!setNavigateBuildUpdate && <Button className='flex-fill' type="button" onClick={() => {
+                                                if (ceb_session?.ceb_user_id) {
+                                                    navigate('/dashboard');
+                                                } else {
+                                                    navigate('/');
+                                                }
+                                            }} variant="btn btn-primary">হোম</Button>}
                                             <Button className='flex-fill' type="reset" variant="btn btn-danger">রিসেট</Button>
-                                            <Button className='flex-fill' type="submit" variant="btn btn-success">আপডেট</Button>
+                                            {setNavigateBuildUpdate && <Button className='flex-fill' type="submit" variant="btn btn-success">আপডেট</Button>}
+                                            {!setNavigateBuildUpdate && <Button className='flex-fill' type="submit" variant="btn btn-success">সাবমিট</Button>}
                                         </Card.Body>
                                     </Card>
                                 </Form>

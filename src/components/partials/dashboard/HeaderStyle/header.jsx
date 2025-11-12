@@ -5,24 +5,6 @@ import CustomToggle from '../../../dropdowns'
 
 // import { differenceInDays } from "date-fns";
 
-//img
-// import flag1 from '../../../../assets/images/Flag/flag001.png'
-// import flag2 from '../../../../assets/images/Flag/flag-02.png'
-// import flag3 from '../../../../assets/images/Flag/flag-03.png'
-// import flag4 from '../../../../assets/images/Flag/flag-04.png'
-// import flag5 from '../../../../assets/images/Flag/flag-05.png'
-// import flag6 from '../../../../assets/images/Flag/flag-06.png'
-// import shapes1 from '../../../../assets/images/shapes/01.png'
-// import shapes2 from '../../../../assets/images/shapes/02.png'
-// import shapes3 from '../../../../assets/images/shapes/03.png'
-// import shapes4 from '../../../../assets/images/shapes/04.png'
-// import shapes5 from '../../../../assets/images/shapes/05.png'
-// import avatars1 from '../../../../assets/images/avatars/01.png'
-// import avatars2 from '../../../../assets/images/avatars/avtar_1.png'
-// import avatars3 from '../../../../assets/images/avatars/avtar_2.png'
-// import avatars4 from '../../../../assets/images/avatars/avtar_3.png'
-// import avatars5 from '../../../../assets/images/avatars/avtar_4.png'
-// import avatars6 from '../../../../assets/images/avatars/avtar_5.png'
 // logo
 import Logo from '../../components/logo'
 

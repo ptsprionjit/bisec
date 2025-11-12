@@ -8,7 +8,7 @@ const VerticalNav = memo((props) => {
     axios.defaults.withCredentials = true;
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-    const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
+    // const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
 
     const [permissionData, setPermissionData] = useState([]);
 
@@ -48,19 +48,19 @@ const VerticalNav = memo((props) => {
         window.localStorage.setItem("ceb_session", ceb_session);
     }
 
-    const setPermission = (ceb_session) => {
-        const myData = JSON.stringify({
-            id: ceb_session.ceb_user_id,
-            board: ceb_session.ceb_board_id,
-            name: ceb_session.ceb_user_name,
-            type: ceb_session.ceb_user_type,
-            office: ceb_session.ceb_user_office,
-            role: ceb_session.ceb_user_role,
-            email: ceb_session.ceb_user_email,
-            post: ceb_session.ceb_user_post,
-        });
-        setPermissionData(myData);
-    }
+    // const setPermission = (ceb_session) => {
+    //     const myData = JSON.stringify({
+    //         id: ceb_session.ceb_user_id,
+    //         board: ceb_session.ceb_board_id,
+    //         name: ceb_session.ceb_user_name,
+    //         type: ceb_session.ceb_user_type,
+    //         office: ceb_session.ceb_user_office,
+    //         role: ceb_session.ceb_user_role,
+    //         email: ceb_session.ceb_user_email,
+    //         post: ceb_session.ceb_user_post,
+    //     });
+    //     setPermissionData(myData);
+    // }
 
     useEffect(() => {
         const fetchPermissionData = async () => {
@@ -78,8 +78,8 @@ const VerticalNav = memo((props) => {
                 setSession([]);
             }
         }
-        setPermission(ceb_session);
-        // fetchPermissionData();
+        // setPermission(ceb_session);
+        fetchPermissionData();
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     if (!permissionData?.id) {

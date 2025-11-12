@@ -30,7 +30,7 @@ const UserProfile = () => {
    useEffect(() => {
       if (!ceb_session?.ceb_user_id) {
          navigate("/auth/sign-out");
-         
+
       }
    }, []);// eslint-disable-line react-hooks/exhaustive-deps
 
@@ -77,7 +77,6 @@ const UserProfile = () => {
    const [loadingError, setLoadingError] = useState(false);
    const [updateMessage, setUpdateMessage] = useState(false);
 
-
    const handleProfileImageSelect = (e) => {
       const file = e.target.files[0];
 
@@ -85,11 +84,19 @@ const UserProfile = () => {
          URL.revokeObjectURL(profileImagePreview); // Free up memory
       }
 
-      if (file) {
-         setProfileImageError(file.name);
-         setProfileImageFile(file);
-         setProfileImagePreview(URL.createObjectURL(file));
+      if (!(file?.type === 'image/jpg' || file?.type === 'image/jpeg')) {
+         setProfileImageError('JPG/JPEG ফাইল সিলেক্ট করতে হবে');
+         return;
       }
+
+      if (file?.size > 1024 * 1024 || file?.size < 1 * 1024) {
+         setProfileImageError('ফাইল ১ কিলোবাইট থেকে ১ এমবি হতে হবে');
+         return;
+      }
+
+      setProfileImageError(file.name);
+      setProfileImageFile(file);
+      setProfileImagePreview(URL.createObjectURL(file));
    };
 
    const handleProfileImageSave = async (e) => {
@@ -118,7 +125,7 @@ const UserProfile = () => {
          // console.error('Error uploading image:', err);
          if (err.status === 401) {
             navigate("/auth/sign-out");
-            
+
          }
       }
    };
@@ -130,11 +137,19 @@ const UserProfile = () => {
          URL.revokeObjectURL(profileSignPreview); // Free up memory
       }
 
-      if (file) {
-         setProfileSignError(file.name);
-         setProfileSignFile(file);
-         setProfileSignPreview(URL.createObjectURL(file));
+      if (!(file?.type === 'image/jpg' || file?.type === 'image/jpeg')) {
+         setProfileSignError('JPG/JPEG ফাইল সিলেক্ট করতে হবে');
+         return;
       }
+
+      if (file?.size > 1024 * 1024 || file?.size < 1 * 1024) {
+         setProfileSignError('ফাইল ১ কিলোবাইট থেকে ১ এমবি হতে হবে');
+         return;
+      }
+
+      setProfileSignError(file.name);
+      setProfileSignFile(file);
+      setProfileSignPreview(URL.createObjectURL(file));
    };
 
    const handleProfileSignSave = async (e) => {
@@ -163,7 +178,7 @@ const UserProfile = () => {
          // console.error('Error uploading signature:', err);
          if (err.status === 401) {
             navigate("/auth/sign-out");
-            
+
          }
       }
    };
@@ -332,7 +347,7 @@ const UserProfile = () => {
                // console.log(err);
                if (err.status === 401) {
                   navigate("/auth/sign-out");
-                  
+
                }
             } finally {
                setLoadingData(false);
@@ -453,11 +468,11 @@ const UserProfile = () => {
          } catch (err) {
 
 
-    if (err.status === 401) {
-        navigate("/auth/sign-out");
-        
-    }
-// console.error(`Error Fetching Districts: ${err}`);
+            if (err.status === 401) {
+               navigate("/auth/sign-out");
+
+            }
+            // console.error(`Error Fetching Districts: ${err}`);
             if (err.status === 401) {
                navigate("/auth/sign-out");
                return null;
@@ -479,11 +494,11 @@ const UserProfile = () => {
          } catch (err) {
 
 
-    if (err.status === 401) {
-        navigate("/auth/sign-out");
-        
-    }
-// console.error(`Error Fetching Offices: ${err}`);
+            if (err.status === 401) {
+               navigate("/auth/sign-out");
+
+            }
+            // console.error(`Error Fetching Offices: ${err}`);
             if (err.status === 401) {
                navigate("/auth/sign-out");
                return null;
@@ -504,11 +519,11 @@ const UserProfile = () => {
          } catch (err) {
 
 
-    if (err.status === 401) {
-        navigate("/auth/sign-out");
-        
-    }
-// console.error(`Error Fetching Banks: ${err}`);
+            if (err.status === 401) {
+               navigate("/auth/sign-out");
+
+            }
+            // console.error(`Error Fetching Banks: ${err}`);
             if (err.status === 401) {
                navigate("/auth/sign-out");
                return null;
@@ -539,7 +554,7 @@ const UserProfile = () => {
             // console.log(err);
             if (err.status === 401) {
                navigate("/auth/sign-out");
-               
+
             }
          } finally {
             setLoadingData(false);

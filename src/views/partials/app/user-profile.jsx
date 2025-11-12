@@ -29,7 +29,7 @@ const UserProfile = () => {
    useEffect(() => {
       if (!ceb_session?.ceb_user_id) {
          navigate("/auth/sign-out");
-         
+
       }
    }, []);// eslint-disable-line react-hooks/exhaustive-deps
 
@@ -87,7 +87,7 @@ const UserProfile = () => {
             // console.log(err.response);
             if (err.status === 401) {
                navigate("/auth/sign-out");
-               
+
             }
          } finally {
             setLoadingData(false);
@@ -154,7 +154,7 @@ const UserProfile = () => {
                <Card>
                   <Card.Header>
                      <div className="header-title">
-                        <h4 className="card-title">বোর্ড নোটিশ</h4>
+                        <h4 className="card-title">পদোন্নতি/পদায়ন তথ্য</h4>
                      </div>
                   </Card.Header>
                   <Card.Body>

@@ -135,13 +135,10 @@ const OrderEmail = () => {
                fetchProfileSign(response.data.id_sender);
                setPrintSuccess(true);
             } catch (err) {
-
-
-    if (err.status === 401) {
-        navigate("/auth/sign-out");
-        
-    }
-setPrintSuccess(false);
+               if (err.status === 401) {
+                  navigate("/auth/sign-out");
+               }
+               setPrintSuccess(false);
                setFetchedData([]);
                alert("কোন তথ্য পাওয়া যায়নি/তথ্য সঠিক নয়!");
             }

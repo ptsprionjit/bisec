@@ -1,5 +1,5 @@
 import React, { Fragment } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useSelector } from "react-redux"
 
 import { Document, Page } from 'react-pdf';
@@ -14,10 +14,13 @@ import Logo from '../../../../components/partials/components/logo'
 import * as SettingSelector from '../../../../store/setting/selectors.ts'
 
 const ClassStartAppForm = ({
-    navigateClassStartApplication, setNavigateClassStartApplication, updateSuccess, updateError, updateLoading, buildPrintData, handleClassStartSubmit, handleClassStartReset, userData, userDataError, validated, handleDataChange, files, filesPages, setFilesPages, handleFileSelect, handleFileView, modalError, setModalError
+    navigateClassStartApplication, setNavigateClassStartApplication, updateStatus, buildPrintData, handleClassStartSubmit, handleClassStartReset, userData, userDataError, validated, handleDataChange, files, filesPages, setFilesPages, handleFileSelect, handleFileView, modalError, setModalError
 }) => {
     if (!navigateClassStartApplication) return null;
     const appName = useSelector(SettingSelector.app_bn_name);
+    const navigate = useNavigate();
+
+    const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
 
     return (
         <Fragment>
@@ -25,14 +28,14 @@ const ClassStartAppForm = ({
                 <Col md={10}>
                     <Card className="card-transparent shadow-none d-flex justify-content-center auth-card">
                         <Card.Header className='d-flex flex-column justify-content-center align-items-center'>
-                            <Link to="/institute/establishment/payment" onClick={() => setNavigateClassStartApplication(false)} className="navbar-brand d-flex justify-content-center align-items-start w-100 gap-3">
+                            <Link to="/institute/class-start/application" onClick={() => setNavigateClassStartApplication(false)} className="navbar-brand d-flex justify-content-center align-items-start w-100 gap-3">
                                 <Logo color={true} />
                                 <h2 className="logo-title text-primary text-wrap text-center">{appName}</h2>
                             </Link>
                             <h4 className={styles.SiyamRupaliFont + " text-center text-uppercase text-secondary card-title pt-2"}>পাঠদান অনুমতির আবেদনপত্র</h4>
-                            {updateSuccess && <h6 className="text-uppercase text-center pt-4 text-success">{updateSuccess}</h6>}
-                            {updateError && <h6 className="text-uppercase text-center pt-4 text-danger">{updateError}</h6>}
-                            {updateLoading && <h6 className="text-uppercase text-center pt-4 text-primary">{updateLoading}</h6>}
+                            {updateStatus.success && <h6 className="text-uppercase text-center pt-4 text-success">{updateStatus.success}</h6>}
+                            {updateStatus.error && <h6 className="text-uppercase text-center pt-4 text-danger">{updateStatus.error}</h6>}
+                            {updateStatus.loading && <h6 className="text-uppercase text-center pt-4 text-primary">{updateStatus.loading}</h6>}
                         </Card.Header>
                         <Card.Body className='d-flex flex-column justify-content-center align-items-center m-0 p-0'>
                             <Col md={12}>
@@ -1544,7 +1547,14 @@ const ClassStartAppForm = ({
                                     <Card className="card-transparent shadow-none d-flex justify-content-center auth-card m-0 p-0 mb-5">
                                         <Card.Body className='d-flex flex-column justify-content-center align-items-center mb-5'>
                                             <Col md={12} className='d-flex justify-content-between align-items-center gap-3'>
-                                                <Button onClick={() => setNavigateClassStartApplication(false)} className='flex-fill' type="button" variant="btn btn-warning">ফিরে যান</Button>
+                                                {setNavigateClassStartApplication && <Button onClick={() => setNavigateClassStartApplication(false)} className='flex-fill' type="button" variant="btn btn-warning">ফিরে যান</Button>}
+                                                {!setNavigateClassStartApplication && <Button onClick={() => {
+                                                    if (ceb_session?.ceb_user_id) {
+                                                        navigate('/dashboard');
+                                                    } else {
+                                                        navigate('/');
+                                                    }
+                                                }} className='flex-fill' type="button" variant="btn btn-warning">হোম</Button>}
                                                 <Button className='flex-fill' type="reset" variant="btn btn-danger">রিসেট</Button>
                                                 <Button className='flex-fill' type="submit" variant="btn btn-success">আবেদন করুন</Button>
                                             </Col>

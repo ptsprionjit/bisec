@@ -714,6 +714,7 @@ const InstRecognitionNew = () => {
         <RecognitionPrint
             userData={userData}
             recognitionFiles={recognitionFiles}
+            navigateRecognitionPrint={navigateRecognitionPrint}
             setNavigateRecognitionPrint={setNavigateRecognitionPrint}
         />
     )

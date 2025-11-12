@@ -22,10 +22,6 @@ const RecognitionApp = ({ userData, setUserData, userDataError, setUserDataError
                 <Col md={12}>
                     <Card className="m-0 p-2 card-transparent shadow-none d-flex justify-content-center auth-card">
                         <Card.Header className='d-flex flex-column justify-content-center align-items-center'>
-                            {/* <Link to="/institute/recognition/application" onClick={() => setNavigateRecognitionApp(false)} className="navbar-brand d-flex justify-content-center align-items-start w-100 gap-3">
-                                <Logo color={true} />
-                                <h2 className="logo-title text-primary text-wrap text-center">{appName}</h2>
-                            </Link> */}
                             <h4 className={styles.SiyamRupaliFont + " text-center text-uppercase text-secondary card-title pt-2"}>একাডেমিক স্বীকৃতি/স্বীকৃতি নবায়নের আবেদনপত্র</h4>
                             {updateStatus?.success && <h6 className="text-uppercase text-center pt-4 text-success">{updateStatus.success}</h6>}
                             {updateStatus?.error && <h6 className="text-uppercase text-center pt-4 text-danger">{updateStatus.error}</h6>}

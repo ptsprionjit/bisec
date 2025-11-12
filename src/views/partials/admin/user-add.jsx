@@ -704,7 +704,8 @@ const UserAdd = () => {
                   <Col md={12}>
                      <Card>
                         <Card.Body className="d-flex justify-content-center gap-3">
-                           <Button className='flex-fill' type="reset" variant="btn btn-danger">রিসেট</Button>                           <Button className='flex-fill' type="submit" variant="btn btn-primary">সাবমিট</Button>
+                           <Button className='flex-fill' type="reset" variant="btn btn-danger">রিসেট</Button>
+                           <Button className='flex-fill' type="submit" variant="btn btn-primary">সাবমিট</Button>
                         </Card.Body>
                      </Card>
                   </Col>
@@ -718,7 +719,7 @@ const UserAdd = () => {
             keyboard={false}
          >
             <Modal.Header closeButton>
-               <Modal.Title><span className={styles.SiyamRupaliFont}>শিক্ষার্থীর নিচের তথ্য/তথ্যগুলো সঠিকভাবে এন্ট্রি করতে হবে</span></Modal.Title>
+               <Modal.Title><span className={styles.SiyamRupaliFont}>নিচের তথ্য/তথ্যগুলো সঠিকভাবে এন্ট্রি করতে হবে</span></Modal.Title>
             </Modal.Header>
             <Modal.Body>
                {Object.entries(userDataError).map(([field, error]) => (

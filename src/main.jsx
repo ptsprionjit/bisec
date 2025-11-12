@@ -11,7 +11,7 @@ import { Provider } from "react-redux";
 import { store } from "./store";
 
 import Index from "./views/index.jsx";
-import { IndexRouters } from "./router";
+// import { IndexRouters } from "./router";
 import { SimpleRouter } from "./router/simple-router.jsx";
 import { DefaultRouter } from "./router/default-router.jsx";
 
@@ -29,7 +29,7 @@ const router = createBrowserRouter([
     element: <Index />,
   },
   ...DefaultRouter,
-  ...IndexRouters,
+  // ...IndexRouters,
   ...SimpleRouter
 ]);
 

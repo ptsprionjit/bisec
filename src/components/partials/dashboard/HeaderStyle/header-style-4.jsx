@@ -1,6 +1,6 @@
 import React from 'react'
-import {Link} from 'react-router-dom'
-import {Navbar,Container,Nav,NavDropdown} from 'react-bootstrap'
+import { Link } from 'react-router-dom'
+import { Navbar, Container, Nav, NavDropdown } from 'react-bootstrap'
 // logo
 import Logo from '../../components/logo'
 
@@ -9,7 +9,7 @@ import { useSelector } from "react-redux";
 
 const HeaderStyle4 = () => {
     const appShortName = useSelector(SettingSelector.app_short_name);
-    
+
     return (
         <>
             <Navbar bg='dark' expand="lg" variant="dark" className="fixed-top iq-navbar" aria-label="Main navigation">
@@ -18,7 +18,7 @@ const HeaderStyle4 = () => {
                         <Logo color={true} />
                         <h4 className="logo-title text-light ms-3 mb-0"><span data-setting="app_short_name">{appShortName}</span></h4>
                     </Link>
-                    <Navbar.Toggle className="p-0 border-0"  aria-controls="navbarSideCollapse" aria-label="Toggle navigation" >
+                    <Navbar.Toggle className="p-0 border-0" aria-controls="navbarSideCollapse" aria-label="Toggle navigation" >
                         <span className="navbar-toggler-icon">
                             <span className="navbar-toggler-bar bar1 mt-2"></span>
                             <span className="navbar-toggler-bar bar2"></span>
@@ -28,15 +28,15 @@ const HeaderStyle4 = () => {
                     <Navbar.Collapse className="offcanvas-collapse open" >
                         <Nav as="ul" className=" navbar-nav me-auto mb-2 mb-lg-0 align-items-center">
                             <Nav.Item as="li">
-                                <Nav.Link  active aria-current="page" href="#">Dashboard</Nav.Link>
+                                <Nav.Link active aria-current="page" href="#">Dashboard</Nav.Link>
                             </Nav.Item>
                             <Nav.Item as="li">
-                                <Nav.Link  href="#">Notifications</Nav.Link>
+                                <Nav.Link href="#">Notifications</Nav.Link>
                             </Nav.Item>
                             <Nav.Item as="li">
-                                <Nav.Link  href="#">Profile</Nav.Link>
+                                <Nav.Link href="#">Profile</Nav.Link>
                             </Nav.Item>
-                   
+
                             <NavDropdown title="Settings" id="basic-nav-dropdown">
                                 <NavDropdown.Item href="#action/3.1">Action</NavDropdown.Item>
                                 <NavDropdown.Item href="#action/3.2">Another action</NavDropdown.Item>
@@ -65,7 +65,7 @@ const HeaderStyle4 = () => {
                     <Nav.Link href="#">Link</Nav.Link>
                     <Nav.Link href="#">Link</Nav.Link>
                 </nav>
-            </div>     
+            </div>
         </>
     )
 }

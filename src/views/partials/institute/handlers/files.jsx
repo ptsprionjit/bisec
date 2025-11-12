@@ -27,7 +27,7 @@ const b64toBlob = (b64Data, contentType = '', sliceSize = 512) => {
 //
 // 📤 View PDF in new tab (with fallback download)
 //
-export const HandleFileView = (file, filename = 'document.pdf') => {
+export const HandleFileView = (file) => {
     if (!file) return;
     let pdfURL = null;
 
@@ -59,7 +59,7 @@ export const HandleFileView = (file, filename = 'document.pdf') => {
             // Fallback: trigger download
             const link = document.createElement('a');
             link.href = pdfURL;
-            link.download = filename;
+            link.download = file.name || 'document.pdf';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -80,13 +80,7 @@ export const HandleFileView = (file, filename = 'document.pdf') => {
 //
 // 📥 Validate & Select File
 //
-export const HandleFileSelect = (
-    fileName,
-    selectedFile,
-    setFiles,
-    setError,
-    options = {}
-) => {
+export const HandleFileSelect = (fileName, selectedFile, setFiles, setError, options = {}) => {
     const {
         maxSize = 1024 * 1024, // 1MB
         allowedTypes = ['application/pdf'],

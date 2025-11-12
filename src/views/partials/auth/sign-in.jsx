@@ -76,7 +76,7 @@ const SignIn = () => {
    const userLogin = (async () => {
       setLoginLoading("লোডিং...অপেক্ষা করুন...");
       try {
-         const response = await axios.post(`${URL}/ceb/login?`, { userName, userPassward });
+         const response = await axios.post(`${URL}/ceb/login`, { userName, userPassward });
          if (response.status === 200) {
             setUserData(response.data.userData);
             setLoginSuccess(true);
@@ -85,11 +85,8 @@ const SignIn = () => {
             alert(`আইডি/পাসওয়ার্ড সঠিক নয় অথবা আইডি সচল নয়!`);
          }
       } catch (err) {
-
-
          if (err.status === 401) {
             navigate("/auth/sign-out");
-
          }
          setValidated(false);
          setLoginError(err.message);

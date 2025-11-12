@@ -1,14 +1,26 @@
 import React, { useRef, Fragment } from 'react'
+import { useSelector } from "react-redux"
 
 import { Row, Col, Button, Card } from 'react-bootstrap'
 
+import styles from '../../../../assets/custom/css/bisec.module.css'
+
+import Logo from '../../../../components/partials/components/logo'
+import * as SettingSelector from '../../../../store/setting/selectors.ts'
+
+import { HandleFileView } from '../handlers/files'
+
+import * as ValidationInput from '../../input_validation'
+
 const EstbAppPrint = ({
-    navigateBuildPrint, setNavigateBuildPrint, handleSetNavigateBuildUpdate, appName, Logo, buildPrintData, styles, handleFileView, estbFiles
+    navigateBuildPrint, setNavigateBuildPrint, handleSetNavigateBuildUpdate, buildPrintData, estbFiles
 }) => {
     if (!navigateBuildPrint) return null;
 
     // useref Defination for Printing
     const printRef = useRef();
+
+    const appName = useSelector(SettingSelector.app_bn_name);
 
     // Handle Print
     const handlePrint = async () => {
@@ -71,22 +83,15 @@ const EstbAppPrint = ({
     return (
         <Fragment>
             <Row className='d-flex flex-column justify-content-center align-items-center m-0 p-0'>
-                <Col ref={printRef} md={10}>
+                <Col ref={printRef} md={12}>
                     <Card className="card-transparent shadow-none d-flex justify-content-center m-0 auth-card">
-                        {/* <Card.Header className='d-flex flex-column m-0 p-0 pt-5 justify-content-center align-items-center'>
-                            <Link to="/institute/establishment/payment" onClick={() => setNavigateBuildPrint(false)} className="navbar-brand d-flex justify-content-center align-items-start w-100 gap-3">
-                                <Logo color={true} />
-                                <h2 className="logo-title text-primary text-wrap text-center">{appName}</h2>
-                            </Link>
-                            <h4 className={styles.SiyamRupaliFont + " text-center text-uppercase text-secondary card-title pt-2 pb-5"}>নতুন প্রতিষ্ঠান স্থাপনের আবেদনপত্র</h4>
-                        </Card.Header> */}
                         <Card.Body className='d-flex flex-column justify-content-center align-items-center m-0 p-0'>
                             <Col md={12} className="table-responsive">
-                                <table id="user-list-table" className="table table-bordered border-dark">
+                                <table id="user-list-table" className="table table-bordered">
                                     <thead className='border-0'>
                                         <tr className='border-0 bg-transparent'>
                                             <th colSpan={6} className='border-0 text-center align-top text-wrap m-0 p-0 pt-4 pb-2'>
-                                                <div className="d-flex border-bottom border-dark border-2 justify-content-center align-items-start w-100 gap-3">
+                                                <div className="d-flex border-bottom border-4 justify-content-center align-items-start w-100 gap-3">
                                                     <Logo color={true} />
                                                     <div className='d-flex flex-column justify-content-center align-items-center'>
                                                         <h2 className="logo-title text-wrap text-center p-0 m-0 pb-2">{appName}</h2>
@@ -96,13 +101,13 @@ const EstbAppPrint = ({
                                                 </div>
                                             </th>
                                         </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr className='border-0'>
-                                            <th colSpan={6} className='border-0 text-center align-top text-wrap m-0 p-0 py-1'>
-                                                <h5 className={styles.SiyamRupaliFont + " text-center text-uppercase text-secondary card-title pt-2"}>নতুন প্রতিষ্ঠান স্থাপনের আবেদনপত্র</h5>
+                                        <tr className='border-0 bg-transparent'>
+                                            <th colSpan={6} className='border-0 text-center align-top text-wrap m-0 p-0 py-2'>
+                                                <p className={styles.SiyamRupaliFont + " fs-5 text-center text-uppercase text-decoration-underline text-dark"}>নতুন প্রতিষ্ঠান স্থাপনের আবেদনপত্র</p>
                                             </th>
                                         </tr>
+                                    </thead>
+                                    <tbody>
                                         <tr>
                                             <th colSpan={6} className='text-center align-top text-wrap py-2 m-0'>
                                                 <h6 className={styles.SiyamRupaliFont + " text-center text-secondary"}>আবেদনের তথ্য</h6>
@@ -115,7 +120,7 @@ const EstbAppPrint = ({
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{buildPrintData.applicant_name}</span>
                                             </td>
                                             <th className='text-left align-top text-wrap p-2 m-0'>
@@ -124,8 +129,8 @@ const EstbAppPrint = ({
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{buildPrintData.applicant_mobile}</span>
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
+                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(buildPrintData.applicant_mobile)}</span>
                                             </td>
                                         </tr>
                                         <tr>
@@ -135,8 +140,8 @@ const EstbAppPrint = ({
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{buildPrintData.bn_payment}</span>
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
+                                                <span className={styles.SiyamRupaliFont + ` text-center ${buildPrintData.id_payment === '03' ? 'text-success' : 'text-danger'}`}>{buildPrintData.bn_payment}</span>
                                             </td>
                                             <th className='text-left align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>আবেদনের অবস্থা</span>
@@ -144,8 +149,8 @@ const EstbAppPrint = ({
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{buildPrintData.bn_app_status}</span>
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
+                                                <span className={styles.SiyamRupaliFont + ` text-center ${buildPrintData.app_status === '17' ? 'text-success' : 'text-primary'}`}>{buildPrintData.bn_app_status}</span>
                                             </td>
                                         </tr>
                                         <tr>
@@ -157,7 +162,7 @@ const EstbAppPrint = ({
                                             <th className='text-left align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>প্রতিষ্ঠানের নাম (বাংলা)</span>
                                             </th>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
                                             <td colSpan={4} className='text-left align-top text-wrap p-2 m-0'>
@@ -168,7 +173,7 @@ const EstbAppPrint = ({
                                             <th className='text-left align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>প্রতিষ্ঠানের নাম (ইংরেজি)</span>
                                             </th>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
                                             <td colSpan={4} className='text-left align-top text-wrap p-2 m-0'>
@@ -179,7 +184,7 @@ const EstbAppPrint = ({
                                             <th className='text-left align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>ব্যক্তি নামের প্রতিষ্ঠান</span>
                                             </th>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
                                             <td colSpan={4} className='text-left align-top text-wrap p-2 m-0'>
@@ -199,7 +204,7 @@ const EstbAppPrint = ({
                                                 <td className='text-center align-top text-wrap p-2 m-0'>
                                                     <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                                 </td>
-                                                <td className='text-center align-top text-wrap p-2 m-0'>
+                                                <td className='text-left align-top text-wrap p-2 m-0'>
                                                     <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{buildPrintData.inst_founder_name}</span>
                                                 </td>
                                                 <th className='text-left align-top text-wrap p-2 m-0'>
@@ -208,8 +213,8 @@ const EstbAppPrint = ({
                                                 <td className='text-center align-top text-wrap p-2 m-0'>
                                                     <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                                 </td>
-                                                <td className='text-center align-top text-wrap p-2 m-0'>
-                                                    <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{buildPrintData.inst_founder_mobile}</span>
+                                                <td className='text-left align-top text-wrap p-2 m-0'>
+                                                    <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(buildPrintData.inst_founder_mobile)}</span>
                                                 </td>
                                             </tr>
                                             <tr>
@@ -219,8 +224,8 @@ const EstbAppPrint = ({
                                                 <td className='text-center align-top text-wrap p-2 m-0'>
                                                     <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                                 </td>
-                                                <td className='text-center align-top text-wrap p-2 m-0'>
-                                                    <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{buildPrintData.inst_founder_nid}</span>
+                                                <td className='text-left align-top text-wrap p-2 m-0'>
+                                                    <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(buildPrintData.inst_founder_nid)}</span>
                                                 </td>
                                                 <th className='text-left align-top text-wrap p-2 m-0'>
                                                     <span className={styles.SiyamRupaliFont + " text-center text-dark"}>জন্মতারিখ</span>
@@ -228,8 +233,8 @@ const EstbAppPrint = ({
                                                 <td className='text-center align-top text-wrap p-2 m-0'>
                                                     <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                                 </td>
-                                                <td className='text-center align-top text-wrap p-2 m-0'>
-                                                    <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{buildPrintData.inst_founder_dob}</span>
+                                                <td className='text-left align-top text-wrap p-2 m-0'>
+                                                    <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(buildPrintData.inst_founder_dob)}</span>
                                                 </td>
                                             </tr>
                                         </>}
@@ -245,7 +250,7 @@ const EstbAppPrint = ({
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{buildPrintData.inst_email}</span>
                                             </td>
                                             <th className='text-left align-top text-wrap p-2 m-0'>
@@ -254,8 +259,8 @@ const EstbAppPrint = ({
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{buildPrintData.inst_mobile}</span>
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
+                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(buildPrintData.inst_mobile)}</span>
                                             </td>
                                         </tr>
                                         <tr>
@@ -265,7 +270,7 @@ const EstbAppPrint = ({
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{buildPrintData.bn_coed}</span>
                                             </td>
                                             <th className='text-left align-top text-wrap p-2 m-0'>
@@ -274,7 +279,7 @@ const EstbAppPrint = ({
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{buildPrintData.bn_version} মাধ্যম</span>
                                             </td>
                                         </tr>
@@ -285,7 +290,7 @@ const EstbAppPrint = ({
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{buildPrintData.bn_status}</span>
                                             </td>
                                             <th className='text-left align-top text-wrap p-2 m-0'>
@@ -294,15 +299,9 @@ const EstbAppPrint = ({
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            {buildPrintData.inst_region === '01' && <td className='text-center align-top text-wrap p-2 m-0'>
-                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>সিটি কর্পোরেশন এলাকা</span>
-                                            </td>}
-                                            {buildPrintData.inst_region === '02' && <td className='text-center align-top text-wrap p-2 m-0'>
-                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>পৌরসভা এলাকা</span>
-                                            </td>}
-                                            {buildPrintData.inst_region === '03' && <td className='text-center align-top text-wrap p-2 m-0'>
-                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>মফস্বল এলাকা</span>
-                                            </td>}
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
+                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{buildPrintData.inst_region === '01' ? 'সিটি কর্পোরেশন এলাকা' : buildPrintData.inst_region === '02' ? 'পৌরসভা এলাকা' : 'মফস্বল এলাকা'}</span>
+                                            </td>
                                         </tr>
                                         <tr>
                                             <th className='text-left align-top text-wrap p-2 m-0'>
@@ -311,8 +310,8 @@ const EstbAppPrint = ({
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{buildPrintData.inst_distance} কিঃমিঃ</span>
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
+                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(buildPrintData.inst_distance)} কিঃমিঃ</span>
                                             </td>
                                             <th className='text-left align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>প্রতিষ্ঠান এলাকার জনসংখ্যা</span>
@@ -320,8 +319,8 @@ const EstbAppPrint = ({
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{buildPrintData.inst_population} জন</span>
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
+                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(buildPrintData.inst_population)} জন</span>
                                             </td>
                                         </tr>
                                         <tr>
@@ -331,7 +330,7 @@ const EstbAppPrint = ({
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{buildPrintData.bn_dist}</span>
                                             </td>
                                             <th className='text-left align-top text-wrap p-2 m-0'>
@@ -340,7 +339,7 @@ const EstbAppPrint = ({
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{buildPrintData.bn_uzps}</span>
                                             </td>
                                         </tr>
@@ -351,7 +350,7 @@ const EstbAppPrint = ({
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            <td colSpan={4} className='text-center align-top text-wrap p-2 m-0'>
+                                            <td colSpan={4} className='text-left align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{buildPrintData.inst_address}</span>
                                             </td>
                                         </tr>
@@ -362,22 +361,22 @@ const EstbAppPrint = ({
                                         </tr>
                                         <tr>
                                             <th className='text-left align-top text-wrap p-2 m-0'>
-                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>মৌজা (নাম ও নম্বর)</span>
+                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>মৌজার নাম ও নম্বর</span>
                                             </th>
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{buildPrintData.inst_mouza_name} ({buildPrintData.inst_mouza_number})</span>
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
+                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{buildPrintData.inst_mouza_name}-{ValidationInput.E2BDigit(buildPrintData.inst_mouza_number)}</span>
                                             </td>
                                             <th className='text-left align-top text-wrap p-2 m-0'>
-                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>খতিয়ান (নাম ও নম্বর)</span>
+                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>খতিয়ানের নাম ও নম্বর</span>
                                             </th>
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{buildPrintData.en_khatiyan} ({buildPrintData.inst_khatiyan_number})</span>
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
+                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{buildPrintData.en_khatiyan}-{ValidationInput.E2BDigit(buildPrintData.inst_khatiyan_number)}</span>
                                             </td>
                                         </tr>
                                         <tr>
@@ -387,17 +386,17 @@ const EstbAppPrint = ({
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{buildPrintData.inst_land}</span>
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
+                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(buildPrintData.inst_land)}</span>
                                             </td>
                                             <th className='text-left align-top text-wrap p-2 m-0'>
-                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>খাজনা (দাখিলা ও সন)</span>
+                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>খাজনার দাখিলা ও সন</span>
                                             </th>
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{buildPrintData.inst_ltax_num} ({buildPrintData.inst_ltax_year})</span>
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
+                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{ValidationInput.E2BDigit(buildPrintData.inst_ltax_num)} ({ValidationInput.E2BDigit(buildPrintData.inst_ltax_year)})</span>
                                             </td>
                                         </tr>
                                         <tr className='print-hide'>
@@ -409,11 +408,11 @@ const EstbAppPrint = ({
                                             <th className='text-left align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>ব্যক্তির বিবরণী</span>
                                             </th>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
                                             <td colSpan={4} className='text-center align-top text-wrap p-2 m-0'>
-                                                {estbFiles.founder_details && String(estbFiles.founder_details.name).toLocaleLowerCase() === 'founder_details.pdf' && <Button onClick={() => handleFileView('founder_details')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>ব্যক্তির বিবরণী (নামীয় প্রতিষ্ঠান)</span></Button>}
+                                                {estbFiles.founder_details && String(estbFiles.founder_details.name).toLocaleLowerCase() === 'founder_details.pdf' && <Button onClick={() => HandleFileView(estbFiles.founder_details)} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>ব্যক্তির বিবরণী (নামীয় প্রতিষ্ঠান)</span></Button>}
                                             </td>
                                         </tr>}
                                         <tr className='print-hide'>
@@ -423,8 +422,8 @@ const EstbAppPrint = ({
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                {estbFiles.applicant_details && String(estbFiles.applicant_details.name).toLocaleLowerCase() === 'applicant_details.pdf' && <Button onClick={() => handleFileView('applicant_details')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>আবেদনকারীগণের বিবরণী</span></Button>}
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
+                                                {estbFiles.applicant_details && String(estbFiles.applicant_details.name).toLocaleLowerCase() === 'applicant_details.pdf' && <Button onClick={() => HandleFileView(estbFiles.applicant_details)} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>আবেদনকারীগণের বিবরণী</span></Button>}
                                             </td>
                                             <th className='text-left align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>আবেদন ফর্ম</span>
@@ -432,8 +431,8 @@ const EstbAppPrint = ({
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                {estbFiles.application_form && String(estbFiles.application_form.name).toLocaleLowerCase() === 'application_form.pdf' && <Button onClick={() => handleFileView('application_form')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>ফর্ম (ক-১/ক-২)</span></Button>}
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
+                                                {estbFiles.application_form && String(estbFiles.application_form.name).toLocaleLowerCase() === 'application_form.pdf' && <Button onClick={() => HandleFileView(estbFiles.application_form)} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>ফর্ম (ক-১/ক-২)</span></Button>}
                                             </td>
                                         </tr>
                                         <tr className='print-hide'>
@@ -443,8 +442,8 @@ const EstbAppPrint = ({
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                {estbFiles.land_details && String(estbFiles.land_details.name).toLocaleLowerCase() === 'land_details.pdf' && <Button onClick={() => handleFileView('land_details')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>জমির বিবরণী</span></Button>}
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
+                                                {estbFiles.land_details && String(estbFiles.land_details.name).toLocaleLowerCase() === 'land_details.pdf' && <Button onClick={() => HandleFileView(estbFiles.land_details)} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>জমির বিবরণী</span></Button>}
                                             </td>
                                             <th className='text-left align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>খাজনার দাখিলা</span>
@@ -452,8 +451,8 @@ const EstbAppPrint = ({
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                {estbFiles.ltax_details && String(estbFiles.ltax_details.name).toLocaleLowerCase() === 'ltax_details.pdf' && <Button onClick={() => handleFileView('ltax_details')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>খাজনার বিবরণী</span></Button>}
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
+                                                {estbFiles.ltax_details && String(estbFiles.ltax_details.name).toLocaleLowerCase() === 'ltax_details.pdf' && <Button onClick={() => HandleFileView(estbFiles.ltax_details)} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>খাজনার বিবরণী</span></Button>}
                                             </td>
                                         </tr>
                                         <tr className='print-hide'>
@@ -463,8 +462,8 @@ const EstbAppPrint = ({
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                {estbFiles.distance_cert && String(estbFiles.distance_cert.name).toLocaleLowerCase() === 'distance_cert.pdf' && <Button onClick={() => handleFileView('distance_cert')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>দূরত্বের সনদ</span></Button>}
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
+                                                {estbFiles.distance_cert && String(estbFiles.distance_cert.name).toLocaleLowerCase() === 'distance_cert.pdf' && <Button onClick={() => HandleFileView(estbFiles.distance_cert)} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>দূরত্বের সনদ</span></Button>}
                                             </td>
                                             <th className='text-left align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>জনসংখ্যার সনদ</span>
@@ -472,8 +471,8 @@ const EstbAppPrint = ({
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                {estbFiles.population_cert && String(estbFiles.population_cert.name).toLocaleLowerCase() === 'population_cert.pdf' && <Button onClick={() => handleFileView('population_cert')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>জনসংখ্যার সনদ</span></Button>}
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
+                                                {estbFiles.population_cert && String(estbFiles.population_cert.name).toLocaleLowerCase() === 'population_cert.pdf' && <Button onClick={() => HandleFileView(estbFiles.population_cert)} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>জনসংখ্যার সনদ</span></Button>}
                                             </td>
                                         </tr>
                                         <tr className='print-hide'>
@@ -483,8 +482,8 @@ const EstbAppPrint = ({
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                {estbFiles.declare_form && String(estbFiles.declare_form.name).toLocaleLowerCase() === 'declare_form.pdf' && <Button onClick={() => handleFileView('declare_form')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>অঙ্গীকারনামা ফর্ম</span></Button>}
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
+                                                {estbFiles.declare_form && String(estbFiles.declare_form.name).toLocaleLowerCase() === 'declare_form.pdf' && <Button onClick={() => HandleFileView(estbFiles.declare_form)} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>অঙ্গীকারনামা ফর্ম</span></Button>}
                                             </td>
                                             <th className='text-left align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>স্থাপনের যৌক্তিকতার বিবরণী</span>
@@ -492,8 +491,8 @@ const EstbAppPrint = ({
                                             <td className='text-center align-top text-wrap p-2 m-0'>
                                                 <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
                                             </td>
-                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                {estbFiles.feasibility_details && String(estbFiles.feasibility_details.name).toLocaleLowerCase() === 'feasibility_details.pdf' && <Button onClick={() => handleFileView('feasibility_details')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>স্থাপনের যৌক্তিকতার বিবরণী</span></Button>}
+                                            <td className='text-left align-top text-wrap p-2 m-0'>
+                                                {estbFiles.feasibility_details && String(estbFiles.feasibility_details.name).toLocaleLowerCase() === 'feasibility_details.pdf' && <Button onClick={() => HandleFileView(estbFiles.feasibility_details)} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>স্থাপনের যৌক্তিকতার বিবরণী</span></Button>}
                                             </td>
                                         </tr>
                                     </tbody>
@@ -513,7 +512,7 @@ const EstbAppPrint = ({
                     <Card className="card-transparent shadow-none d-flex justify-content-center auth-card m-0 py-5">
                         <Card.Body className='d-flex flex-column justify-content-center align-items-center m-0 p-0'>
                             <Col md={12} className='d-flex justify-content-around align-items-center gap-3'>
-                                <Button onClick={() => setNavigateBuildPrint(false)} className='flex-fill' type="button" variant="btn btn-warning">ফিরে যান</Button>
+                                {setNavigateBuildPrint && <Button onClick={() => setNavigateBuildPrint(false)} className='flex-fill' type="button" variant="btn btn-warning">ফিরে যান</Button>}
                                 <Button onClick={handlePrint} className='flex-fill' type="button" variant="btn btn-primary">প্রিন্ট করুন</Button>
                                 {(buildPrintData.id_payment !== '03' || buildPrintData.proc_status === '12') && <Button onClick={handleSetNavigateBuildUpdate} className='flex-fill' type="button" variant="btn btn-success">আপডেট করুন</Button>}
                             </Col>

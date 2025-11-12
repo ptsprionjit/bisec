@@ -3,7 +3,7 @@ import { SettingState, SettingDefaultState } from './interface'
 // Initial Setting State
 export const initialState: SettingState = {
   "saveLocal": "sessionStorage",
-  "storeKey": "huisetting-react",
+  "storeKey": "bisecui-react",
   "setting": {
     "app_name": {
       "value": "Board of Intermediate and Secondary Education, Cumilla"
@@ -83,7 +83,7 @@ export const initialState: SettingState = {
 // Default Setting State
 export const defaultState: SettingDefaultState = {
   "saveLocal": "sessionStorage",
-  "storeKey": "huisetting",
+  "storeKey": "bisecui",
   "setting": {
     app_name: {
       target: '[data-setting="app_name"]',

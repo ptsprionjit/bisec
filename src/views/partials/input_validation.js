@@ -13,7 +13,7 @@ export const namePartCheck = (name_value) => {
         }
         return false;
     } else {
-        return "নাম পূরণ করতে হবে";
+        return "নাম নির্বাচন/পূরণ করতে হবে";
     }
 }
 
@@ -48,7 +48,7 @@ export const alphaCheck = (name_value) => {
         }
         return false;
     } else {
-        return "পূরণ করতে হবে";
+        return "নির্বাচন/পূরণ করতে হবে";
     }
 }
 
@@ -78,7 +78,7 @@ export const bengaliCheck = (name_value) => {
         }
         return false;
     } else {
-        return "পূরণ করতে হবে";
+        return "নির্বাচন/পূরণ করতে হবে";
     }
 }
 
@@ -109,7 +109,7 @@ export const banglaAddressCheck = (name_value) => {
         }
         return false;
     } else {
-        return "পূরণ করতে হবে";
+        return "নির্বাচন/পূরণ করতে হবে";
     }
 }
 
@@ -125,7 +125,7 @@ export const alphanumCheck = (name_value) => {
         }
         return false;
     } else {
-        return "পূরণ করতে হবে";
+        return "নির্বাচন/পূরণ করতে হবে";
     }
 }
 
@@ -147,7 +147,7 @@ export const emailCheck = (name_value) => {
         }
         return false;
     } else {
-        return "ইমেইল পূরণ করতে হবে";
+        return "ইমেইল নির্বাচন/পূরণ করতে হবে";
     }
 }
 
@@ -193,7 +193,7 @@ export const numberCheck = (name_value) => {
         }
         return false;
     } else {
-        return "পূরণ করতে হবে";
+        return "নির্বাচন/পূরণ করতে হবে";
     }
 }
 
@@ -207,14 +207,14 @@ export const decimalCheck = (name_value) => {
             return "শুধুমাত্র সংখ্যা দেয়া যাবে"
         }
     } else {
-        return "পূরণ করতে হবে";
+        return "নির্বাচন/পূরণ করতে হবে";
     }
 }
 
 //Date Validiy Check
 export const dateCheck = (date_value, start_date, end_date) => {
     if (!date_value || !start_date || !end_date) {
-        return "তারিখ পূরণ করতে হবে";
+        return "তারিখ নির্বাচন/পূরণ করতে হবে";
     } else {
         if (isValid(new Date(date_value)) && isValid(new Date(start_date)) && isValid(new Date(end_date))) {
             date_value = new Date(date_value);
@@ -226,7 +226,7 @@ export const dateCheck = (date_value, start_date, end_date) => {
                 return false;
             }
         } else {
-            return "তারিখ পূরণ করতে হবে";
+            return "তারিখ নির্বাচন/পূরণ করতে হবে";
         }
     }
 }

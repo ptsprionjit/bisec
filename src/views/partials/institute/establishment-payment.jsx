@@ -81,8 +81,8 @@ const InstEstablishmentPayment = () => {
     const [files, setFiles] = useState(DEFAULT_FILES_DATA);
 
     // Set Backup Files
-    const [estbFiles, setEstbFiles] = useState([]);
-    const [classFiles, setClassFiles] = useState([]);
+    const [estbFiles, setEstbFiles] = useState({ ...DEFAULT_FILES_DATA });
+    const [classFiles, setClassFiles] = useState({ ...DEFAULT_FILES_DATA });
     const [classStartFilesJS, setClassStartFilesJS] = useState([]);
     const [classStartFilesSS, setClassStartFilesSS] = useState([]);
     const [classStartFilesHS, setClassStartFilesHS] = useState([]);
@@ -332,31 +332,30 @@ const InstEstablishmentPayment = () => {
     };
 
     // Handle File Select
-    const handleFileSelect = useCallback(
-        (fileName, selectedFile, maxSize = 1024 * 1024, allowedType = 'application/pdf') => {
-            let errorMessage = null;
+    const handleFileSelect = useCallback((fileName, selectedFile, maxSize = 1024 * 1024, allowedType = 'application/pdf') => {
+        let errorMessage = null;
 
-            if (!selectedFile) {
-                errorMessage = `${allowedType.split('/')[1].toUpperCase()} ফাইল সিলেক্ট করতে হবে!`;
-            } else if (selectedFile.type !== allowedType) {
-                errorMessage = `শুধুমাত্র ${allowedType.split('/')[1].toUpperCase()} ফাইল গ্রহণযোগ্য!`;
-            } else if (selectedFile.size > maxSize) {
-                errorMessage = `ফাইলের সাইজ ${(maxSize / 1024 / 1024).toFixed(0)}MB এর কম হতে হবে!`;
-            }
+        if (!selectedFile) {
+            errorMessage = `${allowedType.split('/')[1].toUpperCase()} ফাইল সিলেক্ট করতে হবে!`;
+        } else if (selectedFile.type !== allowedType) {
+            errorMessage = `শুধুমাত্র ${allowedType.split('/')[1].toUpperCase()} ফাইল গ্রহণযোগ্য!`;
+        } else if (selectedFile.size > maxSize) {
+            errorMessage = `ফাইলের সাইজ ${(maxSize / 1024 / 1024).toFixed(0)}MB এর কম হতে হবে!`;
+        }
 
-            if (errorMessage) {
-                setUserDataError(prev => ({ ...prev, [fileName]: errorMessage }));
-                setFiles(prev => ({ ...prev, [fileName]: null }));
-                return;
-            }
+        if (errorMessage) {
+            setUserDataError(prev => ({ ...prev, [fileName]: errorMessage }));
+            setFiles(prev => ({ ...prev, [fileName]: null }));
+            return;
+        }
 
-            const validFile = new File([selectedFile], `${fileName}.${allowedType.split('/')[1]}`, {
-                type: allowedType,
-            });
+        const validFile = new File([selectedFile], `${fileName}.${allowedType.split('/')[1]}`, {
+            type: allowedType,
+        });
 
-            setFiles(prev => ({ ...prev, [fileName]: validFile }));
-            setUserDataError(prev => ({ ...prev, [fileName]: null }));
-        }, [setFiles, setUserDataError]
+        setFiles(prev => ({ ...prev, [fileName]: validFile }));
+        setUserDataError(prev => ({ ...prev, [fileName]: null }));
+    }, [setFiles, setUserDataError]
     );
 
     // Handle Fetch Application
@@ -1016,11 +1015,7 @@ const InstEstablishmentPayment = () => {
         <EstbAppPrint
             navigateBuildPrint={navigateBuildPrint}
             setNavigateBuildPrint={setNavigateBuildPrint}
-            appName={appName}
-            Logo={Logo}
             buildPrintData={buildPrintData}
-            styles={styles}
-            handleFileView={handleFileView}
             estbFiles={estbFiles}
             handleSetNavigateBuildUpdate={handleSetNavigateBuildUpdate}
         />

@@ -1,8 +1,7 @@
-import React, { useEffect, useState, useMemo, useRef, Fragment } from 'react'
+import React, { useEffect, useState, useMemo, Fragment } from 'react'
 import { Row, Col, Form, Button, Modal, Image } from 'react-bootstrap'
 import { useNavigate } from 'react-router-dom'
 import Card from '../../../components/Card'
-import { useSelector } from "react-redux"
 
 // import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
 
@@ -10,11 +9,11 @@ import axios from "axios";
 
 import styles from '../../../assets/custom/css/bisec.module.css'
 
-import Logo from '../../../components/partials/components/logo'
-import * as SettingSelector from '../../../store/setting/selectors.ts'
 import * as ValidationInput from '../input_validation'
 
 import error01 from '../../../assets/images/error/01.png'
+
+import EstbAppPrint from './print/estab_app_print.jsx'
 
 const InstEstablishmentOrder = () => {
     // enable axios credentials include
@@ -22,16 +21,11 @@ const InstEstablishmentOrder = () => {
 
     const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
 
-    const appName = useSelector(SettingSelector.app_bn_name);
-
-    const printRef = useRef();
-
     const navigate = useNavigate();
 
     useEffect(() => {
         if (!ceb_session?.ceb_user_id) {
             navigate("/auth/sign-out");
-            
         }
     }, []);// eslint-disable-line react-hooks/exhaustive-deps
 
@@ -77,129 +71,6 @@ const InstEstablishmentOrder = () => {
 
     // File Attachment
     const [buildFiles, setBuildFiles] = useState([]);
-    // const [classStartFiles, setClassStartFiles] = useState([]);
-
-    // Handle Print
-    const handlePrint = async () => {
-        const printContent = printRef.current.innerHTML;
-        const printWindow = window.open('', '', 'fullscreen=yes');
-
-        printWindow.document.write(`
-        <html>
-            <head>
-                <title>Print</title>
-                <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-                <link href="https://fonts.maateen.me/siyam-rupali/font.css" rel="stylesheet">
-                <style>
-                    @page {
-                        size: legal portrait !important;
-                        margin: 0 !important;
-                        padding: 0.25in !important;
-                        div, table, tr, th, td, p, span {
-                            page-break-inside: avoid !important;
-                        }
-                        section {
-                            page-break-after: always !important;
-                        }
-                        *{
-                           font-family: 'Siyam Rupali', sans-serif !important;
-                           /* font-size: 15px !important; */
-                           color: #000000 !important;
-                           margin: 0 !important;
-                           padding: 0.25in !important;
-                        }
-                    }
-                    .print-wrap{
-                        white-space: nowrap !important;
-                    }
-                    .no-print {
-                        display: none !important;
-                    }
-                    .print-hide {
-                        display: none !important;
-                    }
-                    .print-show {
-                        display: block !important;
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="d-flex justify-content-center align-items-center">${printContent}</div>
-                <script>
-                    window.onload = function() {
-                        window.print();
-                        window.onafterprint = function() { 
-                            window.close();
-                        };
-                    };
-                </script>
-            </body>
-        </html>
-        `);
-        printWindow.document.close();
-        window.close();
-    };
-
-    // Hanlde File View
-    const handleFileView = (field) => {
-        if (buildFiles[field] instanceof Blob) {
-            let pdfURL = URL.createObjectURL(buildFiles[field]);
-            window.open(pdfURL, '_blank');
-            URL.revokeObjectURL(pdfURL);
-            return;
-        }
-        // if (classStartFiles[field] instanceof Blob) {
-        //     let pdfURL = URL.createObjectURL(classStartFiles[field]);
-        //     window.open(pdfURL, '_blank');
-        //     URL.revokeObjectURL(pdfURL);
-        //     return;
-        // }
-    };
-
-    // Fetch Class Start Files 
-    // const fetchClassStartFiles = async (classData) => {
-    //     const pdfFiles = {};
-
-    //     const fields = [
-    //         'mutation_details', 'dakhila_details', 'named_fund_details', 'general_fund_details', 'reserved_fund_details', 'order_build_js', 'order_build_ss', 'order_build_hs', 'order_class_js', 'order_class_ss', 'order_class_hs', 'order_recognition_js', 'order_recognition_ss', 'order_recognition_hs', 'inquiry_details',
-    //     ];
-
-    //     // console.log(classData.inst_mobile, classData.inst_stage);
-
-    //     const promises = fields.map(async (field) => {
-    //         try {
-    //             const res = await axios.post(
-    //                 `${BACKEND_URL}/institute/class_start/fetch_buildFiles`,
-    //                 { inst_mobile: classData.inst_mobile, inst_stage: classData.inst_stage, file_name: field },
-    //                 { responseType: 'blob' }
-    //             );
-
-    //             if (res.status === 200) {
-    //                 const file = new File([res.data], `${field}.pdf`, {
-    //                     type: 'application/pdf',
-    //                 });
-    //                 pdfFiles[field] = file;
-    //             } else {
-    //                 // pdfFiles[field] = demoPdf;
-    //                 pdfFiles[field] = null;
-    //             }
-    //         } catch (err) {
-
-
-    if (err.status === 401) {
-        navigate("/auth/sign-out");
-        
-    }
-//             // console.error(`Failed to fetch ${field}:`, err);
-    //             // pdfFiles[field] = demoPdf;
-    //             pdfFiles[field] = null;
-    //         }
-    //     });
-
-    //     await Promise.all(promises);
-    //     // console.log(pdfFiles);
-    //     setClassStartFiles(pdfFiles);
-    // }
 
     // Fetch Establishment Files 
     const fetchBuildFiles = async (item) => {
@@ -232,18 +103,12 @@ const InstEstablishmentOrder = () => {
                     });
                     pdfFiles[field] = file;
                 } else {
-                    // pdfFiles[field] = demoPdf;
                     pdfFiles[field] = null;
                 }
             } catch (err) {
-
-
-    if (err.status === 401) {
-        navigate("/auth/sign-out");
-        
-    }
-// console.error(`Failed to fetch ${field}:`, err);
-                // pdfFiles[field] = demoPdf;
+                if (err.status === 401) {
+                    navigate("/auth/sign-out");
+                }
                 pdfFiles[field] = null;
             }
         });
@@ -304,11 +169,11 @@ const InstEstablishmentOrder = () => {
         } catch (err) {
 
 
-    if (err.status === 401) {
-        navigate("/auth/sign-out");
-        
-    }
-setLoadingError("কোন অপেক্ষমান আবেদন পাওয়া যায়নি!");
+            if (err.status === 401) {
+                navigate("/auth/sign-out");
+
+            }
+            setLoadingError("কোন অপেক্ষমান আবেদন পাওয়া যায়নি!");
             // console.log(err);
         } finally {
             setLoadingProgress(false);
@@ -357,11 +222,11 @@ setLoadingError("কোন অপেক্ষমান আবেদন পাও
         } catch (err) {
 
 
-    if (err.status === 401) {
-        navigate("/auth/sign-out");
-        
-    }
-alert(err.message);
+            if (err.status === 401) {
+                navigate("/auth/sign-out");
+
+            }
+            alert(err.message);
         }
     }
 
@@ -484,11 +349,11 @@ alert(err.message);
             } catch (err) {
 
 
-    if (err.status === 401) {
-        navigate("/auth/sign-out");
-        
-    }
-setModifyError(err.message);
+                if (err.status === 401) {
+                    navigate("/auth/sign-out");
+
+                }
+                setModifyError(err.message);
                 // console.log(err);
             } finally {
                 setModifyProcess(false);
@@ -644,11 +509,11 @@ setModifyError(err.message);
                                                 <p className={styles.SiyamRupaliFont + " text-wrap text-center"}>প্রতিষ্ঠানের মাধ্যম</p>
                                                 <p className={styles.SiyamRupaliFont + " text-wrap text-center"}>পাঠদানের পর্যায়</p>
                                             </th>
-                                            <th className='text-center align-top text-wrap p-1 m-0'>
+                                            {/* <th className='text-center align-top text-wrap p-1 m-0'>
                                                 <p className={styles.SiyamRupaliFont + " text-wrap text-center"}>ব্যক্তির নাম</p>
                                                 <p className={styles.SiyamRupaliFont + " text-wrap text-center"}>মোবাইল</p>
                                                 <p className={styles.SiyamRupaliFont + " text-wrap text-center"}>এনআইডি</p>
-                                            </th>
+                                            </th> */}
                                             <th className='text-center align-top text-wrap p-1 m-0'>
                                                 <p className={styles.SiyamRupaliFont + " text-wrap text-center"}>আবেদনের অবস্থা</p>
                                                 <p className={styles.SiyamRupaliFont + " text-wrap text-center"}>মন্তব্য</p>
@@ -662,28 +527,28 @@ setModifyError(err.message);
                                                 filteredData.map((item, idx) => (
                                                     <tr key={idx}>
                                                         <td className='text-center align-top text-wrap'>{idx + 1}</td>
-                                                        <td className='text-center align-top text-wrap'>
-                                                            <p className={styles.SiyamRupaliFont + " text-center align-center text-nowrap p-1 m-0"}>{item.inst_bn_name}</p>
-                                                            <p className={styles.SiyamRupaliFont + " text-uppercase text-center align-center text-nowrap p-1 m-0"}>{item.inst_en_name}</p>
+                                                        <td className='text-left align-top text-wrap'>
+                                                            <p className={styles.SiyamRupaliFont + " text-left align-center text-wrap p-1 m-0"}>{item.inst_bn_name}</p>
+                                                            <p className={styles.SiyamRupaliFont + " text-uppercase text-left align-center text-wrap p-1 m-0"}>{item.inst_en_name}</p>
                                                             {item.email_ref && <Button type="button" variant="btn btn-outline-secondary" onClick={() => window.open(`${FRONTEND_URL}/order-emails?id_email=${item.email_ref}`, '_blank', 'noopener,noreferrer')}>তদন্তের আদেশ প্রিন্ট</Button>}
                                                         </td>
                                                         <td className='text-center align-top text-wrap'>
                                                             <p className={styles.SiyamRupaliFont + " text-center align-center text-wrap p-1 m-0"}>{item.inst_mobile}</p>
                                                             <p className={styles.SiyamRupaliFont + " text-lowercase text-center align-center text-wrap p-1 m-0"}>{item.inst_email}</p>
-                                                            <Button type="button" variant="btn btn-outline-primary" onClick={() => window.open(`${FRONTEND_URL}/payment-response?prev_location=/establishment/pending-list&invoiceNo=${item.id_invoice}`, '_blank', 'noopener,noreferrer')}>প্রিন্ট ভাউচার</Button>
+                                                            <Button type="button" variant="btn btn-outline-primary" onClick={() => window.open(`${FRONTEND_URL}/payment/response/success?prev_location=/establishment/pending-list&invoiceNo=${item.id_invoice}`, '_blank', 'noopener,noreferrer')}>প্রিন্ট ভাউচার</Button>
                                                         </td>
                                                         <td className='text-center align-top text-wrap'>
                                                             <p className={styles.SiyamRupaliFont + " text-center align-center text-wrap p-1 m-0"}>{item.bn_coed}</p>
                                                             <p className={styles.SiyamRupaliFont + " text-center align-center text-wrap p-1 m-0"}>{item.bn_version}</p>
                                                             <p className={styles.SiyamRupaliFont + " text-center text-primary align-center text-wrap p-1 m-0"}>{item.clst_status}</p>
                                                         </td>
-                                                        {item.institute_named === '01' ? <td className='text-center align-top text-wrap'>
+                                                        {/* {item.institute_named === '01' ? <td className='text-center align-top text-wrap'>
                                                             <p className={styles.SiyamRupaliFont + " text-center align-center text-wrap p-1 m-0"}>{item.inst_founder_name}</p>
                                                             <p className={styles.SiyamRupaliFont + " text-center align-center text-wrap p-1 m-0"}>{item.inst_founder_mobile}</p>
                                                             <p className={styles.SiyamRupaliFont + " text-center align-center text-wrap p-1 m-0"}>{item.inst_founder_nid}</p>
                                                         </td> : <td className='text-center align-top text-wrap'>
                                                             <p className={styles.SiyamRupaliFont + " text-center align-center text-wrap p-1 m-0"}>ব্যাক্তি নামীয় প্রতিষ্ঠান নয়</p>
-                                                        </td>}
+                                                        </td>} */}
                                                         <td className='text-center align-top text-wrap'>
                                                             <p className={styles.SiyamRupaliFont + " text-center align-center text-wrap p-1 m-0"}>{item.bn_app_status}</p>
                                                             {(item.email_ref && item.proc_status === '16') && <Button type="button" className='w-100 text-nowrap p-2 my-1' variant="btn btn-outline-success" onClick={() => alert('তদন্ত প্রতিবেদন জমা হয়েছে। প্রতিবেদন দেখতে বিস্তারিত আবেদনে প্রবেশ করুন।')}>তদন্ত প্রতিবেদন</Button>}
@@ -738,458 +603,13 @@ setModifyError(err.message);
                 >
                     <Modal.Header closeButton></Modal.Header>
                     <Modal.Body className='m-0 p-0'>
-                        <Fragment>
-                            <Row className='d-flex flex-column justify-content-center align-items-center m-0 p-0'>
-                                <Col ref={printRef} md={12}>
-                                    <Card className="card-transparent shadow-none d-flex justify-content-center m-0 auth-card">
-                                        {/* <Card.Header className='d-flex flex-column m-0 p-0 pt-5 justify-content-center align-items-center'>
-                                            <Link to="/institute/establishment/payment" onClick={() => setNavigateBuildPrint(false)} className="navbar-brand d-flex justify-content-center align-items-start w-100 gap-3">
-                                                <Logo color={true} />
-                                                <h2 className="logo-title text-primary text-wrap text-center">{appName}</h2>
-                                            </Link>
-                                            <h4 className={styles.SiyamRupaliFont + " text-center text-uppercase text-secondary card-title pt-2 pb-5"}>নতুন প্রতিষ্ঠান স্থাপনের আবেদনপত্র</h4>
-                                        </Card.Header> */}
-                                        <Card.Body className='d-flex flex-column justify-content-center align-items-center m-0 p-0'>
-                                            <Col md={12} className="table-responsive">
-                                                <table id="user-list-table" className="table table-bordered border-dark">
-                                                    <thead className='border-0'>
-                                                        <tr className='border-0 bg-transparent'>
-                                                            <th colSpan={6} className='border-0 text-center align-top text-wrap m-0 p-0 pt-4 pb-2'>
-                                                                <div className="d-flex border-bottom border-dark border-2 justify-content-center align-items-start w-100 gap-3">
-                                                                    <Logo color={true} />
-                                                                    <div className='d-flex flex-column justify-content-center align-items-center'>
-                                                                        <h2 className="logo-title text-wrap text-center p-0 m-0 pb-2">{appName}</h2>
-                                                                        <h5 className="text-wrap text-center py-1">লাকসাম রোড, কান্দিরপাড়, কুমিল্লা</h5>
-                                                                        <h6 className="text-lowercase text-wrap text-center py-1">web.comillaboard.gov.bd</h6>
-                                                                    </div>
-                                                                </div>
-                                                            </th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <tr className='border-0'>
-                                                            <th colSpan={6} className='border-0 text-center align-top text-wrap m-0 p-0 py-1'>
-                                                                <h5 className={styles.SiyamRupaliFont + " text-center text-uppercase text-secondary card-title pt-2"}>নতুন প্রতিষ্ঠান স্থাপনের আবেদনপত্র</h5>
-                                                            </th>
-                                                        </tr>
-                                                        <tr>
-                                                            <th colSpan={6} className='text-center align-top text-wrap py-2 m-0'>
-                                                                <h6 className={styles.SiyamRupaliFont + " text-center text-secondary"}>আবেদনের তথ্য</h6>
-                                                            </th>
-                                                        </tr>
-                                                        <tr>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>আবেদনকারীর নাম</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.applicant_name}</span>
-                                                            </td>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>আবেদনকারীর মোবাইল</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.applicant_mobile}</span>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>পেমেন্টের বিবরণী</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.bn_payment}</span>
-                                                            </td>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>আবেদনের অবস্থা</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.bn_app_status}</span>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <th colSpan={6} className='text-center align-top text-wrap p-0 py-2'>
-                                                                <h6 className={styles.SiyamRupaliFont + " text-center text-secondary"}>প্রতিষ্ঠানের তথ্য</h6>
-                                                            </th>
-                                                        </tr>
-                                                        <tr>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>প্রতিষ্ঠানের নাম (বাংলা)</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td colSpan={4} className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.inst_bn_name}</span>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>প্রতিষ্ঠানের নাম (ইংরেজি)</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td colSpan={4} className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.inst_en_name}</span>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>ব্যক্তি নামের প্রতিষ্ঠান</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td colSpan={4} className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.institute_named === '01' ? 'হ্যাঁ' : 'না'}</span>
-                                                            </td>
-                                                        </tr>
-                                                        {activeAppDetails.institute_named === '01' && <>
-                                                            <tr>
-                                                                <th colSpan={6} className='text-center align-top text-wrap p-0 py-2'>
-                                                                    <h6 className={styles.SiyamRupaliFont + " text-center text-secondary"}>ব্যক্তির তথ্য (নামীয় প্রতিষ্ঠানের ক্ষেত্রে)</h6>
-                                                                </th>
-                                                            </tr>
-                                                            <tr>
-                                                                <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                    <span className={styles.SiyamRupaliFont + " text-center text-dark"}>নাম</span>
-                                                                </th>
-                                                                <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                    <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                                </td>
-                                                                <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                    <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.inst_founder_name}</span>
-                                                                </td>
-                                                                <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                    <span className={styles.SiyamRupaliFont + " text-center text-dark"}>মোবাইল</span>
-                                                                </th>
-                                                                <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                    <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                                </td>
-                                                                <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                    <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.inst_founder_mobile}</span>
-                                                                </td>
-                                                            </tr>
-                                                            <tr>
-                                                                <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                    <span className={styles.SiyamRupaliFont + " text-center text-dark"}>এনআইডি নম্বর</span>
-                                                                </th>
-                                                                <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                    <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                                </td>
-                                                                <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                    <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.inst_founder_nid}</span>
-                                                                </td>
-                                                                <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                    <span className={styles.SiyamRupaliFont + " text-center text-dark"}>জন্মতারিখ</span>
-                                                                </th>
-                                                                <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                    <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                                </td>
-                                                                <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                    <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.inst_founder_dob}</span>
-                                                                </td>
-                                                            </tr>
-                                                        </>}
-                                                        <tr>
-                                                            <th colSpan={6} className='text-center align-top text-wrap p-0 py-2'>
-                                                                <h6 className={styles.SiyamRupaliFont + " text-center text-secondary"}>প্রতিষ্ঠানের বিস্তারিত বিবরণী</h6>
-                                                            </th>
-                                                        </tr>
-                                                        <tr>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>ইমেইল</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.inst_email}</span>
-                                                            </td>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>মোবাইল</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.inst_mobile}</span>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>প্রতিষ্ঠানের ধরণ</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.bn_coed}</span>
-                                                            </td>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>প্রতিষ্ঠানের মাধ্যম</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.bn_version} মাধ্যম</span>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>প্রতিষ্ঠানের পর্যায়</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.bn_status}</span>
-                                                            </td>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>প্রতিষ্ঠানের অবস্থান</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            {activeAppDetails.inst_region === '01' && <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>সিটি কর্পোরেশন এলাকা</span>
-                                                            </td>}
-                                                            {activeAppDetails.inst_region === '02' && <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>পৌরসভা এলাকা</span>
-                                                            </td>}
-                                                            {activeAppDetails.inst_region === '03' && <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>মফস্বল এলাকা</span>
-                                                            </td>}
-                                                        </tr>
-                                                        <tr>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>নিকটবর্তী প্রতিষ্ঠানের দূরত্ব</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.inst_distance} কিঃমিঃ</span>
-                                                            </td>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>প্রতিষ্ঠান এলাকার জনসংখ্যা</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.inst_population} জন</span>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>জেলা</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.bn_dist}</span>
-                                                            </td>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>উপজেলা/থানা</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.bn_uzps}</span>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>ঠিকানা</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td colSpan={4} className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.inst_address}</span>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <th colSpan={6} className='text-center align-top text-wrap p-0 py-2'>
-                                                                <h6 className={styles.SiyamRupaliFont + " text-center text-secondary"}>জমির বিবরণী</h6>
-                                                            </th>
-                                                        </tr>
-                                                        <tr>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>মৌজা (নাম ও নম্বর)</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.inst_mouza_name} ({activeAppDetails.inst_mouza_number})</span>
-                                                            </td>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>খতিয়ান (নাম ও নম্বর)</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.en_khatiyan} ({activeAppDetails.inst_khatiyan_number})</span>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>জমির পরিমাণ (শতক)</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.inst_land}</span>
-                                                            </td>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>খাজনা (দাখিলা ও সন)</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>{activeAppDetails.inst_ltax_num} ({activeAppDetails.inst_ltax_year})</span>
-                                                            </td>
-                                                        </tr>
-                                                        <tr className='print-hide'>
-                                                            <th colSpan={6} className='text-center align-top text-wrap p-0 py-2'>
-                                                                <h6 className={styles.SiyamRupaliFont + " text-center text-secondary"}>ডকুমেন্ট সংযুক্তি</h6>
-                                                            </th>
-                                                        </tr>
-                                                        {activeAppDetails.institute_named === '01' && <tr className='print-hide'>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>ব্যক্তির বিবরণী</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td colSpan={4} className='text-center align-top text-wrap p-2 m-0'>
-                                                                {buildFiles.founder_details && String(buildFiles.founder_details.name).toLocaleLowerCase() === 'founder_details.pdf' && <Button onClick={() => handleFileView('founder_details')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>ব্যক্তির বিবরণী (নামীয় প্রতিষ্ঠান)</span></Button>}
-                                                            </td>
-                                                        </tr>}
-                                                        <tr className='print-hide'>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>আবেদনকারী/গণের বিবরণী</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                {buildFiles.applicant_details && String(buildFiles.applicant_details.name).toLocaleLowerCase() === 'applicant_details.pdf' && <Button onClick={() => handleFileView('applicant_details')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>আবেদনকারীগণের বিবরণী</span></Button>}
-                                                            </td>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>আবেদন ফর্ম</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                {buildFiles.application_form && String(buildFiles.application_form.name).toLocaleLowerCase() === 'application_form.pdf' && <Button onClick={() => handleFileView('application_form')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>ফর্ম (ক-১/ক-২)</span></Button>}
-                                                            </td>
-                                                        </tr>
-                                                        <tr className='print-hide'>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>জমির বিবরণী</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                {buildFiles.land_details && String(buildFiles.land_details.name).toLocaleLowerCase() === 'land_details.pdf' && <Button onClick={() => handleFileView('land_details')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>জমির বিবরণী</span></Button>}
-                                                            </td>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>খাজনার দাখিলা</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                {buildFiles.ltax_details && String(buildFiles.ltax_details.name).toLocaleLowerCase() === 'ltax_details.pdf' && <Button onClick={() => handleFileView('ltax_details')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>খাজনার বিবরণী</span></Button>}
-                                                            </td>
-                                                        </tr>
-                                                        <tr className='print-hide'>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>দূরত্বের সনদ</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                {buildFiles.distance_cert && String(buildFiles.distance_cert.name).toLocaleLowerCase() === 'distance_cert.pdf' && <Button onClick={() => handleFileView('distance_cert')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>দূরত্বের সনদ</span></Button>}
-                                                            </td>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>জনসংখ্যার সনদ</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                {buildFiles.population_cert && String(buildFiles.population_cert.name).toLocaleLowerCase() === 'population_cert.pdf' && <Button onClick={() => handleFileView('population_cert')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>জনসংখ্যার সনদ</span></Button>}
-                                                            </td>
-                                                        </tr>
-                                                        <tr className='print-hide'>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>অঙ্গীকারনামা ফর্ম</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                {buildFiles.declare_form && String(buildFiles.declare_form.name).toLocaleLowerCase() === 'declare_form.pdf' && <Button onClick={() => handleFileView('declare_form')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>অঙ্গীকারনামা ফর্ম</span></Button>}
-                                                            </td>
-                                                            <th className='text-left align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>স্থাপনের যৌক্তিকতার বিবরণী</span>
-                                                            </th>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                <span className={styles.SiyamRupaliFont + " text-center text-dark"}>:</span>
-                                                            </td>
-                                                            <td className='text-center align-top text-wrap p-2 m-0'>
-                                                                {buildFiles.feasibility_details && String(buildFiles.feasibility_details.name).toLocaleLowerCase() === 'feasibility_details.pdf' && <Button onClick={() => handleFileView('feasibility_details')} type='button' variant='btn btn-link' className='w-100 m-0 p-0'><span className={styles.SiyamRupaliFont + " text-center text-primary"}>স্থাপনের যৌক্তিকতার বিবরণী</span></Button>}
-                                                            </td>
-                                                        </tr>
-                                                    </tbody>
-                                                    <tfoot>
-                                                        <tr>
-                                                            <th colSpan={6} className='text-center align-top text-wrap py-2 m-0'>
-                                                                <i><small className={styles.SiyamRupaliFont + " text-center text-dark"}>কম্পিউটার সিস্টেমে তৈরিকৃত আবেদনে কোন স্বাক্ষরের প্রয়োজন নাই!</small></i>
-                                                            </th>
-                                                        </tr>
-                                                    </tfoot>
-                                                </table>
-                                            </Col>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                                <Col md={12}>
-                                    <Card className="card-transparent shadow-none d-flex justify-content-center auth-card m-0 py-5">
-                                        <Card.Body className='d-flex flex-column justify-content-center align-items-center m-0 p-0'>
-                                            <Col md={12} className='d-flex justify-content-around align-items-center gap-3'>
-                                                <Button variant="btn btn-warning" className='flex-fill' onClick={() => setDetailsShow(false)}>ফিরে যান</Button>
-                                                <Button onClick={handlePrint} className='flex-fill' type="button" variant="btn btn-primary">প্রিন্ট করুন</Button>
-                                            </Col>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
-                            </Row>
-                        </Fragment>
+                        <EstbAppPrint
+                            navigateBuildPrint={detailsShow}
+                            setNavigateBuildPrint={setDetailsShow}
+                            buildPrintData={activeAppDetails}
+                            estbFiles={buildFiles}
+                            handleSetNavigateBuildUpdate={false}
+                        />
                     </Modal.Body>
                     <Modal.Footer></Modal.Footer>
                 </Modal>

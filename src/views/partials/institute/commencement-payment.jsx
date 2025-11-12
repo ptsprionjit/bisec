@@ -16,22 +16,7 @@ import styles from '../../../assets/custom/css/bisec.module.css'
 import Logo from '../../../components/partials/components/logo'
 import * as SettingSelector from '../../../store/setting/selectors.ts'
 
-const DEFAULT_ESTB_DATA = {
-    applicant_mobile: '', applicant_name: '', inst_founder_dob: '', inst_founder_name: '', inst_founder_nid: '', inst_address: '', inst_bn_name: '', inst_en_name: '', inst_coed: '', inst_dist: '', inst_distance: '', inst_email: '', inst_khatiyan_name: '', inst_khatiyan_number: '', inst_land: '', inst_mobile: '', inst_mouza_name: '', inst_mouza_number: '', institute_named: '', inst_population: '', inst_region: '', inst_status: '', inst_ltax_num: '', inst_ltax_year: '', inst_uzps: '', inst_version: '', user_id: '', user_pass: '',
-};
-
-const DEFAULT_CLS_DATA = {
-    inst_stage: '', founder_amount: '', khatiyan_mutation: '', khatiyan_mouja: '', khatiyan_total: '', tax_receipt: '', class_room: '', office_room: '', toilet_room: '', common_room: '', library_room: '', total_books: '', computer_room: '', total_computer: '', labratory_room: '', general_fund: '', reserved_fund: '', ref_build_js: '', ref_build_ss: '', ref_build_hs: '', ref_build_sc: '', ref_commence_js: '', ref_commence_ss: '', ref_commence_hs: '', ref_commence_sc: '', ref_recognition_js: '', ref_recognition_ss: '', ref_recognition_hs: '', ref_recognition_sc: '', date_build_js: '', date_build_ss: '', date_build_hs: '', date_build_sc: '', date_commence_js: '', date_commence_ss: '', date_commence_hs: '', date_commence_sc: '', date_recognition_ss: '', date_recognition_js: '', date_recognition_hs: '', date_recognition_sc: '',
-};
-
-const DEFAULT_FILES_DATA = {
-    'applicant_details': null, 'application_form': null, 'founder_details': null, 'land_details': null, 'ltax_details': null, 'distance_cert': null, 'population_cert': null, 'declare_form': null, 'feasibility_details': null, 'mutation_details': null, 'dakhila_details': null, 'named_fund_details': null, 'general_fund_details': null, 'reserved_fund_details': null, 'order_build_js': null, 'order_build_ss': null, 'order_build_hs': null, 'order_class_js': null, 'order_class_ss': null, 'order_class_hs': null, 'order_recognition_js': null, 'order_recognition_ss': null, 'order_recognition_hs': null,
-};
-
-const DEFAULT_FILES_PAGE = {
-    'applicant_details': 0, 'application_form': 0, 'founder_details': 0, 'land_details': 0, 'ltax_details': 0, 'distance_cert': 0, 'population_cert': 0, 'declare_form': 0, 'feasibility_details': 0, 'mutation_details': 0, 'dakhila_details': 0, 'named_fund_details': 0, 'general_fund_details': 0, 'reserved_fund_details': 0, 'order_build_js': 0, 'order_build_ss': 0, 'order_build_hs': 0, 'order_class_js': 0, 'order_class_ss': 0, 'order_class_hs': 0, 'order_recognition_js': 0, 'order_recognition_ss': 0, 'order_recognition_hs': 0,
-};
-
+import { DEFAULT_ESTB_DATA, DEFAULT_CLS_DATA, DEFAULT_FILES_DATA, DEFAULT_FILES_PAGE } from './data/default_data.jsx';
 import { estbDataEvaluate } from './evaluation/estb_eval.jsx';
 import { classStartDataEvaluate } from './evaluation/class_eval.jsx';
 import EstbAppForm from './application/estb_app.jsx';
@@ -503,10 +488,12 @@ const InstClassStartPayment = () => {
     };
 
     // Handle User Data Change
-    const handleDataChange = (dataName, dataValue) => {
-        dataName === 'inst_email' ? setUserData({ ...userData, [dataName]: dataValue.toLowerCase() }) : setUserData({ ...userData, [dataName]: dataValue.toUpperCase() });
-        setUserDataError(prev => ({ ...prev, [dataName]: '' }));
-    }
+    const handleDataChange = useCallback((name, value) => {
+        const formattedValue = name === 'inst_email' ? String(value).toLowerCase() : String(value).toUpperCase();
+        setUserData(prev => ({ ...prev, [name]: formattedValue }));
+        setUserDataError(prev => ({ ...prev, [name]: '' }));
+        setUpdateStatus({ 'success': false, 'loading': false, 'error': false });
+    }, []);
 
     // Hanlde Submit Build Application Update
     const handleBuildUpdateSubmit = async (event) => {
@@ -954,10 +941,7 @@ const InstClassStartPayment = () => {
     if (navigateClassStartApplication) return (
         <ClassStartAppForm
             navigateClassStartApplication={navigateClassStartApplication}
-            printRef={printRef}
             setNavigateClassStartApplication={setNavigateClassStartApplication}
-            appName={appName}
-            Logo={Logo}
             updateStatus={updateStatus}
             buildPrintData={buildPrintData}
             handleClassStartSubmit={handleClassStartSubmit}
@@ -971,17 +955,15 @@ const InstClassStartPayment = () => {
             setFilesPages={setFilesPages}
             handleFileSelect={handleFileSelect}
             handleFileView={handleFileView}
-            styles={styles}
+            modalError={modalError}
+            setModalError={setModalError}
         />
     )
 
     if (navigateClassStartUpdate) return (
         <ClassStartAppForm
             navigateClassStartApplication={navigateClassStartUpdate}
-            printRef={printRef}
             setNavigateClassStartApplication={handleResetNavigateClassStartUpdate}
-            appName={appName}
-            Logo={Logo}
             updateStatus={updateStatus}
             buildPrintData={buildPrintData}
             handleClassStartSubmit={handleClassStartSubmit}
@@ -995,7 +977,6 @@ const InstClassStartPayment = () => {
             setFilesPages={setFilesPages}
             handleFileSelect={handleFileSelect}
             handleFileView={handleFileView}
-            styles={styles}
             modalError={modalError}
             setModalError={setModalError}
         />
@@ -1030,10 +1011,7 @@ const InstClassStartPayment = () => {
         <EstbAppPrint
             navigateBuildPrint={navigateBuildPrint}
             setNavigateBuildPrint={setNavigateBuildPrint}
-            appName={appName}
-            Logo={Logo}
             buildPrintData={buildPrintData}
-            styles={styles}
             handleFileView={handleFileView}
             estbFiles={estbFiles}
             handleSetNavigateBuildUpdate={handleSetNavigateBuildUpdate}
@@ -1044,12 +1022,8 @@ const InstClassStartPayment = () => {
         <ClassStartAppPrint
             navigateClassStartPrint={navigateClassStartPrint}
             handleResetNavigateClassStartPrint={handleResetNavigateClassStartPrint}
-            appName={appName}
-            Logo={Logo}
             buildPrintData={buildPrintData}
             classStartPrintData={classStartPrintData}
-            handleFileView={handleFileView}
-            styles={styles}
             estbFiles={estbFiles}
             classFiles={classFiles}
             handleSetNavigateClassStartUpdate={handleSetNavigateClassStartUpdate}
