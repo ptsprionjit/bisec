@@ -1341,97 +1341,52 @@ const Index = memo((props) => {
                         </tr>
                       </thead>
                       <tbody>
-                        {noticeData.map((noticeItem, idx) => (
-                          <tr key={idx}>
-                            <td className="text-center align-center text-wrap text_dark">
-                              <h6>
-                                {InputValidation.E2BDigit(
-                                  String(idx + 1).padStart(2, "0")
+                        {noticeData.map((noticeItem, idx) => {
+                          const daysRemaining = differenceInDays(new Date(noticeItem.dt_end), new Date()) + 1;
+                          const totalDays = differenceInDays(new Date(noticeItem.dt_end), new Date(noticeItem.dt_start)) + 1 || 1;
+                          const percent = Math.round(Math.abs(daysRemaining / totalDays * 100));
+                          return (
+                            <tr key={idx}>
+                              <td className="text-center align-center text-wrap text_dark">
+                                <h6>
+                                  {InputValidation.E2BDigit(String(idx + 1).padStart(2, "0"))}
+                                </h6>
+                              </td>
+                              <td className="text-center align-center text-wrap text_dark">
+                                <h6>{noticeItem.bn_notice}</h6>
+                              </td>
+                              <td className="text-center align-center text-wrap text_dark">
+                                <h6>
+                                  {InputValidation.E2BDigit(noticeItem.dt_start)}{" "}
+                                  থেকে{" "}
+                                  {InputValidation.E2BDigit(noticeItem.dt_end)}
+                                </h6>
+                              </td>
+                              <td className="text-center align-center text-wrap text_dark">
+                                {files[noticeItem.file_notice] && (
+                                  <Button onClick={() => handleFileView(noticeItem.file_notice)} type="button" variant="btn btn-link" className="w-100 m-0 p-0"><span className={styles.SiyamRupaliFont + " text-center text-danger"}>নোটিশ</span></Button>
                                 )}
-                              </h6>
-                            </td>
-                            <td className="text-center align-center text-wrap text_dark">
-                              <h6>{noticeItem.bn_notice}</h6>
-                            </td>
-                            <td className="text-center align-center text-wrap text_dark">
-                              <h6>
-                                {InputValidation.E2BDigit(noticeItem.dt_start)}{" "}
-                                থেকে{" "}
-                                {InputValidation.E2BDigit(noticeItem.dt_end)}
-                              </h6>
-                            </td>
-                            <td className="text-center align-center text-wrap text_dark">
-                              {files[noticeItem.file_notice] && (
-                                <Button
-                                  onClick={() => handleFileView(noticeItem.file_notice)}
-                                  type="button"
-                                  variant="btn btn-link"
-                                  className="w-100 m-0 p-0"
-                                >
-                                  <span
-                                    className={
-                                      styles.SiyamRupaliFont +
-                                      " text-center text-danger"
-                                    }
-                                  >
-                                    নোটিশ
-                                  </span>
-                                </Button>
-                              )}
-                            </td>
-                            <td className="text-center align-center text-wrap text_dark d-flex flex-column">
-                              <h6 className="text-center text-dark pb-1">
-                                {InputValidation.E2BDigit(
-                                  Math.round(
-                                    Math.abs(
-                                      ((differenceInDays(
-                                        new Date(noticeItem.dt_end),
-                                        new Date()
-                                      ) +
-                                        1) /
-                                        (differenceInDays(
-                                          new Date(noticeItem.dt_end),
-                                          new Date(noticeItem.dt_start)
-                                        ) +
-                                          1)) *
-                                      100
-                                    ),
-                                    0.5
-                                  )
-                                )}
-                                %
-                              </h6>
-                              <Progress
-                                softcolors="primary"
-                                color="primary"
-                                className="shadow-none w-100"
-                                value={
-                                  differenceInDays(
-                                    new Date(noticeItem.dt_end),
-                                    new Date()
-                                  ) + 1
-                                }
-                                minvalue={0}
-                                maxvalue={
-                                  differenceInDays(
-                                    new Date(noticeItem.dt_end),
-                                    new Date(noticeItem.dt_start)
-                                  ) + 1
-                                }
-                                style={{ height: "4px" }}
-                              />
-                              <h6 className="text-center text-dark pt-1">
-                                {InputValidation.E2BDigit(
-                                  differenceInDays(
-                                    new Date(noticeItem.dt_end),
-                                    new Date()
-                                  ) + 1
-                                )}{" "}
-                                দিন
-                              </h6>
-                            </td>
-                          </tr>
-                        ))}
+                              </td>
+                              <td className="text-center align-center text-wrap text_dark d-flex flex-column">
+                                <h6 className="text-center text-dark pb-1">
+                                  {InputValidation.E2BDigit(percent)}%
+                                </h6>
+                                <Progress
+                                  softcolors="primary"
+                                  color="primary"
+                                  className="shadow-none w-100"
+                                  value={percent}
+                                  minvalue={0}
+                                  maxvalue={100}
+                                  style={{ height: "4px" }}
+                                />
+                                <h6 className="text-center text-dark pt-1">
+                                  {InputValidation.E2BDigit(differenceInDays(new Date(noticeItem.dt_end), new Date()) + 1)}{" "}দিন
+                                </h6>
+                              </td>
+                            </tr>
+                          )
+                        })}
                       </tbody>
                     </table>
                   </div>

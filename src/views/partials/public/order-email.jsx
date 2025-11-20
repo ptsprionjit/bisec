@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react'
+import React, { useRef, useEffect, useState, Fragment } from 'react'
 import { Row, Col, Table, Button, Image } from 'react-bootstrap'
 
 import { useNavigate } from 'react-router-dom'
@@ -17,6 +17,8 @@ import styles from '../../../assets/custom/css/bisec.module.css'
 
 import Error404 from '../errors/error404'
 
+import * as InputValidation from '../../partials/input_validation'
+
 const OrderEmail = () => {
    // enable axios credentials include
    axios.defaults.withCredentials = true;
@@ -29,6 +31,8 @@ const OrderEmail = () => {
 
    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
    const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL;
+
+   const [loading, setLoading] = useState(true);
 
    const navigate = useNavigate();
    const handleWindowClose = (() => {
@@ -43,14 +47,9 @@ const OrderEmail = () => {
    });
 
    const [prevLink, setPrevLink] = useState(null);
-
    const [printSuccess, setPrintSuccess] = useState(false);
-
    const [fetchedData, setFetchedData] = useState([]);
-
    const [profileSign, setProfileSign] = useState(null);
-
-
    const printRef = useRef();
 
    const handlePrint = () => {
@@ -128,19 +127,23 @@ const OrderEmail = () => {
 
          if (!id_email) {
             setPrintSuccess(false);
+            setLoading(false);
          } else {
             try {
                const response = await axios.post(`${BACKEND_URL}/order-emails`, { id_email });
-               setFetchedData(response.data);
-               fetchProfileSign(response.data.id_sender);
-               setPrintSuccess(true);
-            } catch (err) {
-               if (err.status === 401) {
-                  navigate("/auth/sign-out");
+               if (response.status === 200) {
+                  setFetchedData(response.data.emailData);
+                  await fetchProfileSign(response.data.emailData.id_sender);
+                  setPrintSuccess(true);
+               } else {
+                  setPrintSuccess(false);
+                  setFetchedData([]);
                }
+            } catch (err) {
                setPrintSuccess(false);
                setFetchedData([]);
-               alert("কোন তথ্য পাওয়া যায়নি/তথ্য সঠিক নয়!");
+            } finally {
+               setLoading(false);
             }
          }
       };
@@ -180,7 +183,6 @@ const OrderEmail = () => {
                   <Col md={12} className="border-bottom m-0 p-0 pb-1 border-dark d-flex justify-content-center align-items-start">
                      <LogoMedium color={true} />
                      <div className='ms-3'>
-                        {/* <p className="text-center border border-1 border-dark fs-6 m-0  p-0"><span className={styles.SiyamRupaliFont}>নকলকে না বলি, দিন বদলের দৃঢ় প্রত্যয়ে দেশটাকে গড়ে তুলি</span></p> */}
                         <h4 className="logo-title text-center"><span className={styles.SiyamRupaliFont}>মাধ্যমিক ও উচ্চমাধ্যমিক শিক্ষা বোর্ড, কুমিল্লা</span></h4>
                         <h5 className="text-center"><span className={styles.SiyamRupaliFont}>লাকসাম রোড, কান্দিরপাড়, কুমিল্লা</span></h5>
                         <h6 className="text-center"><small className={styles.SiyamRupaliFont}>ফোনঃ <i>(+৮৮০) ২৩৩৪৪০৬৩২৮</i>, ইমেইলঃ <i>admin@cumillaboard.gov.bd</i></small></h6>
@@ -188,13 +190,13 @@ const OrderEmail = () => {
                   </Col>
                </Card.Header>
                <Card.Body className="p-2 m-0">
-                  <div className='d-flex justify-content-between align-items-center'>
+                  <div className='d-flex justify-content-between align-items-center mb-3'>
                      <h6 className={styles.SiyamRupaliFont}>স্বারক নংঃ {fetchedData.email_ref}</h6>
-                     <h6 className={styles.SiyamRupaliFont}>তারিখঃ {String(fetchedData.email_datetime).split(' ')[0]}</h6>
+                     <h6 className={styles.SiyamRupaliFont}>তারিখঃ {InputValidation.E2BDigit(String(fetchedData.email_datetime).split(' ')[0])}</h6>
                   </div>
                   <h6 className={styles.SiyamRupaliFont + "  py-2 text-uppercase"}>{fetchedData.name_recipient}</h6>
                   <h6 className={styles.SiyamRupaliFont + " py-1"}>{fetchedData.recipient_upzila}, {fetchedData.recipient_dist}</h6>
-                  <h6 className={styles.SiyamRupaliFont + " py-2 text-decoration-underline"}>বিষয়ঃ {fetchedData.email_subject}</h6>
+                  <h6 className={styles.SiyamRupaliFont + " py-2 my-3 text-decoration-underline"}>বিষয়ঃ {fetchedData.email_subject}</h6>
                   <h6 style={{ textAlign: 'justify' }} className={styles.SiyamRupaliFont + " py-2"}>জনাব/মহোদয়,</h6>
                   <h6 style={{ textAlign: 'justify' }} className={styles.text_justify + " py-2"}><span className={styles.SiyamRupaliFont}>{fetchedData.email_message}</span></h6>
                   <h6 style={{ textAlign: 'justify' }} className={styles.text_justify + " py-2 text-decoration-underline"}><span className={styles.SiyamRupaliFont}>{fetchedData.email_topic} এর প্রাথমিক তথ্যঃ</span></h6>
@@ -210,12 +212,12 @@ const OrderEmail = () => {
                            <tr>
                               <td className='text-wrap text-left p-0 m-0 py-1'><span className={styles.SiyamRupaliFont}>আইডি</span></td>
                               <td className='text-wrap text-left p-0 m-0 py-1'><span className={styles.SiyamRupaliFont}>:</span></td>
-                              <td className='text-wrap text-left p-0 m-0 py-1'><span className={styles.SiyamRupaliFont}>{fetchedData.topic_uid}</span></td>
+                              <td className='text-wrap text-left p-0 m-0 py-1'><span className={styles.SiyamRupaliFont}>{InputValidation.E2BDigit(fetchedData.topic_uid)}</span></td>
                            </tr>
                            <tr>
                               <td className='text-wrap text-left p-0 m-0 py-1'><span className={styles.SiyamRupaliFont}>মোবাইল</span></td>
                               <td className='text-wrap text-left p-0 m-0 py-1'><span className={styles.SiyamRupaliFont}>:</span></td>
-                              <td className='text-wrap text-left p-0 m-0 py-1'><span className={styles.SiyamRupaliFont}>{fetchedData.topic_umobile}</span></td>
+                              <td className='text-wrap text-left p-0 m-0 py-1'><span className={styles.SiyamRupaliFont}>{InputValidation.E2BDigit(fetchedData.topic_umobile)}</span></td>
                            </tr>
                            <tr>
                               <td className='text-wrap text-left p-0 m-0 py-1'><span className={styles.SiyamRupaliFont}>ইমেইল</span></td>
@@ -233,7 +235,7 @@ const OrderEmail = () => {
 
                   <h6 className={styles.SiyamRupaliFont + ' d-flex flex-row justify-content-between align-items-end p-0 m-0 w-100'}>
                      <QRCodeSVG className='p-1 d-block' value={`${FRONTEND_URL}/institute/establishment-order?order-id=${fetchedData.id_invoice}`} size={100} />
-                     <span className={styles.SiyamRupaliFont + ' d-block text-center'}><br /> <Image className="p-2 w-50" src={profileSign} alt="Profile Signature" /><br />( {fetchedData.profile_bnname || fetchedData.profile_name} )<br /> {fetchedData.bn_post} <br /> মাধ্যমিক ও উচ্চমাধ্যমিক শিক্ষা বোর্ড, কুমিল্লা<br /></span>
+                     <span className={styles.SiyamRupaliFont + ' d-block text-center'}><br /> <Image className="p-2 w-50" src={profileSign} alt="Profile Signature" /><br />( {fetchedData.bn_user} )<br /> {fetchedData.bn_post} <br /> মাধ্যমিক ও উচ্চমাধ্যমিক শিক্ষা বোর্ড, কুমিল্লা<br /></span>
                   </h6>
 
                   <h6 style={{ textAlign: 'justify' }} className={styles.SiyamRupaliFont + " py-2 text-left text-decoration-underline text-uppercase"}><small className={styles.SiyamRupaliFont}>অবগতি ও প্রয়োজনীয় ব্যবস্থা গ্রহণের জন্য অনুলিপি প্রেরণ করা হলো (জ্যেষ্ঠতার ক্রমানুসারে নয়):</small></h6>
@@ -248,21 +250,43 @@ const OrderEmail = () => {
 
                   <h6 className={styles.SiyamRupaliFont + ' d-flex flex-row justify-content-between align-items-end p-0 m-0 w-100'}>
                      <QRCodeSVG className='p-1 d-block' value={`${FRONTEND_URL}/institute/establishment-order?order-id=${fetchedData.id_invoice}`} size={100} />
-                     <span className={styles.SiyamRupaliFont + ' d-block text-center'}><br /> <Image className="p-2 w-50" src={profileSign} alt="Profile Signature" /><br />( {fetchedData.profile_bnname || fetchedData.profile_name} )<br /> {fetchedData.bn_post} <br /> মাধ্যমিক ও উচ্চমাধ্যমিক শিক্ষা বোর্ড, কুমিল্লা<br /></span>
+                     <span className={styles.SiyamRupaliFont + ' d-block text-center'}><br /> <Image className="p-2 w-50" src={profileSign} alt="Profile Signature" /><br />( {fetchedData.bn_user} )<br /> {fetchedData.bn_post} <br /> মাধ্যমিক ও উচ্চমাধ্যমিক শিক্ষা বোর্ড, কুমিল্লা<br /></span>
                   </h6>
                </Card.Body>
             </Card>
          </Col>
          <Col md="8" className='bg-transparent gap-5 d-flex justify-content-center align-items-center p-2 mb-5'>
-            {prevLink && <Button className='flex-fill' onClick={handleWindowClose} type="button" variant="btn btn-secondary">Close</Button>}
-            <Button className='flex-fill' onClick={handlePrint} type="button" variant="btn btn-info">Print</Button>
+            {prevLink && <Button className='flex-fill' onClick={handleWindowClose} type="button" variant="btn btn-warning">ফিরে যান</Button>}
+            <Button className='flex-fill' onClick={handlePrint} type="button" variant="btn btn-info">প্রিন্ট করুন</Button>
          </Col>
       </Row>
    );
 
-   return (
+   if (loading) return (
+      <Fragment>
+         <Row data-aos="fade-up" data-aos-delay="100">
+            <Col md={12}>
+               <Card className="mb-5">
+                  <Card.Body>
+                     <h5 className={styles.SiyamRupaliFont + " text-center"}>
+                        অপেক্ষা করুন... ডাটা লোড হচ্ছে...
+                     </h5>
+                  </Card.Body>
+               </Card>
+            </Col>
+            <Col md={12} className={styles.dashboard_loader + " mt-5"}></Col>
+         </Row>
+      </Fragment>
+   );
+
+   if (!loading && !printSuccess) return (
       <Error404 />
    );
+
+   return (
+      <></>
+   );
+
 }
 
 export default OrderEmail

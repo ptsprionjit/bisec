@@ -519,7 +519,7 @@ const InstRecognitionOrder = () => {
                                                         <td className='text-center align-top text-wrap'>
                                                             <p className={styles.SiyamRupaliFont + " text-center align-center text-nowrap p-1 m-0"}>{item.bn_user}</p>
                                                             <p className={styles.SiyamRupaliFont + " text-uppercase text-center align-center text-nowrap p-1 m-0"}>{item.en_user}</p>
-                                                            {item.email_ref && <Button type="button" variant="btn btn-outline-secondary" onClick={() => window.open(`${FRONTEND_URL}/order-emails?id_email=${item.email_ref}`, '_blank', 'noopener,noreferrer')}>তদন্তের আদেশ প্রিন্ট</Button>}
+                                                            {item.email_ref && <Button type="button" variant="btn btn-outline-secondary" onClick={() => window.open(`${FRONTEND_URL}/order-emails?id_email=${item.email_ref}&prev_location=/recognition/generate-order`, '_blank', 'noopener,noreferrer')}>তদন্তের আদেশ প্রিন্ট</Button>}
                                                         </td>
                                                         <td className='text-center align-top text-wrap'>
                                                             <p className={styles.SiyamRupaliFont + " text-center align-center text-wrap p-1 m-0"}>{item.inst_mobile}</p>

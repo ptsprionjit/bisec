@@ -296,11 +296,11 @@ const RecognitionOrder = () => {
             } catch (err) {
 
 
-    if (err.status === 401) {
-        navigate("/auth/sign-out");
-        
-    }
-alert("কোন তথ্য পাওয়া যায়নি/তথ্য সঠিক নয়!");
+               if (err.status === 401) {
+                  navigate("/auth/sign-out");
+
+               }
+               alert("কোন তথ্য পাওয়া যায়নি/তথ্য সঠিক নয়!");
             }
          }
       };
@@ -388,7 +388,7 @@ alert("কোন তথ্য পাওয়া যায়নি/তথ্য স�
 
                      <h6 className={styles.SiyamRupaliFont + ' d-flex flex-row justify-content-between align-items-end p-0 m-0 w-100'}>
                         <QRCodeSVG className='p-1 d-block' value={`${FRONTEND_URL}/institute/establishment-order?order-id=${printData.id_invoice}`} size={100} />
-                        <span className={styles.SiyamRupaliFont + ' d-block text-center'}><br /> <Image className="p-2 w-75" src={profileSign} alt="Profile Signature" /><br />( {printData.profile_bnname || printData.profile_name} )<br /> {printData.bn_post} <br /> মাধ্যমিক ও উচ্চমাধ্যমিক শিক্ষা বোর্ড, কুমিল্লা<br /></span>
+                        <span className={styles.SiyamRupaliFont + ' d-block text-center'}><br /> <Image className="p-2 w-50" src={profileSign} alt="Profile Signature" /><br />( {printData.bn_user} )<br /> {printData.bn_post} <br /> মাধ্যমিক ও উচ্চমাধ্যমিক শিক্ষা বোর্ড, কুমিল্লা<br /></span>
                      </h6>
 
                      <h6 style={{ textAlign: 'justify' }} className={styles.SiyamRupaliFont + " text-left text-uppercase py-2"}><small>{printData.inst_bn_name}, {printData.bn_uzps}, {printData.bn_dist}।</small></h6>
@@ -413,7 +413,7 @@ alert("কোন তথ্য পাওয়া যায়নি/তথ্য স�
 
                      <h6 className={styles.SiyamRupaliFont + ' d-flex flex-row justify-content-between align-items-end p-0 m-0 w-100'}>
                         <QRCodeSVG className='p-1 d-block' value={`${FRONTEND_URL}/institute/establishment-order?order-id=${printData.id_invoice}`} size={100} />
-                        <span className={styles.SiyamRupaliFont + ' d-block text-center'}><br /> <Image className="p-2 w-50" src={profileSign} alt="Profile Signature" /> <br />( {printData.profile_bnname || printData.profile_name} )<br /> {printData.bn_post} <br /> মাধ্যমিক ও উচ্চমাধ্যমিক শিক্ষা বোর্ড, কুমিল্লা<br /></span>
+                        <span className={styles.SiyamRupaliFont + ' d-block text-center'}><br /> <Image className="p-2 w-50" src={profileSign} alt="Profile Signature" /> <br />( {printData.bn_user} )<br /> {printData.bn_post} <br /> মাধ্যমিক ও উচ্চমাধ্যমিক শিক্ষা বোর্ড, কুমিল্লা<br /></span>
                      </h6>
                   </Card.Body>
                </Card>

@@ -6,6 +6,7 @@ import axios from 'axios';
 
 const VerticalNav = memo((props) => {
     axios.defaults.withCredentials = true;
+
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
     // const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));

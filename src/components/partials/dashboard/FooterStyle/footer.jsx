@@ -7,18 +7,12 @@ import * as InputValidation from '../../../../views/partials/input_validation'
 
 const Footer = () => {
     const appShortName = useSelector(SettingSelector.app_short_name);
-    const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
-
     const SOFTWARE_VERSION = import.meta.env.VITE_SOFTWARE_VERSION;
 
     const curDate = new Date();
-    curDate.setHours(curDate.getUTCHours()+12);
+    curDate.setHours(curDate.getUTCHours() + 12);
 
-    if (!ceb_session) {
-        return null;
-    }
-
-    if (ceb_session.ceb_user_id) return (
+    return (
         // <footer className="footer fixed-bottom bg-white">
         <footer className="footer">
             <div className="footer-body">
