@@ -1,7 +1,7 @@
 
 <p align="center">
   <a href="https://103.149.142.10:8090/" target="__blank" title="BISEC DASHBOARD">
-    <img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/board/cb_logo.jpg" />
+    <img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/board/cb_logo.jpg" width="64px" height="64px" />
   </a>
 </p>
 <p align="center">
