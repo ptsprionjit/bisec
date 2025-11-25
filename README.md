@@ -217,6 +217,8 @@ github/bisec/
 [Click Here](https://github.com/ptsprionjit/bisec/actions) to check our full change log.
 
 ## Follow Us
+- [Google Scholler](https://scholar.google.com/citations?user=mJNX2ZQAAAAJ&hl=en)
+- [LinkedIn](https://www.linkedin.com/in/prionjit)
 - [Twitter](https://twitter.com/prionjit)
 - [Facebook](https://www.facebook.com/prionjitsarker/)
 - [Instagram](https://www.instagram.com/prionjit/)
