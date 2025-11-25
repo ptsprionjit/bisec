@@ -182,19 +182,19 @@ github/bisec/
 ## Browser Support
 <ul>
   <li>
-    Google Chrome<img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/brands/chrome.png" width="16px" height="16px"/>
+    <img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/brands/chrome.png" width="16px" height="16px"/> Google Chrome
   </li>
   <li>
-    Firefox<img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/brands/firefox.png" width="16px" height="16px"/>
+    <img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/brands/brave.png" width="16px" height="16px"/> Brave
   </li>
   <li>
-    Safari<img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/brands/safari.png" width="16px" height="16px"/>
+    <img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/brands/firefox.png" width="16px" height="16px"/> Firefox
   </li>
   <li>
-    Microsoft Edge<img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/brands/edge.png" width="16px" />
+    <img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/brands/safari.png" width="16px" height="16px"/> Safari
   </li>
   <li>
-    Brave<img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/brands/brave.png" width="16px" height="16px"/>
+    <img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/brands/edge.png" width="16px" /> Microsoft Edge
   </li>
 </ul>
 
@@ -207,7 +207,7 @@ github/bisec/
 - [React PDF](https://github.com/wojtekmaj/react-pdf?tab=readme-ov-file#readme/)
 
 ## Change Log
-[Click Here](https://github.com/ptsprionjit/bisec/main/change-log.html) to check our full change log.
+[Click Here](https://github.com/ptsprionjit/bisec/actions) to check our full change log.
 
 ## Follow Us
 - [Twitter](https://twitter.com/prionjit)
