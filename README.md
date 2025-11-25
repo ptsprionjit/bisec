@@ -13,15 +13,22 @@
 </p>
 <h3 align="center">Dashboard Application of Board of Intermediate & Secondary Education, Cumilla</h3>
 <p align="center">
-  <a href="https://103.149.142.10:8090/" title="BISEC DASHBOARD"><strong>Live Application</strong></a>
+  <a href="https://103.149.142.10:8090/" title="BISEC DASHBOARD"><strong>Application</strong></a>
 </p>
 
 ------------
 
+<h4 align="center">Dashboard Application Sample of Board of Intermediate & Secondary Education, Cumilla</h4>
+
 <a href="https://103.149.142.10:8090/" target="__blank" title="BISEC DASHBOARD">
-  <img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/dashboard/live-homepage.jpg" alt="BISEC DASHBOARD" />
+  <img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/dashboard/live-homepage-public.jpg" alt="BISEC DASHBOARD" />
 </a>
 
+<a href="https://103.149.142.10:8090/" target="__blank" title="BISEC DASHBOARD">
+  <img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/dashboard/live-homepage-admin.jpg" alt="BISEC DASHBOARD" />
+</a>
+
+------------
 BISEC Dashboard Web Application is designed based on bootstrap 5 & built on React along with Vite.
 
 ## Quick Start
