@@ -69,6 +69,12 @@ import * as SettingSelector from "../store/setting/selectors";
 // Redux Selector / Action
 import { useSelector } from "react-redux";
 
+import { MdOutlineHouse } from "react-icons/md";
+import { PiStudent } from "react-icons/pi";
+import { MdOutlineBroadcastOnPersonal } from "react-icons/md";
+import { BiSolidSchool } from "react-icons/bi";
+
+
 const Index = () => {
   const appName = useSelector(SettingSelector.app_bn_name);
   // const appShortName = useSelector(SettingSelector.app_short_name);
@@ -123,13 +129,13 @@ const Index = () => {
               <span data-setting="app_name" className='text-white'>{appName}</span>
             </h2>
             <h4 className="text-white mb-5">
-              Designed & Implemented by <b>Computer Section</b>
+              পরিকলাপনা ও বাস্তবায়নেঃ <b>কম্পিউটার শাখা</b>
             </h4>
             <div className="d-flex justify-content-center align-items-center">
               <div>
                 <Link
                   className="btn btn-light bg-white d-flex"
-                  to="/auth/sign-in"
+                  to="/auth/sign-out"
                 >
                   <svg
                     width="22"
@@ -183,8 +189,21 @@ const Index = () => {
                 <Nav as="ul" className="mb-2 ms-auto navbar-list mb-lg-0 align-items-center">
                   <Dropdown as="li" className="nav-item">
                     <Dropdown.Toggle as={CustomToggle} variant=" nav-link py-0 d-flex align-items-center gap-2" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-graduation-cap-icon lucide-graduation-cap"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z" /><path d="M22 10v6" /><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5" /></svg>
-                      <span>শিক্ষার্থী</span>
+                      <MdOutlineBroadcastOnPersonal color='darkblue' />
+                      <span className='text-primary'>বোর্ড</span>
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu className="dropdown-menu-end" aria-labelledby="navbarDropdown">
+                      <Dropdown.Item> <Link to="/">বোর্ডের ইতিহাস</Link></Dropdown.Item>
+                      <Dropdown.Item> <Link to="/">বোর্ড অর্ডিন্যান্স</Link></Dropdown.Item>
+                      <Dropdown.Item> <Link to="/">প্রবিধানমালা</Link></Dropdown.Item>
+                      <Dropdown.Item> <Link to="/">বোর্ডের দপ্তরসমূহ</Link></Dropdown.Item>
+                      <Dropdown.Item> <Link to="/">বোর্ডের শাখাসমূহ</Link></Dropdown.Item>
+                    </Dropdown.Menu>
+                  </Dropdown>
+                  <Dropdown as="li" className="nav-item">
+                    <Dropdown.Toggle as={CustomToggle} variant=" nav-link py-0 d-flex align-items-center gap-2" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                      <PiStudent color='darkgreen' />
+                      <span className='text-success'>শিক্ষার্থী</span>
                     </Dropdown.Toggle>
                     <Dropdown.Menu className="dropdown-menu-end" aria-labelledby="navbarDropdown">
                       <Dropdown.Item> <Link to="/tc/new-app">ছাড়পত্রের (TC) আবেদন</Link></Dropdown.Item>
@@ -194,8 +213,8 @@ const Index = () => {
                   </Dropdown>
                   <Dropdown as="li" className="nav-item">
                     <Dropdown.Toggle as={CustomToggle} variant=" nav-link py-0 d-flex align-items-center gap-2" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-school-icon lucide-school"><path d="M14 22v-4a2 2 0 1 0-4 0v4" /><path d="m18 10 3.447 1.724a1 1 0 0 1 .553.894V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-7.382a1 1 0 0 1 .553-.894L6 10" /><path d="M18 5v17" /><path d="m4 6 7.106-3.553a2 2 0 0 1 1.788 0L20 6" /><path d="M6 5v17" /><circle cx="12" cy="9" r="2" /></svg>
-                      <span>প্রতিষ্ঠান</span>
+                      <BiSolidSchool color='darkred' />
+                      <span className='text-danger'>প্রতিষ্ঠান</span>
                     </Dropdown.Toggle>
                     <Dropdown.Menu className="dropdown-menu-end" aria-labelledby="navbarDropdown">
                       <Dropdown.Item> <Link to="/institute/establishment/application">স্থাপনের আবেদন</Link></Dropdown.Item>
@@ -707,7 +726,7 @@ const Index = () => {
         </Button>
       </div>
       <div className="footer fixed-bottom bg-primary">
-        <Footer/>
+        <Footer />
       </div>
     </Fragment>
   )

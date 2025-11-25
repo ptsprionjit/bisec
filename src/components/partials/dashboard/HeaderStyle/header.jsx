@@ -90,7 +90,7 @@ const Header = memo((props) => {
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     if (!ceb_session?.ceb_user_id) {
-        return null;
+        return <></>;
     }
 
     return (

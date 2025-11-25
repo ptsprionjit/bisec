@@ -12,19 +12,14 @@ import * as SettingSelector from "../../../../store/setting/selectors";
 import { useSelector } from "react-redux";
 import Logo from '../../components/logo';
 
-// import SidebarDark from '../../components/settingoffcanvas'
-
-// export const SidebarDark =() =>{
-
-// }
-
-
 const Sidebar = memo((props) => {
   const sidebarColor = useSelector(SettingSelector.sidebar_color);
   const sidebarHide = useSelector(SettingSelector.sidebar_show); // array
   const sidebarType = useSelector(SettingSelector.sidebar_type); // array
   const sidebarMenuStyle = useSelector(SettingSelector.sidebar_menu_style);
   const appShortName = useSelector(SettingSelector.app_short_name);
+
+  const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
 
   const minisidebar = () => {
     document.getElementsByTagName("ASIDE")[0].classList.toggle("sidebar-mini");
@@ -75,12 +70,9 @@ const Sidebar = memo((props) => {
 
   return (
     <Fragment>
-      <aside
-        className={` ${sidebarColor} ${sidebarType.join(" ")} ${sidebarMenuStyle} ${sidebarHide.join(" ") ? 'sidebar-none' : 'sidebar'}   sidebar-base  `}
-        data-sidebar="responsive"
-      >
+      <aside className={` ${sidebarColor} ${sidebarType.join(" ")} ${sidebarMenuStyle} ${sidebarHide.join(" ") ? 'sidebar-none' : 'sidebar'} sidebar-base  `} data-sidebar="responsive">
         <div className="sidebar-header d-flex align-items-center justify-content-start">
-          <Link to="/dashboard" className="navbar-brand">
+          <Link to={ceb_session?.ceb_user_id ? "/dashboard" : "/"} className="navbar-brand">
             <Logo />
             <h4 className="logo-title text-sm"><span data-setting="app_short_name">{appShortName}</span></h4>
           </Link>
@@ -90,11 +82,7 @@ const Sidebar = memo((props) => {
             </i>
           </div>
         </div>
-        <div
-          className="pt-0 sidebar-body data-scrollbar"
-          data-scroll="1"
-          id="my-scrollbar"
-        >
+        <div className="pt-0 sidebar-body data-scrollbar" data-scroll="1" id="my-scrollbar">
           {/* sidebar-list class to be added after replace css */}
           <div className="sidebar-list navbar-collapse" id="sidebar">
             <VerticalNav />

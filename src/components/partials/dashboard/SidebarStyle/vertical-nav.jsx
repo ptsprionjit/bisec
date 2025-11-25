@@ -9,7 +9,7 @@ const VerticalNav = memo((props) => {
 
     const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-    // const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
+    const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
 
     const [permissionData, setPermissionData] = useState([]);
 
@@ -79,12 +79,14 @@ const VerticalNav = memo((props) => {
                 setSession([]);
             }
         }
-        // setPermission(ceb_session);
-        fetchPermissionData();
+
+        if (ceb_session?.ceb_user_id) {
+            fetchPermissionData();
+        }
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
     if (!permissionData?.id) {
-        return null;
+        return <></>;
     };
 
     return (
