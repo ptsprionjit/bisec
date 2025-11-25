@@ -5,11 +5,11 @@
   </a>
 </p>
 <p align="center">
-<a href="https://github.com/ptsprionjit/bisec/tree/main" target="__blank"><img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/board/cb_logo.jpg" /> </a>
-<a href="https://github.com/ptsprionjit/bisec/tree/main" target="__blank"><img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/board/cb_logo.jpg" /> </a>
-<a href="https://github.com/ptsprionjit/bisec/tree/main" target="__blank"><img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/board/cb_logo.jpg" /> </a>
-<a href="https://github.com/ptsprionjit/bisec/tree/main" target="__blank"><img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/board/cb_logo.jpg" /> </a>
-<a href="https://github.com/ptsprionjit/bisec/tree/main" target="__blank"><img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/board/cb_logo.jpg" /></a>
+<a href="https://github.com/ptsprionjit/bisec/tree/main" target="__blank"><img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/board/cb_logo.jpg" width="16px" height="16px"/> </a>
+<a href="https://github.com/ptsprionjit/bisec/tree/main" target="__blank"><img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/board/cb_logo.jpg" width="16px" height="16px"/> </a>
+<a href="https://github.com/ptsprionjit/bisec/tree/main" target="__blank"><img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/board/cb_logo.jpg" width="16px" height="16px"/> </a>
+<a href="https://github.com/ptsprionjit/bisec/tree/main" target="__blank"><img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/board/cb_logo.jpg" width="16px" height="16px"/> </a>
+<a href="https://github.com/ptsprionjit/bisec/tree/main" target="__blank"><img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/board/cb_logo.jpg" width="16px" height="16px"/></a>
 </p>
 <h3 align="center">Dashboard Application of Board of Intermediate & Secondary Education, Cumilla</h3>
 <p align="center">
@@ -180,11 +180,23 @@ github/bisec/
 ```
 
 ## Browser Support
-![chrome](https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/brands/chrome.png)
-![Firefox](https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/brands/firefox.png)
-![Safari](https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/brands/safari.png)
-![Microsoft Edge](https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/brands/edge.png)
-![Brave](https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/brands/brave.png)
+<ul>
+  <li>
+    Google Chrome<img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/brands/chrome.png" width="16px" height="16px"/>
+  </li>
+  <li>
+    Firefox<img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/brands/firefox.png" width="16px" height="16px"/>
+  </li>
+  <li>
+    Safari<img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/brands/safari.png" width="16px" height="16px"/>
+  </li>
+  <li>
+    Microsoft Edge<img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/brands/edge.png" width="16px" />
+  </li>
+  <li>
+    Brave<img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/brands/brave.png" width="16px" height="16px"/>
+  </li>
+</ul>
 
 ## Special Thanks
 - [Bootstrap](https://getbootstrap.com/)
