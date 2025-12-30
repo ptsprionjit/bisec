@@ -1,10 +1,12 @@
 import React from 'react'
-import Index from '../views/partials/index'
-import IndexInstitute from '../views/partials/institute'
 
 // import { Switch, Route } from 'react-router-dom'
 //Layout
 import Default from '../layouts/dashboard/default';
+
+// Dashboard
+import Index from '../views/partials/index'
+import IndexInstitute from '../views/partials/institute'
 
 // user
 import UserProfile from '../views/partials/app/user-profile';
@@ -13,7 +15,7 @@ import UserUpdate from '../views/partials/app/user-update';
 
 //admin
 // import UserAdmin from '../views/partials/admin/admin';
-import UserPermission from '../views/partials/admin/user_permission';
+// import UserPermission from '../views/partials/admin/user_permission';
 import UserAdd from '../views/partials/admin/user-add';
 import ActiveUserList from '../views/partials/admin/user-list-active';
 import InactiveUserList from '../views/partials/admin/user-list-inactive';
@@ -37,7 +39,8 @@ import RegistrationNew from '../views/partials/registration/registration-new'
 import RegistrationTempList from '../views/partials/registration/registration-temp-list'
 import RegistrationPayment from '../views/partials/registration/registration-payment'
 import RegistrationArchiveList from '../views/partials/registration/registration-archive-list'
-
+import RegistrationBreg from '../views/partials/registration/registration-search-breg'
+import RegistrationGeneration from '../views/partials/registration/registration-number-generate'
 
 //Form Fillup
 import FormFillupCancel from '../views/partials/form_fillup/form-fillup-cancel'
@@ -132,18 +135,18 @@ export const DefaultRouter = [
                 path: 'admin/user-list/inactive',
                 element: <InactiveUserList />
             },
-            {
-                path: 'admin/permission-role',
-                element: <UserPermission />
-            },
+            // {
+            //     path: 'admin/permission-role',
+            //     element: <UserPermission />
+            // },
 
-            // Public 
+            // Public
             {
-                path: 'public/privacy-policy',
+                path: 'user/privacy-policy/',
                 element: <PrivacyPolicy />
             },
             {
-                path: 'public/terms-of-service',
+                path: 'user/terms-of-service/',
                 element: <TermsofService />
             },
 
@@ -201,6 +204,14 @@ export const DefaultRouter = [
             {
                 path: 'registration/archive-list',
                 element: <RegistrationArchiveList />
+            },
+            {
+                path: 'registration/search/breg',
+                element: <RegistrationBreg />
+            },
+            {
+                path: 'registration/number/generate',
+                element: <RegistrationGeneration />
             },
 
             //Form Fillup Menu

@@ -17,10 +17,10 @@ export default defineConfig(({ mode }) => {
     server: {
       host: env.VITE_DEV_HOST,
       port: Number(env.VITE_DEV_PORT),
-      // https: {
-      //   key: fs.readFileSync(path.resolve(env.VITE_SSL_KEY_FILE)),
-      //   cert: fs.readFileSync(path.resolve(env.VITE_SSL_CRT_FILE)),
-      // },
+      https: {
+        key: fs.readFileSync(path.resolve(env.VITE_SSL_KEY_FILE)),
+        cert: fs.readFileSync(path.resolve(env.VITE_SSL_CRT_FILE)),
+      },
       open: true, // optional: set true to auto-open browser
     },
   };

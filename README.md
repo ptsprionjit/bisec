@@ -187,6 +187,8 @@ github/bisec/
 ```
 
 ## Browser Support
+![Google Chrome](https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/brands/chrome.png)
+
 <ul>
   <li>
     <img src="https://github.com/ptsprionjit/bisec/blob/main/src/assets/images/brands/chrome.png" width="16px" height="16px"/> Google Chrome

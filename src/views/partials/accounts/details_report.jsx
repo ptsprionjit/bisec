@@ -3,7 +3,6 @@ import Select from 'react-select'
 import { Row, Col, Form, Button, Image } from 'react-bootstrap'
 import { useNavigate } from 'react-router-dom'
 
-import axios from "axios";
 
 import Card from '../../../components/Card'
 
@@ -13,21 +12,24 @@ import error01 from '../../../assets/images/error/01.png'
 
 import * as ValidationInput from '../input_validation'
 
+import { useAuthProvider } from "../../../context/AuthContext.jsx";
+import axiosApi from "../../../lib/axiosApi.jsx";
+
 const DetailsReport = () => {
-   // enable axios credentials include
-   axios.defaults.withCredentials = true;
-
+   const { permissionData, loading } = useAuthProvider();
    const navigate = useNavigate();
-   const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
 
+   /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
    useEffect(() => {
-      if (!ceb_session?.ceb_user_id) {
-         navigate("/auth/sign-out");
-         
-      }
-   }, []);// eslint-disable-line react-hooks/exhaustive-deps
-
-   const URL = import.meta.env.VITE_BACKEND_URL;
+      let mounted = true;
+      (async () => {
+         if (!((permissionData?.office === '06' && (permissionData?.role === '14' || permissionData?.role === '15')) || permissionData?.role === '16' || permissionData?.role === '17' || permissionData?.role === '18')) {
+            navigate('/errors/error404', { replace: true });
+         }
+      })();
+      return () => { mounted = false; };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [permissionData]); // run only once on mount
 
    //Form Validation and Error
    const [validated, setValidated] = useState(false);
@@ -63,8 +65,12 @@ const DetailsReport = () => {
    const [totalAmount, setTotalAmount] = useState(0);
    const [totalAmountWord, setTotalAmountWord] = useState(0);
 
-   const maxDate = new Date();
-   maxDate.setHours(maxDate.getHours() - 12);
+   // minor derived date used in original
+   const maxDate = useMemo(() => {
+      const d = new Date();
+      d.setHours(d.getUTCHours() - 12);
+      return d;
+   }, []);
 
    const printRef = useRef();
 
@@ -255,7 +261,7 @@ const DetailsReport = () => {
          let total = 0;
          filteredData.map(item => {
             total = total + Number(item.pay_board);
-            
+
          });
          setTotalAmount(total);
          calculateWord(total);
@@ -293,7 +299,7 @@ const DetailsReport = () => {
       const fetchAccountCodes = async () => {
          setLoadingData("Loading Account Codes...");
          try {
-            const response = await axios.post(`${URL}/account/account-codes?`);
+            const response = await axiosApi.post(`/account/account-codes`);
             setAccountCodes(response.data);
             setUniqueEcoCode([...new Map(response.data.map(item => [item.income_code_economic, item])).values()]);
          } catch (err) {
@@ -301,7 +307,6 @@ const DetailsReport = () => {
             // console.error(err);
             if (err.status === 401) {
                navigate("/auth/sign-out");
-               
             }
          } finally {
             setLoadingData(false);
@@ -319,7 +324,7 @@ const DetailsReport = () => {
       setLoadingError(false);
       setLoadingData("তথ্য লোড হচ্ছে।");
       try {
-         const response = await axios.post(`${URL}/account/report-details?`, { searchData: searchData });
+         const response = await axiosApi.post(`/account/report-details?`, { searchData: searchData });
          if (response.status === 200) {
             setReportData(response.data.data);
             setLoadingSuccess(response.data.message);
@@ -334,17 +339,8 @@ const DetailsReport = () => {
          }
          setValidated(true);
       } catch (err) {
-
-
-    if (err.status === 401) {
-        navigate("/auth/sign-out");
-        
-    }
-if (err.status === 404) {
-            setLoadingError(`${err.message}`);
-         } else if (err.status === 401) {
+         if (err.status === 401) {
             navigate("/auth/sign-out");
-            return null;
          } else {
             setLoadingError(`${err.message}`);
          }
@@ -473,12 +469,8 @@ if (err.status === 404) {
       handleSearchDataChange('online_code', codeValue);
    }
 
-   if (!ceb_session) {
-      return null;
-   }
-
    // Return if Search is Valid
-   if (loadingSuccess && (ceb_session.ceb_user_office === "06" || ceb_session.ceb_user_role === "17")) return (
+   if (loadingSuccess && (permissionData.office === "06" || permissionData.role === "17")) return (
       <Fragment>
          <Row>
             <Col md={12}>
@@ -606,7 +598,7 @@ if (err.status === 404) {
       </Fragment>
    )
 
-   if (ceb_session.ceb_user_office === "06" || ceb_session.ceb_user_role === "17") return (
+   if (permissionData.office === "06" || permissionData.role === "17") return (
       <>
          <div>
             <Row className='d-flex justify-content-center align-items-center'>

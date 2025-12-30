@@ -11,33 +11,28 @@ import error01 from '../../../assets/images/error/01.png'
 
 import * as ValidationInput from '../input_validation'
 
-import axios from 'axios';
-
 import styles from '../../../assets/custom/css/bisec.module.css'
 
 // import Maintenance from '../errors/maintenance';
 
+import { useAuthProvider } from "../../../context/AuthContext.jsx";
+import axiosApi from "../../../lib/axiosApi.jsx";
+
 const RegistrationNew = () => {
-   // enable axios credentials include
-   axios.defaults.withCredentials = true;
-
-   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-   const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
-
+   const { permissionData, loading } = useAuthProvider();
    const navigate = useNavigate();
 
+   /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
    useEffect(() => {
-      if (!ceb_session?.ceb_user_id) {
-         navigate("/auth/sign-out");
-         
-      }
-   }, []);// eslint-disable-line react-hooks/exhaustive-deps
-
-   // Set EIIN Value
-   let eiin = '';
-   if (ceb_session) {
-      eiin = ceb_session.ceb_user_type === "13" ? ceb_session.ceb_user_id : '';
-   }
+      let mounted = true;
+      (async () => {
+         if (!(((permissionData?.office === '04' || permissionData?.office === '05') && (permissionData?.role === '13' || permissionData?.role === '14' || permissionData?.role === '15')) || permissionData?.role === '16' || permissionData?.role === '17' || permissionData?.role === '18' || permissionData?.type === '13')) {
+            navigate('/errors/error404', { replace: true });
+         }
+      })();
+      return () => { mounted = false; };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [permissionData, loading]); // run only once on mount
 
    // Profile Image Variables
    const [profileImagePreview, setProfileImagePreview] = useState(null);
@@ -55,7 +50,7 @@ const RegistrationNew = () => {
    // Search Data Variables
    const [searchData, setSearchData] = useState(
       {
-         user_form: '200020711422330002', user_eiin: eiin, user_session: '', user_class: '', user_group: '', user_version: '', user_application: ''
+         user_form: '200020711422330002', user_eiin: permissionData.type === "13" ? permissionData.id : '', user_session: '', user_class: '', user_group: '', user_version: '', user_application: ''
       }
    );
    const [searchDataError, setSearchDataError] = useState([]);
@@ -161,7 +156,7 @@ const RegistrationNew = () => {
          } else {
             setSearchLoading("তথ্য খুঁজা হচ্ছে! অপেক্ষা করুন...");
             try {
-               const response = await axios.post(`${BACKEND_URL}/student/registration/date_fee`, { user_form: searchData.user_form, user_eiin: searchData.user_eiin, user_session: searchData.user_session, user_class: searchData.user_class, user_group: searchData.user_group, user_version: searchData.user_version, user_application: searchData.user_application });
+               const response = await axiosApi.post(`/student/registration/date_fee`, { user_form: searchData.user_form, user_eiin: searchData.user_eiin, user_session: searchData.user_session, user_class: searchData.user_class, user_group: searchData.user_group, user_version: searchData.user_version, user_application: searchData.user_application });
                if (response.status === 200) {
                   setSearchSuccess(response.data.message);
                   setInsName(response.data.instData);
@@ -184,7 +179,7 @@ const RegistrationNew = () => {
                // console.log(err);
                if (err.status === 401) {
                   navigate("/auth/sign-out");
-                  
+
                } else if (err.status === 403) {
                   // navigate("/registration/new-app");
                   navigate("/auth/sign-out");
@@ -275,7 +270,7 @@ const RegistrationNew = () => {
             formData.append('student_data', JSON.stringify(userData));
             formData.append('image', profileImageFile);
             try {
-               const response = await axios.post(`${BACKEND_URL}/student/registration/new`, formData, {
+               const response = await axiosApi.post(`/student/registration/new`, formData, {
                   headers: { 'Content-Type': 'multipart/form-data' },
                });
                if (response.status === 200) {
@@ -298,7 +293,7 @@ const RegistrationNew = () => {
                // console.log(err);
                if (err.status === 401) {
                   navigate("/auth/sign-out");
-                  
+
                }
                alert('শিক্ষার্থী নিবন্ধন করা সম্ভব হয়নি! কিছুক্ষণ পরে আবার চেষ্টা করুন।');
             } finally {
@@ -356,7 +351,7 @@ const RegistrationNew = () => {
       setValidSearch(false);
 
       setSearchData({
-         user_form: '200020711422330002', user_eiin: eiin, user_session: '', user_class: '', user_group: '', user_version: '', user_application: ''
+         user_form: '200020711422330002', user_eiin: permissionData.type === "13" ? permissionData.id : '', user_session: '', user_class: '', user_group: '', user_version: '', user_application: ''
       });
    };
 
@@ -400,21 +395,13 @@ const RegistrationNew = () => {
          setOptionDistricts([]);
          setInsertLoading("জেলার তথ্য খুঁজা হচ্ছে! অপেক্ষা করুন!");
          try {
-            const response = await axios.post(`${BACKEND_URL}/address/address-list`);
+            const response = await axiosApi.post(`/address/address-list`);
             setAddressList(response.data);
          } catch (err) {
-
-
-    if (err.status === 401) {
-        navigate("/auth/sign-out");
-        
-    }
-// console.error(`Error Fetching Districts: ${err}`);
-            setInsertError("জেলার তথ্য খুঁজে পাওয়া যায়নি! আবার প্রথম থেকে চেষ্টা করুন!");
             if (err.status === 401) {
                navigate("/auth/sign-out");
-               
             }
+            setInsertError("জেলার তথ্য খুঁজে পাওয়া যায়নি! আবার প্রথম থেকে চেষ্টা করুন!");
          } finally {
             setInsertLoading(false);
          }
@@ -428,7 +415,7 @@ const RegistrationNew = () => {
       if (addressList.length > 0) {
          const newOptions = addressList.map(data => ({
             value: data.en_dist,
-            label: data.bn_dist
+            label: data.en_dist
          }));
          const uniqueValues = Array.from(
             new Map(newOptions.map(item => [item.value, item])).values()
@@ -447,7 +434,7 @@ const RegistrationNew = () => {
          );
          const newOptions = filteredData.map(data => ({
             value: data.id_uzps,
-            label: data.bn_uzps
+            label: data.en_uzps
          }));
          const uniqueValues = Array.from(
             new Map(newOptions.map(item => [item.value, item])).values()
@@ -456,13 +443,8 @@ const RegistrationNew = () => {
       }
    }, [userData.en_dist, addressList]); // eslint-disable-line react-hooks/exhaustive-deps
 
-   // Return if no session
-   if (!ceb_session?.ceb_user_id) {
-      return null;
-   }
-
    // Return if Search is Valid
-   if (validSearch && (ceb_session.ceb_user_type === '13' || ceb_session.ceb_user_office === '05' || ceb_session.ceb_user_role === '17')) return (
+   if (validSearch && (permissionData.type === '13' || permissionData.office === '05' || permissionData.role === '17')) return (
       <Fragment>
          <Row>
             <Col md={12}>
@@ -493,7 +475,7 @@ const RegistrationNew = () => {
                            <Col className='my-2' md={9}>
                               <Row>
                                  <Col className='my-2' md={12}>
-                                    <Form.Label className="text-primary" htmlFor="user_name">Name</Form.Label>
+                                    <Form.Label className="text-primary" htmlFor="user_name">শিক্ষার্থীর নাম</Form.Label>
                                     <Form.Control
                                        className='bg-transparent text-uppercase'
                                        type="text"
@@ -511,7 +493,7 @@ const RegistrationNew = () => {
                                     )}
                                  </Col>
                                  <Col className='my-2' md={12}>
-                                    <Form.Label className="text-primary" htmlFor="user_father">Father's Name</Form.Label>
+                                    <Form.Label className="text-primary" htmlFor="user_father">শিক্ষার্থীর পিতার নাম</Form.Label>
                                     <Form.Control
                                        className='bg-transparent text-uppercase'
                                        type="text"
@@ -529,7 +511,7 @@ const RegistrationNew = () => {
                                     )}
                                  </Col>
                                  <Col className='my-2' md={12}>
-                                    <Form.Label className="text-primary" htmlFor="user_mother">Mother's Name</Form.Label>
+                                    <Form.Label className="text-primary" htmlFor="user_mother">শিক্ষার্থীর মাতার নাম</Form.Label>
                                     <Form.Control
                                        className='bg-transparent text-uppercase'
                                        type="text"
@@ -551,7 +533,7 @@ const RegistrationNew = () => {
                            <Col md={3}>
                               <Card>
                                  <Card.Header className="mb-0 pb-0">
-                                    <label className="text-primary w-100 text-center" htmlFor='profile_image'>Student's Image</label>
+                                    <label className="text-primary w-100 text-center" htmlFor='profile_image'>শিক্ষার্থীর ছবি</label>
                                  </Card.Header>
                                  <Card.Body className="position-relative m-0 p-0 d-flex justify-content-center align-items-center">
                                     {profileImagePreview && <Image className="w-50 h-50 img-thumbnail text-center" src={profileImagePreview} alt="Student's Image" />}
@@ -565,15 +547,15 @@ const RegistrationNew = () => {
                                  </Card.Body>
                                  <small className='my-2 pt-2 text-center'>
                                     <i>
-                                       Only <span className='text-primary'>.jpeg & .jpg</span> allowed
+                                       শুথুমাত্র <span className='text-primary'>.jpeg & .jpg</span> ছবি
                                     </i>
                                     <br />
                                     <i>
-                                       Max Size <span className='text-primary'>100kb</span>
+                                       সর্বোচ্চ <span className='text-primary'>১০০ কিলোবাইট</span>
                                     </i>
                                     <br />
                                     <i>
-                                       Dimension <span className='text-primary'>300x300</span>
+                                       সাইজ <span className='text-primary'>৩০০x৩০০ পিক্সেল</span>
                                     </i>
                                  </small>
                                  {profileImageError && <small className='text-center'>
@@ -587,7 +569,7 @@ const RegistrationNew = () => {
                         <Row>
                            <Col className='my-2' md={4}>
                               <Form.Group className="bg-transparent">
-                                 <Form.Label className="text-primary" htmlFor='user_gender'>Gender</Form.Label>
+                                 <Form.Label className="text-primary" htmlFor='user_gender'>শিক্ষার্থীর জেন্ডার</Form.Label>
                                  <Form.Select
                                     id="user_gender"
                                     value={userData.gender}
@@ -597,10 +579,10 @@ const RegistrationNew = () => {
                                     className="selectpicker form-control"
                                     data-style="py-0"
                                  >
-                                    <option value=''>--Select Gender--</option>
-                                    <option value='01'>Male</option>
-                                    <option value='02'>Female</option>
-                                    <option value='03'>Other</option>
+                                    <option value=''>--জেন্ডার সিলেক্ট করুন--</option>
+                                    <option value='01'>পুরুষ</option>
+                                    <option value='02'>মহিলা</option>
+                                    <option value='03'>অন্যান্য</option>
                                  </Form.Select>
                                  {validated && userDataError.gender && (
                                     <Form.Control.Feedback type="invalid">
@@ -611,7 +593,7 @@ const RegistrationNew = () => {
                            </Col>
                            <Col className='my-2' md={4}>
                               <Form.Group className="bg-transparent">
-                                 <Form.Label className="text-primary" htmlFor='user_religion'>Religion</Form.Label>
+                                 <Form.Label className="text-primary" htmlFor='user_religion'>শিক্ষার্থীর ধর্ম</Form.Label>
                                  <Form.Select
                                     id="user_religion"
                                     value={userData.religion}
@@ -621,11 +603,11 @@ const RegistrationNew = () => {
                                     className="selectpicker form-control"
                                     data-style="py-0"
                                  >
-                                    <option value=''>--Select Religion--</option>
-                                    <option value='01'>Islam</option>
-                                    <option value='02'>Sanatan</option>
-                                    <option value='03'>Buddhist</option>
-                                    <option value='04'>Christian</option>
+                                    <option value=''>--ধর্ম সিলেক্ট করুন--</option>
+                                    <option value='01'>ইসলাম</option>
+                                    <option value='02'>সনাতন</option>
+                                    <option value='03'>বৌদ্ধ</option>
+                                    <option value='04'>খ্রিস্টান</option>
                                  </Form.Select>
                                  {validated && userDataError.religion && (
                                     <Form.Control.Feedback type="invalid">
@@ -636,7 +618,7 @@ const RegistrationNew = () => {
                            </Col>
                            <Col className='my-2' md={4}>
                               <Form.Group className="bg-transparent">
-                                 <Form.Label className="text-primary" htmlFor='user_disability'>Disability</Form.Label>
+                                 <Form.Label className="text-primary" htmlFor='user_disability'>শিক্ষার্থীর অক্ষমতা</Form.Label>
                                  <Form.Select
                                     id="user_disability"
                                     value={userData.disability}
@@ -646,13 +628,13 @@ const RegistrationNew = () => {
                                     className="selectpicker form-control"
                                     data-style="py-0"
                                  >
-                                    <option value=''>--Select Disability--</option>
-                                    <option value='01'>None</option>
-                                    <option value='02'>Hearing</option>
-                                    <option value='03'>Vission</option>
-                                    <option value='04'>Intellectual</option>
-                                    <option value='05'>Speaking</option>
-                                    <option value='99'>Multiple</option>
+                                    <option value=''>--অক্ষমতা সিলেক্ট করুন--</option>
+                                    <option value='01'>নাই</option>
+                                    <option value='02'>শ্রবণ প্রতিবন্দী</option>
+                                    <option value='03'>দৃষ্টি প্রতিবন্দী</option>
+                                    <option value='04'>বুদ্ধি প্রতিবন্দী</option>
+                                    <option value='05'>বোবা প্রতিবন্দী</option>
+                                    <option value='99'>একাধিক অক্ষমতা</option>
                                  </Form.Select>
                                  {validated && userDataError.disability && (
                                     <Form.Control.Feedback type="invalid">
@@ -663,7 +645,7 @@ const RegistrationNew = () => {
                            </Col>
                            <Col className='my-2' md={4}>
                               <Form.Group className="bg-transparent">
-                                 <Form.Label className="text-primary" htmlFor='user_quota'>Quota</Form.Label>
+                                 <Form.Label className="text-primary" htmlFor='user_quota'>শিক্ষার্থীর কোটা</Form.Label>
                                  <Form.Select
                                     id="user_quota"
                                     value={userData.quota}
@@ -673,12 +655,12 @@ const RegistrationNew = () => {
                                     className="selectpicker form-control"
                                     data-style="py-0"
                                  >
-                                    <option value=''>--Select Quota--</option>
-                                    <option value='01'>General</option>
-                                    <option value='02'>Freedom Fighter</option>
-                                    <option value='03'>Ethnic Minority</option>
-                                    <option value='04'>Disability</option>
-                                    <option value='99'>Others</option>
+                                    <option value=''>--কোটা সিলেক্ট করুন--</option>
+                                    <option value='01'>সাধারণ</option>
+                                    <option value='02'>মুক্তিযোদ্ধা কোটা</option>
+                                    <option value='03'>ক্ষুদ্র নৃগোষ্টী কোটা</option>
+                                    <option value='04'>অক্ষমতা কোটা</option>
+                                    <option value='99'>অন্যান্য কোটা</option>
                                  </Form.Select>
                                  {validated && userDataError.quota && (
                                     <Form.Control.Feedback type="invalid">
@@ -688,7 +670,7 @@ const RegistrationNew = () => {
                               </Form.Group>
                            </Col>
                            <Col className='my-2' md={4}>
-                              <Form.Label className="text-primary" htmlFor="birth_reg">Birth Registration Number</Form.Label>
+                              <Form.Label className="text-primary" htmlFor="birth_reg">শিক্ষার্থীর জন্ম নিবন্ধন নম্বর</Form.Label>
                               <Form.Control
                                  className='bg-transparent text-uppercase'
                                  type="text"
@@ -707,7 +689,7 @@ const RegistrationNew = () => {
                               )}
                            </Col>
                            <Col className='my-2' md={4}>
-                              <Form.Label className="text-primary" htmlFor="user_dob">Birth Date</Form.Label>
+                              <Form.Label className="text-primary" htmlFor="user_dob">শিক্ষার্থীর জন্ম তারিখ</Form.Label>
                               <Form.Control
                                  className='bg-transparent text-uppercase'
                                  type="date"
@@ -727,7 +709,7 @@ const RegistrationNew = () => {
                            </Col>
                            <Col className='my-2' md={6}>
                               <Form.Group>
-                                 <label className="text-primary mb-2" htmlFor='user_dist'>District</label>
+                                 <label className="text-primary mb-2" htmlFor='user_dist'>শিক্ষার্থীর জেলা</label>
                                  <Select
                                     inputId="user_dist"
                                     placeholder="--Select District--"
@@ -745,7 +727,7 @@ const RegistrationNew = () => {
                            </Col>
                            <Col className='my-2' md={6}>
                               <Form.Group>
-                                 <label className="text-primary mb-2" htmlFor='upazila'>Upazila</label>
+                                 <label className="text-primary mb-2" htmlFor='upazila'>শিক্ষার্থীর থানা</label>
                                  <Select
                                     inputId="upazila"
                                     placeholder="--Select Upazila--"
@@ -785,7 +767,7 @@ const RegistrationNew = () => {
                               )}
                            </Col> */}
                            <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="user_address">Address</Form.Label>
+                              <Form.Label className="text-primary" htmlFor="user_address">শিক্ষার্থীর ঠিকানা</Form.Label>
                               <Form.Control
                                  className='bg-transparent text-uppercase'
                                  type="text"
@@ -802,7 +784,7 @@ const RegistrationNew = () => {
                               )}
                            </Col>
                            <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="user_mobile">Guardian's Mobile</Form.Label>
+                              <Form.Label className="text-primary" htmlFor="user_mobile">শিক্ষার্থীর অভিবাকের নম্বর</Form.Label>
                               <Form.Control
                                  className='bg-transparent text-lowercase'
                                  type="text"
@@ -825,13 +807,13 @@ const RegistrationNew = () => {
                   </Card>
                   <Card>
                      <Card.Header>
-                        <h5 className="text-center w-100 card-title">Institutional Details</h5>
+                        <h5 className="text-center w-100 card-title">প্রাতিষ্ঠানিক তথ্য</h5>
                      </Card.Header>
                      <Card.Body>
                         <Row>
                            <Col className='my-2' md={4}>
                               <Form.Group className="bg-transparent">
-                                 <Form.Label className="text-primary" htmlFor='class_shift'>Shift</Form.Label>
+                                 <Form.Label className="text-primary" htmlFor='class_shift'>শিক্ষার্থীর শিফ্ট</Form.Label>
                                  <Form.Select
                                     id="class_shift"
                                     value={userData.class_shift}
@@ -841,10 +823,10 @@ const RegistrationNew = () => {
                                     className="selectpicker form-control"
                                     data-style="py-0"
                                  >
-                                    <option value=''>--Select Shift--</option>
-                                    <option value='01'>Morning</option>
-                                    <option value='02'>Day</option>
-                                    <option value='03'>Noon</option>
+                                    <option value=''>--শিফ্ট সিলেক্ট করুন--</option>
+                                    <option value='01'>প্রভাতী</option>
+                                    <option value='02'>দিবা</option>
+                                    <option value='03'>স্বান্ধ্য</option>
                                  </Form.Select>
                                  {validated && userDataError.class_shift && (
                                     <Form.Control.Feedback type="invalid">
@@ -855,10 +837,10 @@ const RegistrationNew = () => {
                            </Col>
                            <Col className='my-2' md={4}>
                               <Form.Group>
-                                 <label className="text-primary mb-2" htmlFor='class_section'>Section</label>
+                                 <label className="text-primary mb-2" htmlFor='class_section'>শিক্ষার্থীর শাখা</label>
                                  <Select
                                     inputId="class_section"
-                                    placeholder="--Select Section--"
+                                    placeholder="--শাখা সিলেক্ট করুন--"
                                     value={
                                        optionSections.find(opt => opt.value === userData.class_section) || null
                                     }
@@ -873,7 +855,7 @@ const RegistrationNew = () => {
                               )}
                            </Col>
                            <Col className='my-2' md={4}>
-                              <Form.Label className="text-primary" htmlFor="class_roll">Class Roll</Form.Label>
+                              <Form.Label className="text-primary" htmlFor="class_roll">শিক্ষার্থীর রোল নম্বর</Form.Label>
                               <Form.Control
                                  className='bg-transparent text-lowercase'
                                  type="text"
@@ -897,7 +879,7 @@ const RegistrationNew = () => {
                   <Card>
                      <Card.Body className="d-flex justify-content-center gap-3">
                         <Button className='flex-fill' type="reset" variant="btn btn-danger">রিসেট</Button>
-                        <Button className='flex-fill' type="button" onClick={() => handleSearchReset()} variant="btn btn-outline-warning"><span className={styles.SiyamRupaliFont + " text-center"}>ফিরে যান</span></Button>
+                        <Button className='flex-fill' type="button" onClick={(e) => handleSearchReset(e)} variant="btn btn-outline-warning"><span className={styles.SiyamRupaliFont + " text-center"}>ফিরে যান</span></Button>
                         <Button className='flex-fill' type="submit" variant="btn btn-primary">সাবমিট</Button>
                      </Card.Body>
                   </Card>
@@ -929,7 +911,7 @@ const RegistrationNew = () => {
    )
 
    // Return if User is Authorized
-   if (ceb_session.ceb_user_type === '13' || ceb_session.ceb_user_office === '05' || ceb_session.ceb_user_role === '17') return (
+   if (permissionData.type === '13' || permissionData.office === '05' || permissionData.role === '17') return (
       <Fragment>
          <Row>
             <Col md={12}>
@@ -953,7 +935,7 @@ const RegistrationNew = () => {
                               {searchError && <h6 className="text-uppercase text-center py-2 text-danger">{searchError}</h6>}
                               {searchSuccess && <h6 className="text-uppercase text-center py-2 text-success">{searchSuccess}</h6>}
                            </Col>
-                           {ceb_session.ceb_user_type !== '13' && <Col md={4} className='my-2'>
+                           {permissionData.type !== '13' && <Col md={4} className='my-2'>
                               <Form.Label className="text-primary" htmlFor="user_eiin">ইআইআইএন (EIIN)</Form.Label>
                               <Form.Control
                                  className='bg-transparent text-uppercase'
@@ -971,7 +953,7 @@ const RegistrationNew = () => {
                                  </Form.Control.Feedback>
                               )}
                            </Col>}
-                           {ceb_session.ceb_user_type === '13' && <Col md={4} className='my-2'>
+                           {permissionData.type === '13' && <Col md={4} className='my-2'>
                               <Form.Label className="text-primary" htmlFor="user_eiin">ইআইআইএন (EIIN)</Form.Label>
                               <Form.Control
                                  className='bg-transparent text-uppercase'
@@ -981,7 +963,7 @@ const RegistrationNew = () => {
                                  value={searchData.user_eiin}
                                  isInvalid={validated && !!searchDataError.user_eiin}
                                  isValid={validated && searchData.user_eiin && !searchDataError.user_eiin}
-                                 disabled={ceb_session.ceb_user_type === '13'}
+                                 disabled={permissionData.type === '13'}
                               />
                               {validated && searchDataError.user_eiin && (
                                  <Form.Control.Feedback type="invalid">
@@ -1020,16 +1002,16 @@ const RegistrationNew = () => {
                                     data-style="py-0"
                                  >
                                     <option value="">--শ্রেণী সিলেক্ট করুন--</option>
-                                    {(ceb_session.ceb_user_office === "05" || ceb_session.ceb_user_office === "81" || ceb_session.ceb_user_office === "82" || ceb_session.ceb_user_office === "83" || ceb_session.ceb_user_office === "85" || ceb_session.ceb_user_role === "17") && <>
+                                    {(permissionData.office === "05" || permissionData.office === "81" || permissionData.office === "82" || permissionData.office === "83" || permissionData.office === "85" || permissionData.role === "17") && <>
                                        <option value='06'>ষষ্ট শ্রেণী</option>
                                        <option value='07'>সপ্তম শ্রেণী</option>
                                        <option value='08'>অষ্টম শ্রেণী</option>
                                     </>}
-                                    {(ceb_session.ceb_user_office === "05" || ceb_session.ceb_user_office === "82" || ceb_session.ceb_user_office === "83" || ceb_session.ceb_user_office === "85" || ceb_session.ceb_user_role === "17") && <>
+                                    {(permissionData.office === "05" || permissionData.office === "82" || permissionData.office === "83" || permissionData.office === "85" || permissionData.role === "17") && <>
                                        <option value='09'>নবম শ্রেণী</option>
                                        <option value='10'>দশম শ্রেণী</option>
                                     </>}
-                                    {(ceb_session.ceb_user_office === "04" || ceb_session.ceb_user_type === "90" || ceb_session.ceb_user_role === "17") && <>
+                                    {(permissionData.office === "04" || permissionData.type === "90" || permissionData.role === "17") && <>
                                        <option value='11'>একাদশ শ্রেণী</option>
                                        <option value='12'>দ্বাদশ শ্রেণী</option>
                                     </>}

@@ -4,8 +4,6 @@ import { Row, Col, Form, Button, Modal } from 'react-bootstrap'
 import { Link, useNavigate } from 'react-router-dom'
 import { useSelector } from "react-redux"
 
-import axios from "axios";
-
 import Card from '../../../components/Card'
 
 import Logo from '../../../components/partials/components/logo'
@@ -19,28 +17,26 @@ import Error404 from '../errors/error404'
 
 // import error01 from '../../../assets/images/error/01.png'
 
+import { useAuthProvider } from "../../../context/AuthContext.jsx";
+import axiosApi from "../../../lib/axiosApi.jsx";
+
 const ResetPassword = () => {
-   // enable axios credentials include
-   axios.defaults.withCredentials = true;
-
-   //Session Variable to Check if User is Logged  
-   const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
-
+   const { permissionData, loading } = useAuthProvider();
    const navigate = useNavigate();
 
+   /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
    useEffect(() => {
-      if (!ceb_session?.ceb_user_id) {
-         navigate("/auth/sign-out");
-      } else {
-         if (!(ceb_session.ceb_user_role === '17' || ceb_session.ceb_user_role === '18')) {
+      let mounted = true;
+      (async () => {
+         if (!(permissionData.role === '17' || permissionData.role === '18')) {
             navigate("/auth/sign-out");
          }
-      }
-   }, []);// eslint-disable-line react-hooks/exhaustive-deps
+      })();
+      return () => { mounted = false; };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [permissionData]); // run only once on mount
 
    const appShortName = useSelector(SettingSelector.app_short_name);
-
-   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
    const [validated, setValidated] = useState(false);
    const [userData, setUserData] = useState({
@@ -62,7 +58,7 @@ const ResetPassword = () => {
          setUpdateMessage(false);
          setLoadingData(false);
          try {
-            const response = await axios.post(`${BACKEND_URL}/auth/user-fetch`, { user_id: userData.user_id });
+            const response = await axiosApi.post(`/auth/user-fetch`, { user_id: userData.user_id });
             if (response.status === 200) {
                setUserData({ ...userData, user_name: response.data.data[0].en_user });
                setUserDataError({ ...userDataError, user_name: '' });
@@ -94,7 +90,7 @@ const ResetPassword = () => {
       setLoadingData("ডাটা প্রসেস হচ্ছে... অপেক্ষা করুন...");
       setModalShow(false);
       try {
-         const response = await axios.post(`${BACKEND_URL}/user/password/reset`, { user_id: userData.user_id });
+         const response = await axiosApi.post(`/user/password/reset`, { user_id: userData.user_id });
          if (response.status === 200) {
             setUpdateMessage(response.data.message);
          } else {
@@ -192,11 +188,7 @@ const ResetPassword = () => {
       setUpdateMessage(false);
    };
 
-   if (!ceb_session?.ceb_user_id) {
-      return null;
-   }
-
-   if (ceb_session.ceb_user_role === "17" || ceb_session.ceb_user_role === "18") return (
+   if (permissionData.role === "17" || permissionData.role === "18") return (
       <>
          <section className={styles.bgImageLogin + " login-content"}>
             <Row className="m-0 d-flex justify-content-center align-items-center">

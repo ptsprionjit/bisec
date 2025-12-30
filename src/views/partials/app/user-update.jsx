@@ -12,27 +12,32 @@ import error01 from '../../../assets/images/error/01.png'
 
 import * as ValidationInput from '../input_validation'
 
-import axios from 'axios';
-
 import styles from '../../../assets/custom/css/bisec.module.css'
 
 // import Maintenance from '../errors/maintenance';
 
+import { useAuthProvider } from "../../../context/AuthContext.jsx";
+import axiosApi from "../../../lib/axiosApi.jsx";
+
 const UserProfile = () => {
-   // enable axios credentials include
-   axios.defaults.withCredentials = true;
-
-   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-   const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
-
+   const { permissionData, loading } = useAuthProvider();
    const navigate = useNavigate();
 
+   /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
    useEffect(() => {
-      if (!ceb_session?.ceb_user_id) {
-         navigate("/auth/sign-out");
+      let mounted = true;
+      (async () => {
+         if (loading) {
+            return;
+         } else if (!permissionData) {
+            navigate("/auth/sign-out", { replace: true });
+         } else {
 
-      }
-   }, []);// eslint-disable-line react-hooks/exhaustive-deps
+         }
+      })();
+      return () => { mounted = false; };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [permissionData, loading]); // run only once on mount
 
    const [profileImage, setProfileImage] = useState(null);
    const [profileImagePreview, setProfileImagePreview] = useState(null);
@@ -47,9 +52,13 @@ const UserProfile = () => {
    const [fetchedData, setFetchedData] = useState([]);
 
    const [validated, setValidated] = useState(false);
-   const [userData, setUserData] = useState([]);
+   const [userData, setUserData] = useState({
+      inst_post: '', inst_address: '', inst_email: '', inst_mobile: '', inst_region: '', id_status: '', id_version: '', id_coed: '', id_group: '', id_bank: '', inst_branch: '', inst_routing: '', inst_account: '', en_father: '', en_mother: '', id_gender: '', id_religion: '', user_id_number: '', user_dob: '', id_quota: '', id_disability: '', en_dist: '', id_uzps: '', profile_post: '', profile_address: '', profile_email: '', profile_mobile: '', en_first_office: '', en_first_section: '', id_first_post: '', first_post_date: '', en_last_office: '', en_last_section: '', id_last_post: '', last_post_date: '', profile_branch: '', profile_routing: '', profile_account: ''
+   });
    const [userDataError, setUserDataError] = useState([]);
-   const [userBnError, setUserBnError] = useState([]);
+   const [userBnError, setUserBnError] = useState({
+      en_father: 'পিতার নাম', en_mother: 'মাতার নাম', id_gender: 'লিঙ্গ', id_religion: 'ধর্ম', user_id_number: 'এনআইডি নম্বর', user_dob: 'জন্ম তারিখ', id_quota: 'কোটা', id_disability: 'অক্ষমতা', en_dist: 'জেলা', id_uzps: 'উপজেলা', profile_post: 'ডাকঘর', profile_address: 'ঠিকানা', profile_email: 'ইমেইল', profile_mobile: 'মোবাইল', en_first_office: 'প্রথম অফিস', en_first_section: 'প্রথম শাখা', id_first_post: 'প্রথম পদবী', first_post_date: 'প্রথম যোগদান', en_last_office: 'বর্তমান অফিস', en_last_section: 'বর্তমান শাখা', id_last_post: 'বর্তমান পদবী', last_post_date: 'বর্তমান যোগদান', id_bank: 'ব্যাংকের নাম', profile_branch: 'ব্যাংকের শাখা', profile_routing: 'রাউটিং নম্বর', profile_account: 'একাউন্ট নম্বর', inst_post: 'ডাকঘর', inst_address: 'ঠিকানা', inst_email: 'ইমেইল', inst_mobile: 'মোবাইল', inst_region: 'এলাকা', id_status: 'প্রতিষ্ঠানের পর্যায়', id_version: 'প্রতিষ্ঠানের মাধ্যম', id_coed: 'প্রতিষ্ঠানের ধরণ', id_group: 'প্রতিষ্ঠানের বিভাগ', inst_branch: 'শাখার নাম', inst_routing: 'রাউটিং নম্বর', inst_account: 'একাউন্ট নম্বর'
+   });
 
    // Modal Variales
    const [modalError, setModalError] = useState(false);
@@ -111,7 +120,7 @@ const UserProfile = () => {
       formData.append('image', profileImageFile);
 
       try {
-         const response = await axios.post(`${BACKEND_URL}/user/image-update`, formData, {
+         const response = await axiosApi.post(`/user/image-update`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
          });
          if (response.status === 200) {
@@ -164,7 +173,7 @@ const UserProfile = () => {
       formData.append('image', profileSignFile);
 
       try {
-         const response = await axios.post(`${BACKEND_URL}/user/sign-update`, formData, {
+         const response = await axiosApi.post(`/user/sign-update`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
          });
          if (response.status === 200) {
@@ -197,7 +206,7 @@ const UserProfile = () => {
          setValidated(false);
          event.stopPropagation();
       } else {
-         if (ceb_session.ceb_user_type === '13') {
+         if (permissionData.type === '13') {
             myData = {
                en_dist: userData.en_dist, id_uzps: userData.id_uzps, inst_post: userData.inst_post, inst_address: userData.inst_address, inst_email: userData.inst_email, inst_mobile: userData.inst_mobile, inst_region: userData.inst_region, id_status: userData.id_status, id_version: userData.id_version, id_coed: userData.id_coed, id_group: userData.id_group, first_post_date: userData.first_post_date, last_post_date: userData.last_post_date, id_bank: userData.id_bank, inst_branch: userData.inst_branch, inst_routing: userData.inst_routing, inst_account: userData.inst_account
             }
@@ -335,19 +344,17 @@ const UserProfile = () => {
          } else {
             setLoadingData("আপডেট করা হচ্ছে... অপেক্ষা করুন...");
             try {
-               const response = await axios.post(`${BACKEND_URL}/user/update`, { userData: myData });
+               const response = await axiosApi.post(`/user/update`, { userData: myData });
                if (response.status === 200) {
                   setUpdateMessage(response.data.message);
                } else {
                   setLoadingError(response.data.message);
                }
             } catch (err) {
-
                setLoadingError(err.response.data.message);
                // console.log(err);
                if (err.status === 401) {
                   navigate("/auth/sign-out");
-
                }
             } finally {
                setLoadingData(false);
@@ -419,7 +426,7 @@ const UserProfile = () => {
    // Fetch User Data
    useEffect(() => {
       const fetchProfileImage = async () => {
-         await axios.post(`${BACKEND_URL}/user/image-fetch`, {}, { responseType: 'blob' })
+         await axiosApi.post(`/user/image-fetch`, {}, { responseType: 'blob' })
             .then(response => {
                const profile_image = URL.createObjectURL(response.data);
                setProfileImage(profile_image);
@@ -428,10 +435,8 @@ const UserProfile = () => {
                }
             })
             .catch(err => {
-               // console.error(err);
                if (err.status === 401) {
                   navigate("/auth/sign-out");
-                  return null;
                }
             });
       };
@@ -439,7 +444,7 @@ const UserProfile = () => {
       fetchProfileImage();
 
       const fetchProfileSign = async () => {
-         await axios.post(`${BACKEND_URL}/user/sign-fetch?`, {}, { responseType: 'blob' })
+         await axiosApi.post(`/user/sign-fetch?`, {}, { responseType: 'blob' })
             .then(response => {
                const profile_sign = URL.createObjectURL(response.data);
                setProfileSign(profile_sign);
@@ -448,10 +453,8 @@ const UserProfile = () => {
                }
             })
             .catch(err => {
-               // console.error(err);
                if (err.status === 401) {
                   navigate("/auth/sign-out");
-                  return null;
                }
             });
       };
@@ -461,21 +464,13 @@ const UserProfile = () => {
       const fetchAddress = async () => {
          setLoadingData("জেলা/উপজেলার তথ্য খুঁজা হচ্ছে... অপেক্ষা করুন...");
          try {
-            const response = await axios.post(`${BACKEND_URL}/address/address-list`);
+            const response = await axiosApi.post(`/address/address-list`);
             // setDistricts(response.data);
             await setAddressList(response.data);
             // console.log(response.data);
          } catch (err) {
-
-
             if (err.status === 401) {
                navigate("/auth/sign-out");
-
-            }
-            // console.error(`Error Fetching Districts: ${err}`);
-            if (err.status === 401) {
-               navigate("/auth/sign-out");
-               return null;
             }
          } finally {
             setLoadingData(false);
@@ -487,21 +482,13 @@ const UserProfile = () => {
       const fetchOffice = async () => {
          setLoadingData("বোর্ডের অফিস/পদবী খুঁজা হচ্ছে... অপেক্ষা করুন...");
          try {
-            const response = await axios.post(`${BACKEND_URL}/user/designation-list`);
+            const response = await axiosApi.post(`/user/designation-list`);
             // setStartOffices(response.data);
             // setLastOffices(response.data);
             await setBoardOffices(response.data);
          } catch (err) {
-
-
             if (err.status === 401) {
                navigate("/auth/sign-out");
-
-            }
-            // console.error(`Error Fetching Offices: ${err}`);
-            if (err.status === 401) {
-               navigate("/auth/sign-out");
-               return null;
             }
          } finally {
             setLoadingData(false);
@@ -513,20 +500,12 @@ const UserProfile = () => {
       const fetchBank = async () => {
          setLoadingData("ব্যাংকের তথ্য খুঁজা হচ্ছে... অপেক্ষা করুন...");
          try {
-            const response = await axios.post(`${BACKEND_URL}/bank-list`);
+            const response = await axiosApi.post(`/bank-list`);
             // setBanks(response.data);
             await setBankList(response.data);
          } catch (err) {
-
-
             if (err.status === 401) {
                navigate("/auth/sign-out");
-
-            }
-            // console.error(`Error Fetching Banks: ${err}`);
-            if (err.status === 401) {
-               navigate("/auth/sign-out");
-               return null;
             }
          } finally {
             setLoadingData(false);
@@ -538,23 +517,13 @@ const UserProfile = () => {
       const fetchProfileData = async () => {
          setLoadingData("প্রোফাইল ডাটা লোড করা হচ্ছে... অপেক্ষা করুন...");
          try {
-            const response = await axios.post(`${BACKEND_URL}/user/details`);
+            const response = await axiosApi.post(`/user/details`);
             setFetchedData(response.data.data);
-            await setUserData(response.data.data);
-            ceb_session.ceb_user_type !== '13' ?
-               setUserBnError({
-                  en_father: 'পিতার নাম', en_mother: 'মাতার নাম', id_gender: 'লিঙ্গ', id_religion: 'ধর্ম', user_id_number: 'এনআইডি নম্বর', user_dob: 'জন্ম তারিখ', id_quota: 'কোটা', id_disability: 'অক্ষমতা', en_dist: 'জেলা', id_uzps: 'উপজেলা', profile_post: 'ডাকঘর', profile_address: 'ঠিকানা', profile_email: 'ইমেইল', profile_mobile: 'মোবাইল', en_first_office: 'প্রথম অফিস', en_first_section: 'প্রথম শাখা', id_first_post: 'প্রথম পদবী', first_post_date: 'প্রথম যোগদান', en_last_office: 'বর্তমান অফিস', en_last_section: 'বর্তমান শাখা', id_last_post: 'বর্তমান পদবী', last_post_date: 'বর্তমান যোগদান', id_bank: 'ব্যাংকের নাম', profile_branch: 'ব্যাংকের শাখা', profile_routing: 'রাউটিং নম্বর', profile_account: 'একাউন্ট নম্বর'
-               }) :
-               setUserBnError({
-                  en_dist: 'জেলা', id_uzps: 'উপজেলা', inst_post: 'ডাকঘর', inst_address: 'ঠিকানা', inst_email: 'ইমেইল', inst_mobile: 'মোবাইল', inst_region: 'এলাকা', id_status: 'প্রতিষ্ঠানের পর্যায়', id_version: 'প্রতিষ্ঠানের মাধ্যম', id_coed: 'প্রতিষ্ঠানের ধরণ', id_group: 'প্রতিষ্ঠানের বিভাগ', first_post_date: 'শুরুর তারিখ', last_post_date: 'সর্বশেষ তারিখ', id_bank: 'ব্যাংকের নাম', inst_branch: 'শাখার নাম', inst_routing: 'রাউটিং নম্বর', inst_account: 'একাউন্ট নম্বর'
-               });
+            setUserData(response.data.data);
          } catch (err) {
-
             setLoadingError(err.message);
-            // console.log(err);
             if (err.status === 401) {
                navigate("/auth/sign-out");
-
             }
          } finally {
             setLoadingData(false);
@@ -567,7 +536,7 @@ const UserProfile = () => {
    // Option Office List
    useEffect(() => {
       if (boardOffices.length > 0) {
-         if (ceb_session.ceb_user_type !== '13') {
+         if (permissionData.type !== '13') {
             const newOptions = boardOffices.map(data => ({
                value: data.en_office,
                label: data.bn_office
@@ -707,11 +676,7 @@ const UserProfile = () => {
 
    // const [toggler, setToggler] = useState();
 
-   if (!ceb_session) {
-      return null;
-   }
-
-   if (ceb_session.ceb_user_type === '13') return (
+   if (permissionData.type === '13') return (
       <Fragment>
          <Row>
             <Col lg="12">
@@ -723,8 +688,8 @@ const UserProfile = () => {
                               <Image className="img-fluid rounded-pill avatar-100" src={profileImage} alt="profile-pic" />
                            </div>
                            <div className="d-flex flex-wrap align-items-center mb-3 mb-sm-0">
-                              <h4 className="text-uppercase me-2 h4">{ceb_session.ceb_user_name}</h4>
-                              <span className="text-capitalize"> - {ceb_session.ceb_user_post}</span>
+                              <h4 className="text-uppercase me-2 h4">{permissionData.name}</h4>
+                              <span className="text-capitalize"> - {permissionData.post}</span>
                            </div>
                         </div>
                      </div>
@@ -1229,7 +1194,7 @@ const UserProfile = () => {
       </Fragment>
    )
 
-   if (ceb_session.ceb_user_type !== '13') return (
+   if (permissionData.type !== '13') return (
       <Fragment>
          <Row>
             <Col lg="12">
@@ -1241,8 +1206,8 @@ const UserProfile = () => {
                               <Image className="img-fluid rounded-pill avatar-100" src={profileImage} alt="profile-pic" />
                            </div>
                            <div className="d-flex flex-wrap align-items-center mb-3 mb-sm-0">
-                              <h4 className="text-uppercase me-2 h4">{ceb_session.ceb_user_name}</h4>
-                              <span className="text-capitalize"> - {ceb_session.ceb_user_post}</span>
+                              <h4 className="text-uppercase me-2 h4">{permissionData.name}</h4>
+                              <span className="text-capitalize"> - {permissionData.post}</span>
                            </div>
                         </div>
                      </div>

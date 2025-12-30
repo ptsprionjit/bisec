@@ -10,28 +10,33 @@ import { useNavigate } from 'react-router-dom'
 
 import * as InputValidation from '../input_validation'
 
-import axios from 'axios';
-
 // import Maintenance from '../errors/maintenance';
 
-const UserProfile = () => {
-   // enable axios credentials include
-   axios.defaults.withCredentials = true;
+import { useAuthProvider } from "../../../context/AuthContext.jsx";
+import axiosApi from "../../../lib/axiosApi.jsx";
 
-   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-   const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
+const UserProfile = () => {
+   const { permissionData, loading } = useAuthProvider();
+   const navigate = useNavigate();
 
    const dash_data = JSON.parse(window.localStorage.getItem("dash_data"));
    const [dateData, setDateData] = useState([]);
 
-   const navigate = useNavigate();
-
+   /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
    useEffect(() => {
-      if (!ceb_session?.ceb_user_id) {
-         navigate("/auth/sign-out");
+      let mounted = true;
+      (async () => {
+         if (loading) {
+            return;
+         } else if (!permissionData) {
+            navigate("/auth/sign-out", { replace: true });
+         } else {
 
-      }
-   }, []);// eslint-disable-line react-hooks/exhaustive-deps
+         }
+      })();
+      return () => { mounted = false; };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [permissionData, loading]); // run only once on mount
 
    useEffect(() => {
       if (dash_data?.dateData) {
@@ -51,7 +56,7 @@ const UserProfile = () => {
    // Fetch User Data
    useEffect(() => {
       const fetchProfileImage = async () => {
-         await axios.post(`${BACKEND_URL}/user/image-fetch`, {}, { responseType: 'blob' })
+         await axiosApi.post(`/user/image-fetch`, {}, { responseType: 'blob' })
             .then(response => {
                const profile_image = URL.createObjectURL(response.data);
                setProfileImage(profile_image);
@@ -73,7 +78,7 @@ const UserProfile = () => {
       const fetchProfileData = async () => {
          setLoadingData("প্রোফাইল ডাটা লোড হচ্ছে...অপেক্ষা করুন...");
          try {
-            const response = await axios.post(`${BACKEND_URL}/user/details`);
+            const response = await axiosApi.post(`/user/details`);
             if (response.status === 200) {
                setUserData(response.data.data);
                // console.log(response.data.data);
@@ -97,13 +102,7 @@ const UserProfile = () => {
       fetchProfileData();
    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-   // const [toggler, setToggler] = useState();
-
-   if (!ceb_session?.ceb_user_id) {
-      return null;
-   }
-
-   if (ceb_session.ceb_user_type === '13') return (
+   if (permissionData.type === '13') return (
       <Fragment>
          <Row>
             <Col lg="12">
@@ -115,8 +114,8 @@ const UserProfile = () => {
                               <Image className="img-fluid rounded-pill avatar-100" src={profileImage} alt="profile-pic" />
                            </div>
                            <div className="d-flex flex-wrap align-items-center mb-3 mb-sm-0">
-                              <h4 className="text-uppercase me-2 h4">{ceb_session.ceb_user_name}</h4>
-                              <span className="text-capitalize"> - {ceb_session.ceb_user_post}</span>
+                              <h4 className="text-uppercase me-2 h4">{permissionData.name}</h4>
+                              <span className="text-capitalize"> - {permissionData.post}</span>
                            </div>
                         </div>
                      </div>
@@ -321,8 +320,8 @@ const UserProfile = () => {
                               <Image className="img-fluid rounded-pill avatar-100" src={profileImage} alt="profile-pic" />
                            </div>
                            <div className="d-flex flex-wrap align-items-center mb-3 mb-sm-0">
-                              <h4 className="text-uppercase me-2 h4">{ceb_session.ceb_user_name}</h4>
-                              <span className="text-capitalize"> - {ceb_session.ceb_user_post}</span>
+                              <h4 className="text-uppercase me-2 h4">{permissionData.name}</h4>
+                              <span className="text-capitalize"> - {permissionData.post}</span>
                            </div>
                         </div>
                      </div>

@@ -10,33 +10,26 @@ import error01 from '../../../assets/images/error/01.png'
 
 import * as ValidationInput from '../input_validation'
 
-import axios from 'axios';
-
 import styles from '../../../assets/custom/css/bisec.module.css'
 
-// import Maintenance from '../errors/maintenance';
+import { useAuthProvider } from "../../../context/AuthContext.jsx";
+import axiosApi from "../../../lib/axiosApi.jsx";
 
 const FormFillupPayment = () => {
-   // enable axios credentials include
-   axios.defaults.withCredentials = true;
-
-   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-   const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
-
+   const { permissionData, loading } = useAuthProvider();
    const navigate = useNavigate();
 
+   /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
    useEffect(() => {
-      if (!ceb_session?.ceb_user_id) {
-         navigate("/auth/sign-out");
-         
-      }
-   }, []);// eslint-disable-line react-hooks/exhaustive-deps
-
-   // Set EIIN Value
-   let eiin = '';
-   if (ceb_session) {
-      eiin = ceb_session.ceb_user_type === "13" ? ceb_session.ceb_user_id : '';
-   }
+      let mounted = true;
+      (async () => {
+         if (!((permissionData?.office === '03' && (permissionData?.role === '13' || permissionData?.role === '14' || permissionData?.role === '15')) || permissionData?.role === '16' || permissionData?.role === '17' || permissionData?.role === '18' || permissionData?.type === '13')) {
+            navigate('/errors/error404', { replace: true });
+         }
+      })();
+      return () => { mounted = false; };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [permissionData, loading]); // run only once on mount
 
    // Modal Variales
    // const [modalError, setModalError] = useState(false);
@@ -47,7 +40,7 @@ const FormFillupPayment = () => {
    // Search Data Variables
    const [searchData, setSearchData] = useState(
       {
-         user_form: '200020711422330002', user_eiin: eiin, user_session: '', user_class: '', user_group: '', user_version: '', user_application: '', user_paid: '01'
+         user_form: '200020711422330002', user_eiin: permissionData.type === "13" ? permissionData.id : '', user_session: '', user_class: '', user_group: '', user_version: '', user_application: '', user_paid: '01'
       }
    );
    const [searchDataError, setSearchDataError] = useState([]);
@@ -246,7 +239,7 @@ const FormFillupPayment = () => {
          } else {
             setSearchLoading("তথ্য খুঁজা হচ্ছে! অপেক্ষা করুন...");
             try {
-               const user_data = await axios.post(`${BACKEND_URL}/registration/payment-summery?`, { user_form: searchData.user_form, user_eiin: searchData.user_eiin, user_session: searchData.user_session, user_class: searchData.user_class, user_group: searchData.user_group, user_version: searchData.user_version, user_application: searchData.user_application, user_paid: searchData.user_paid });
+               const user_data = await axiosApi.post(`/registration/payment-summery?`, { user_form: searchData.user_form, user_eiin: searchData.user_eiin, user_session: searchData.user_session, user_class: searchData.user_class, user_group: searchData.user_group, user_version: searchData.user_version, user_application: searchData.user_application, user_paid: searchData.user_paid });
                // console.log(user_data.data.data);
                if (user_data.status === 200) {
                   setSearchSuccess(`সেশনঃ ${searchData.user_session}, শ্রেণীঃ ${searchData.user_class}, বিভাগঃ ${user_data.data.st_list[0].bn_group}`);
@@ -269,7 +262,7 @@ const FormFillupPayment = () => {
                // console.log(err);
                if (err.status === 401) {
                   navigate("/auth/sign-out");
-                  
+
                } else if (err.status === 403) {
                   navigate("/registration/temp-list");
                   return null;
@@ -304,17 +297,12 @@ const FormFillupPayment = () => {
       setTotalAmount(0);
 
       setSearchData({
-         user_form: '200020711422330002', user_eiin: eiin, user_session: '', user_class: '', user_group: '', user_version: '', user_application: '', user_paid: '01'
+         user_form: '200020711422330002', user_eiin: permissionData.type === "13" ? permissionData.id : '', user_session: '', user_class: '', user_group: '', user_version: '', user_application: '', user_paid: '01'
       });
    };
 
-   // Return if no session
-   if (!ceb_session) {
-      return null;
-   }
-
    // Return if Search is Valid
-   if (validSearch && (ceb_session.ceb_user_type === '13' || ceb_session.ceb_user_office === '05' || ceb_session.ceb_user_role === '17')) return (
+   if (validSearch && (permissionData.type === '13' || permissionData.office === '05' || permissionData.role === '17')) return (
       <Fragment>
          <Row>
             <Col md={12}>
@@ -487,7 +475,7 @@ const FormFillupPayment = () => {
    )
 
    // Return if User is Authorized
-   if (ceb_session.ceb_user_type === '13' || ceb_session.ceb_user_office === '05' || ceb_session.ceb_user_role === '17') return (
+   if (permissionData.type === '13' || permissionData.office === '05' || permissionData.role === '17') return (
       <Fragment>
          <Row>
             <Col md={12}>
@@ -511,7 +499,7 @@ const FormFillupPayment = () => {
                               {searchError && <h6 className="text-uppercase text-center py-2 text-danger">{searchError}</h6>}
                               {searchSuccess && <h6 className="text-uppercase text-center py-2 text-success">{searchSuccess}</h6>}
                            </Col>
-                           {ceb_session.ceb_user_type !== '13' && <Col md={4} className='my-2'>
+                           {permissionData.type !== '13' && <Col md={4} className='my-2'>
                               <Form.Label className="text-primary" htmlFor="user_eiin">EIIN</Form.Label>
                               <Form.Control
                                  className='bg-transparent text-uppercase'
@@ -529,7 +517,7 @@ const FormFillupPayment = () => {
                                  </Form.Control.Feedback>
                               )}
                            </Col>}
-                           {ceb_session.ceb_user_type === '13' && <Col md={4} className='my-2'>
+                           {permissionData.type === '13' && <Col md={4} className='my-2'>
                               <Form.Label className="text-primary" htmlFor="user_eiin">EIIN</Form.Label>
                               <Form.Control
                                  className='bg-transparent text-uppercase'
@@ -539,7 +527,7 @@ const FormFillupPayment = () => {
                                  value={searchData.user_eiin}
                                  isInvalid={validated && !!searchDataError.user_eiin}
                                  isValid={validated && searchData.user_eiin && !searchDataError.user_eiin}
-                                 disabled={ceb_session.ceb_user_type === '13'}
+                                 disabled={permissionData.type === '13'}
                               />
                               {validated && searchDataError.user_eiin && (
                                  <Form.Control.Feedback type="invalid">
@@ -578,14 +566,14 @@ const FormFillupPayment = () => {
                                     data-style="py-0"
                                  >
                                     <option value="">--Select Class--</option>
-                                    {(ceb_session.ceb_user_office === "05" || ceb_session.ceb_user_office === "80" || ceb_session.ceb_user_role === "17") && <>
+                                    {(permissionData.office === "05" || permissionData.office === "80" || permissionData.role === "17") && <>
                                        <option value='06'>Six</option>
                                        <option value='07'>Seven</option>
                                        <option value='08'>Eight</option>
                                        <option value='09'>Nine</option>
                                        <option value='10'>Ten</option>
                                     </>}
-                                    {(ceb_session.ceb_user_office === "04" || ceb_session.ceb_user_type === "90" || ceb_session.ceb_user_role === "17") && <>
+                                    {(permissionData.office === "04" || permissionData.type === "90" || permissionData.role === "17") && <>
                                        <option value='11'>Eleven</option>
                                        <option value='12'>Twelve</option>
                                     </>}

@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Row, Col, Form, Button, Table } from 'react-bootstrap'
-// import { Image, ListGroup } from 'react-bootstrap'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useSelector } from "react-redux"
-
-import axios from "axios";
 
 import Card from '../../../components/Card'
 
@@ -13,11 +10,24 @@ import * as SettingSelector from '../../../store/setting/selectors'
 
 import styles from '../../../assets/custom/css/bisec.module.css'
 
-const RegistrationCancell = () => {
-   // enable axios credentials include
-   axios.defaults.withCredentials = true;
+import { useAuthProvider } from "../../../context/AuthContext.jsx";
+import axiosApi from "../../../lib/axiosApi.jsx";
 
-   const URL = import.meta.env.VITE_BACKEND_URL;
+const RegistrationCancell = () => {
+   const { permissionData, loading } = useAuthProvider();
+   const navigate = useNavigate();
+
+   /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
+   useEffect(() => {
+      let mounted = true;
+      (async () => {
+         if (!(((permissionData?.office === '04' || permissionData?.office === '05') && (permissionData?.role === '14' || permissionData?.role === '15')) || permissionData?.role === '16' || permissionData?.role === '17' || permissionData?.role === '18' || permissionData?.type === '13')) {
+            navigate('/errors/error404', { replace: true });
+         }
+      })();
+      return () => { mounted = false; };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [permissionData, loading]); // run only once on mount
 
    const appName = useSelector(SettingSelector.app_name);
    // const navigate = useNavigate();
@@ -266,7 +276,7 @@ const RegistrationCancell = () => {
    const fetchStudentData = async () => {
       setStLoading("Loading Data...");
       try {
-         const st_data = await axios.post(`${URL}/tc-student-data?`, { stClass, stReg, stDob, stSession });
+         const st_data = await axiosApi.post(`/tc-student-data?`, { stClass, stReg, stDob, stSession });
          if (st_data?.data?.id_invoice) {
             if (st_data.data.id_payment !== "03") {
                pendingPayment(st_data);
@@ -279,13 +289,10 @@ const RegistrationCancell = () => {
             setStData(st_data.data);
          }
       } catch (err) {
-
-
-    if (err.status === 401) {
-        navigate("/auth/sign-out");
-        
-    }
-setValidated(false);
+         if (err.status === 401) {
+            navigate("/auth/sign-out");
+         }
+         setValidated(false);
          setStError("Please Provide Valid Data");
          // console.log(err);
       } finally {
@@ -401,16 +408,13 @@ setValidated(false);
          if (stData) {
             setLoadingDistricts("Loading Districts...");
             try {
-               const response = await axios.get(`${URL}/district-list`);
+               const response = await axiosApi.get(`/district-list`);
                setDistricts(response.data);
             } catch (err) {
-
-
-    if (err.status === 401) {
-        navigate("/auth/sign-out");
-        
-    }
-setError("Failed to load upazilas");
+               if (err.status === 401) {
+                  navigate("/auth/sign-out");
+               }
+               setError("Failed to load upazilas");
                // console.error(err);
             } finally {
                setLoadingDistricts(false);
@@ -440,16 +444,13 @@ setError("Failed to load upazilas");
          if (selectedDistrict) {
             setLoadingUpazilas(true);
             try {
-               const response = await axios.post(`${URL}/district-list/upzila?`, { selectedDistrict });
+               const response = await axiosApi.post(`/district-list/upzila?`, { selectedDistrict });
                setUpazilas(response.data);
             } catch (err) {
-
-
-    if (err.status === 401) {
-        navigate("/auth/sign-out");
-        
-    }
-// console.error("Error fetching upazilas:", err);
+               if (err.status === 401) {
+                  navigate("/auth/sign-out");
+               }
+               // console.error("Error fetching upazilas:", err);
                setError("Failed to load upazilas");
             } finally {
                setLoadingUpazilas(false);
@@ -475,16 +476,13 @@ setError("Failed to load upazilas");
          if (selectedUpazila) {
             setLoadingInstitutes(true);
             try {
-               const response = await axios.post(`${URL}/upzila-list/institute?`, { selectedUpazila });
+               const response = await axiosApi.post(`/upzila-list/institute?`, { selectedUpazila });
                setInstitutes(response.data);
             } catch (err) {
-
-
-    if (err.status === 401) {
-        navigate("/auth/sign-out");
-        
-    }
-// console.error("Error fetching institutes:", err);
+               if (err.status === 401) {
+                  navigate("/auth/sign-out");
+               }
+               // console.error("Error fetching institutes:", err);
                setError("Failed to load institutes");
             } finally {
                setLoadingInstitutes(false);
@@ -542,7 +540,7 @@ setError("Failed to load upazilas");
          setStError(false);
          setStSuccess(false);
          try {
-            const response = await axios.post(`${URL}/tc-initiate?`, { studentData, payData });
+            const response = await axiosApi.post(`/tc-initiate?`, { studentData, payData });
             setStSuccess("Payment Initiated, Redirecting to Payment Gateway!");
             if (response.data.Status === "200" && response.data.final_status === 200) {
                window.location.href = response.data.RedirectToGateway;
@@ -553,13 +551,10 @@ setError("Failed to load upazilas");
                // console.log(response.data);
             }
          } catch (err) {
-
-
-    if (err.status === 401) {
-        navigate("/auth/sign-out");
-        
-    }
-setValidated(false);
+            if (err.status === 401) {
+               navigate("/auth/sign-out");
+            }
+            setValidated(false);
             setStError("Payment Initiation Failed!");
             // console.log(err);
          } finally {
@@ -571,7 +566,7 @@ setValidated(false);
          setStError(false);
          setStSuccess(false);
          try {
-            const response = await axios.post(`${URL}/tc-pending-pay?`, { pendingData, payData });
+            const response = await axiosApi.post(`/tc-pending-pay?`, { pendingData, payData });
             setStSuccess("Payment Initiated, Redirecting to Payment Gateway!");
             if (response.data.Status === "200" && response.data.final_status === 200) {
                window.location.href = response.data.RedirectToGateway;
@@ -582,13 +577,10 @@ setValidated(false);
                // console.log(response.data);
             }
          } catch (err) {
-
-
-    if (err.status === 401) {
-        navigate("/auth/sign-out");
-        
-    }
-setValidated(false);
+            if (err.status === 401) {
+               navigate("/auth/sign-out");
+            }
+            setValidated(false);
             setStError("Payment Initiation Failed!");
             // console.log(err);
          } finally {
@@ -794,7 +786,7 @@ setValidated(false);
                            </div>
                            <div className='p-1'>
                               <h5 className="text-center pb-4"><u>Transfer Certificate Application</u></h5>
-                              <h6 style={{ textAlign: 'justify' }}><span className={styles.SolaimanLipiFont}>চুড়ান্ত সাবমিটের পূর্বে শিক্ষার্থীর সকল তথ্য সঠিক আছে কিনা যাচাই করুন। সকল তথ্য সঠিক থাকলে <strong>Make Payment</strong> বাটনে ক্লিক করে বোর্ড নির্ধারিত আবেদন ফি প্রদান করুন। আবেদন ফি জমাদান সম্পন্ন হলে আপনার <span className={styles.SolaimanLipiFont+" text-wrap"}>ট্রান্সফার সার্টিফিকেট (TC) এর আবেদন</span> বোর্ড নীতিমালা অনুযায়ী সম্পাদন করা হবে। </span></h6>
+                              <h6 style={{ textAlign: 'justify' }}><span className={styles.SolaimanLipiFont}>চুড়ান্ত সাবমিটের পূর্বে শিক্ষার্থীর সকল তথ্য সঠিক আছে কিনা যাচাই করুন। সকল তথ্য সঠিক থাকলে <strong>Make Payment</strong> বাটনে ক্লিক করে বোর্ড নির্ধারিত আবেদন ফি প্রদান করুন। আবেদন ফি জমাদান সম্পন্ন হলে আপনার <span className={styles.SolaimanLipiFont + " text-wrap"}>ট্রান্সফার সার্টিফিকেট (TC) এর আবেদন</span> বোর্ড নীতিমালা অনুযায়ী সম্পাদন করা হবে। </span></h6>
 
                               <div className='table-fixed pt-4'>
                                  <Table className='table table-bordered'>
@@ -929,10 +921,10 @@ setValidated(false);
                         <h1 className="logo-title text-primary text-wrap text-center">{appName}</h1>
                      </Card.Header>
                      <Card.Body>
-                        <h4 className="text-center"><span className={styles.SolaimanLipiFont+" text-wrap"}>ট্রান্সফার সার্টিফিকেট (TC) এর আবেদন</span></h4>
+                        <h4 className="text-center"><span className={styles.SolaimanLipiFont + " text-wrap"}>ট্রান্সফার সার্টিফিকেট (TC) এর আবেদন</span></h4>
                      </Card.Body>
                      <Card.Footer>
-                        <h6 className="text-center text-danger"><span className={styles.SolaimanLipiFont+" text-wrap"}>{pendingApplication}</span></h6>
+                        <h6 className="text-center text-danger"><span className={styles.SolaimanLipiFont + " text-wrap"}>{pendingApplication}</span></h6>
                      </Card.Footer>
                   </Card>
                </Col>
@@ -1109,7 +1101,7 @@ setValidated(false);
                                  {selectedInstituteName && <small><i>{selectedInstituteName} {selectedInstitute}</i></small>}
                               </Col>
                               <Col md="12" className='p-2 m-2'>
-                                 <h6 className="p-2 rounded-1 text-center text-danger"><span className={styles.SolaimanLipiFont+" text-wrap"}>আবেদন করার পূর্বে গন্তব্য প্রতিষ্ঠানে পঠিত (Registered) বিষয়সমূহ আছে কিনা নিশ্চিত হতে হবে</span></h6>
+                                 <h6 className="p-2 rounded-1 text-center text-danger"><span className={styles.SolaimanLipiFont + " text-wrap"}>আবেদন করার পূর্বে গন্তব্য প্রতিষ্ঠানে পঠিত (Registered) বিষয়সমূহ আছে কিনা নিশ্চিত হতে হবে</span></h6>
                               </Col>
                            </Row>
                            <div className="d-flex justify-content-center mt-4 pt-4 gap-3">
@@ -1138,7 +1130,7 @@ setValidated(false);
                         <h1 className="logo-title text-primary text-wrap text-center">{appName}</h1>
                      </Card.Header>
                      <Card.Body>
-                        <h4 className="text-center"><span className={styles.SolaimanLipiFont+" text-wrap"}>ট্রান্সফার সার্টিফিকেট (TC) এর আবেদন</span></h4>
+                        <h4 className="text-center"><span className={styles.SolaimanLipiFont + " text-wrap"}>ট্রান্সফার সার্টিফিকেট (TC) এর আবেদন</span></h4>
                      </Card.Body>
                   </Card>
                </Col>

@@ -3,10 +3,6 @@ import { Row, Col, Form, Button, Modal, Image } from 'react-bootstrap'
 import { useNavigate } from 'react-router-dom'
 import Card from '../../../components/Card'
 
-// import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
-
-import axios from "axios";
-
 import styles from '../../../assets/custom/css/bisec.module.css'
 
 import * as ValidationInput from '../input_validation'
@@ -15,21 +11,25 @@ import error01 from '../../../assets/images/error/01.png'
 
 import EstbAppPrint from './print/estab_app_print.jsx'
 
+import { useAuthProvider } from "../../../context/AuthContext.jsx";
+import axiosApi from "../../../lib/axiosApi.jsx";
+
 const InstEstablishmentOrder = () => {
-    // enable axios credentials include
-    axios.defaults.withCredentials = true;
-
-    const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
-
+    const { permissionData, loading } = useAuthProvider();
     const navigate = useNavigate();
 
+    /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
     useEffect(() => {
-        if (!ceb_session?.ceb_user_id) {
-            navigate("/auth/sign-out");
-        }
-    }, []);// eslint-disable-line react-hooks/exhaustive-deps
+        let mounted = true;
+        (async () => {
+            if (!(((permissionData?.office === '04' || permissionData?.office === '05') && (permissionData?.role === '15')) || permissionData?.role === '16' || permissionData?.role === '17' || permissionData?.role === '18')) {
+                navigate('/errors/error404', { replace: true });
+            }
+        })();
+        return () => { mounted = false; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [permissionData, loading]); // run only once on mount
 
-    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
     const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL;
 
     const [activeAppDetails, setActiveAppDetails] = useState([]);
@@ -91,8 +91,8 @@ const InstEstablishmentOrder = () => {
 
         const promises = fields.map(async (field) => {
             try {
-                const res = await axios.post(
-                    `${BACKEND_URL}/institute/establishment/fetch_files`,
+                const res = await axiosApi.post(
+                    `/institute/establishment/fetch_files`,
                     { inst_mobile: item.inst_mobile, inst_status: item.inst_status, file_name: field },
                     { responseType: 'blob' }
                 );
@@ -156,7 +156,7 @@ const InstEstablishmentOrder = () => {
     const fetchDataList = async () => {
         setLoadingProgress("আবেদনের তথ্য খুঁজা হচ্ছে...! অপেক্ষা করুন।");
         try {
-            const st_list = await axios.post(`${BACKEND_URL}/institute/establishment/order_list`);
+            const st_list = await axiosApi.post(`/institute/establishment/order_list`);
             if (st_list.data.data.length !== 0) {
                 setDataList(st_list.data.data);
                 setLoadingSuccess(true);
@@ -215,7 +215,7 @@ const InstEstablishmentOrder = () => {
 
     const sendEmail = async () => {
         try {
-            const response = await axios.post(`${BACKEND_URL}/email/send/order`, { emailData: userData });
+            const response = await axiosApi.post(`/email/send/order`, { emailData: userData });
             if (response.status === 200) {
                 alert(response.data.message);
             }
@@ -337,7 +337,7 @@ const InstEstablishmentOrder = () => {
                     id_invoice: app_data.id_invoice, grant_assembly: userData.grant_assembly, grant_assembly_date: userData.grant_assembly_date, board_assembly: userData.board_assembly, board_assembly_date: userData.board_assembly_date, effective_date: userData.effective_date, expiry_date: userData.expiry_date, email_datetime: userData.email_datetime, name_recipient: userData.name_recipient, email_recipient: userData.email_recipient, recipient_upzila: userData.recipient_upzila, recipient_dist: userData.recipient_dist, name_recipient_cc1: userData.name_recipient_cc1, email_recipient_cc1: userData.email_recipient_cc1, name_recipient_cc2: userData.name_recipient_cc2, email_recipient_cc2: userData.email_recipient_cc2, name_recipient_cc3: userData.name_recipient_cc3, email_recipient_cc3: userData.email_recipient_cc3, email_ref: userData.email_ref, email_subject: userData.email_subject, email_topic: userData.email_topic, topic_uname: userData.topic_uname, topic_uaddress: userData.topic_uaddress, topic_uemail: userData.topic_uemail, topic_uid: userData.topic_uid, topic_umobile: userData.topic_umobile, email_message: email_message,
                 }
 
-                const response = await axios.post(`${BACKEND_URL}/institute/establishment/app_order`, { userData: myData });
+                const response = await axiosApi.post(`/institute/establishment/app_order`, { userData: myData });
                 if (response.status === 200) {
                     setDataList(((prevData) => prevData.filter((item) => item.id_invoice !== app_data.id_invoice)));
                     setModifySuccess(response.data.message);
@@ -439,11 +439,7 @@ const InstEstablishmentOrder = () => {
         setUserDataError(prev => ({ ...prev, [dataName]: '' }));
     }
 
-    if (!ceb_session) {
-        return null;
-    }
-
-    if (((ceb_session.ceb_user_office === "04" && ceb_session.ceb_user_role === "15") || (ceb_session.ceb_user_office === "05" && ceb_session.ceb_user_role === "15") || ceb_session.ceb_user_role === "17") && loadingSuccess) return (
+    if (((permissionData.office === "04" && permissionData.role === "15") || (permissionData.office === "05" && permissionData.role === "15") || permissionData.role === "17") && loadingSuccess) return (
         <Fragment>
             <Row>
                 <Col sm="12">
@@ -556,7 +552,7 @@ const InstEstablishmentOrder = () => {
                                                         </td>
                                                         <td>
                                                             <div className="d-flex justify-content-center align-items-center flex-wrap gap-3">
-                                                                {Number(ceb_session.ceb_user_role) === 15 && <Button className='m-0 p-1' type="button" onClick={() => handleOrderGenClick(item)} variant="btn btn-success" data-toggle="tooltip" data-placement="top" title="অনুমতির আদেশ তৈরিকরণ" data-original-title="অনুমতির আদেশ তৈরিকরণ">
+                                                                {Number(permissionData.role) === 15 && <Button className='m-0 p-1' type="button" onClick={() => handleOrderGenClick(item)} variant="btn btn-success" data-toggle="tooltip" data-placement="top" title="অনুমতির আদেশ তৈরিকরণ" data-original-title="অনুমতির আদেশ তৈরিকরণ">
                                                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-anvil-icon lucide-anvil"><path d="M7 10H6a4 4 0 0 1-4-4 1 1 0 0 1 1-1h4" /><path d="M7 5a1 1 0 0 1 1-1h13a1 1 0 0 1 1 1 7 7 0 0 1-7 7H8a1 1 0 0 1-1-1z" /><path d="M9 12v5" /><path d="M15 12v5" /><path d="M5 20a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3 1 1 0 0 1-1 1H6a1 1 0 0 1-1-1" /></svg>
                                                                 </Button>}
                                                                 <Button className='m-0 p-1' type="button" onClick={() => handleDetailsClick(item)} variant="btn btn-secondary" data-toggle="tooltip" data-placement="top" title="বিস্তারিত" data-original-title="বিস্তারিত">
@@ -764,7 +760,7 @@ const InstEstablishmentOrder = () => {
         </Fragment>
     )
 
-    if ((ceb_session.ceb_user_office === "04" && ceb_session.ceb_user_role === "15") || (ceb_session.ceb_user_office === "05" && ceb_session.ceb_user_role === "15") || ceb_session.ceb_user_role === "17") return (
+    if ((permissionData.office === "04" && permissionData.role === "15") || (permissionData.office === "05" && permissionData.role === "15") || permissionData.role === "17") return (
         <Fragment>
             <Row className='d-flex justify-content-center align-items-center'>
                 <Col md="12">

@@ -2,18 +2,41 @@ import React, { useEffect } from 'react'
 
 import { useNavigate } from 'react-router-dom';
 
-import axios from "axios";
+import { useAuthProvider } from "../../../context/AuthContext.jsx";
+
+import axiosApi from '../../../lib/axiosApi';
 
 const SignOut = () => {
-   // enable axios credentials include
-   axios.defaults.withCredentials = true;
-
    //Session Variable to Check if User is Logged  
-   const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
-
-   const URL = import.meta.env.VITE_BACKEND_URL;
+   const { permissionData, loading, setPermissionData } = useAuthProvider();
 
    const navigate = useNavigate();
+
+   // Function to handle user logout
+   const userLogOut = async () => {
+      try {
+         await axiosApi.post(`/ceb/logout`, { ceb_user_id: permissionData ? permissionData?.id : null });
+      } catch (error) {
+         console.error("Logout failed:", error);
+      } finally {
+         ["jwToken", "jwEntry", "jwPublic"].forEach((name) => {
+            removeCookie(name);
+         });
+         removeSession();
+         setPermissionData(null);
+      }
+   };
+
+   useEffect(() => {
+      if (loading) return;
+
+      // Call the logout function once when the component mounts
+      userLogOut();
+
+      if (!permissionData) {
+         navigate("/auth/sign-in", { replace: true });
+      }
+   }, [permissionData, loading]);// eslint-disable-line react-hooks/exhaustive-deps
 
    // Reset Cookie
    const removeCookie = (name) => {
@@ -23,40 +46,13 @@ const SignOut = () => {
    //Reset Session Variables
    const removeSession = () => {
       window.localStorage.removeItem("ceb_session");
-      window.localStorage.removeItem("dash_data");
+      window.localStorage.removeItem("dashBoardData");
       window.sessionStorage.removeItem("ceb_session");
-      window.sessionStorage.removeItem("dash_data");
+      window.sessionStorage.removeItem("dashBoardData");
    };
 
-   useEffect(() => {
-      removeCookie("jwToken");
-      removeCookie("jwEntry");
-      removeCookie("jwPublic");
-      removeSession();
-
-      // Function to handle user logout
-      const userLogOut = () => {
-         try {
-            // Call the logout endpoint
-            axios.post(`${URL}/ceb/logout`, { ceb_user_id: ceb_session?.ceb_user_id });
-         } catch (err) {
-            // Navigate to the sign-in page after the logout process
-            navigate("/auth/sign-in");
-         } finally {
-            // Navigate to the sign-in page after the logout process
-            navigate("/auth/sign-in");
-         }
-      };
-
-      // Call the logout function once when the component mounts
-      userLogOut();
-
-   }, []);// eslint-disable-line react-hooks/exhaustive-deps
-
    return (
-      <>
-
-      </>
+      <></>
    )
 }
 

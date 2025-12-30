@@ -5,7 +5,6 @@ import Card from '../../../components/Card'
 
 import Select from 'react-select'
 
-import axios from "axios";
 
 import styles from '../../../assets/custom/css/bisec.module.css'
 
@@ -13,21 +12,24 @@ import * as ValidationInput from '../input_validation'
 
 import error01 from '../../../assets/images/error/01.png'
 
+import { useAuthProvider } from "../../../context/AuthContext.jsx";
+import axiosApi from "../../../lib/axiosApi.jsx";
+
 const InactiveUserList = () => {
-   // enable axios credentials include
-   axios.defaults.withCredentials = true;
-
-   const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
-
+   const { permissionData, loading } = useAuthProvider();
    const navigate = useNavigate();
 
+   /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
    useEffect(() => {
-      if (!ceb_session?.ceb_user_id) {
-         navigate("/auth/sign-out");
-      }
-   }, []);// eslint-disable-line react-hooks/exhaustive-deps
-
-   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+      let mounted = true;
+      (async () => {
+         if (!(permissionData.role === '17' || permissionData.role === '18')) {
+            navigate("/errors/error404", { replace: true });
+         }
+      })();
+      return () => { mounted = false; };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [permissionData]); // run only once on mount
 
    const [activeUserDetails, setActiveUserDetails] = useState([]);
    const [activeUserUpadte, setActiveUserUpadte] = useState([]);
@@ -128,9 +130,9 @@ const InactiveUserList = () => {
       const fetchDataList = async () => {
          setLoadingProgress("ব্যবহারকারী (কর্মকর্তা/কর্মচারী) তালিকা খুঁজা হচ্ছে...! অপেক্ষা করুন।");
          try {
-            const response = await axios.post(`${BACKEND_URL}/user/list/inactive`, {});
+            const response = await axiosApi.post(`/user/list/inactive`, {});
             if (response.status === 200) {
-               const allUsers = (response.data.userList).filter(item => item.id_user !== ceb_session.ceb_user_id) || [];
+               const allUsers = (response.data.userList).filter(item => item.id_user !== permissionData.id) || [];
                if (allUsers?.length) {
                   setDataList(allUsers);
                   setLoadingSuccess(true);
@@ -281,7 +283,7 @@ const InactiveUserList = () => {
             setModifyError("ব্যবহারকারীর সব তথ্য সঠিকভাবে পূরণ করতে হবে!");
          } else {
             try {
-               const user_data = await axios.post(`${BACKEND_URL}/user/registration/update`, { userData });
+               const user_data = await axiosApi.post(`/user/registration/update`, { userData });
                if (user_data.status === 200) {
                   setModifySuccess(user_data.data.message);
                   setDataList((prev_data) => prev_data.filter((item => item.id_user !== userData.id_user)));
@@ -331,7 +333,7 @@ const InactiveUserList = () => {
          setOptionUserType([]);
          setLoadingProgress("ইউজার টাইপ তথ্য খুঁজা হচ্ছে! অপেক্ষা করুন!");
          try {
-            const response = await axios.post(`${BACKEND_URL}/user/type-list`);
+            const response = await axiosApi.post(`/user/type-list`);
             setUserType(response.data);
          } catch (err) {
             // console.error(`Error Fetching User Type: ${err}`);
@@ -364,7 +366,7 @@ const InactiveUserList = () => {
          setOptionUserRole([]);
          setLoadingProgress("ইউজার রোল তথ্য খুঁজা হচ্ছে! অপেক্ষা করুন!");
          try {
-            const response = await axios.post(`${BACKEND_URL}/user/role-list`);
+            const response = await axiosApi.post(`/user/role-list`);
             setUserRole(response.data);
          } catch (err) {
             // console.error(`Error Fetching User Type: ${err}`);
@@ -397,7 +399,7 @@ const InactiveUserList = () => {
          setOptionUserStatus([]);
          setLoadingProgress("ইউজার স্ট্যাটাস তথ্য খুঁজা হচ্ছে! অপেক্ষা করুন!");
          try {
-            const response = await axios.post(`${BACKEND_URL}/user/status-list`);
+            const response = await axiosApi.post(`/user/status-list`);
             setUserStatus(response.data);
          } catch (err) {
             // console.error(`Error Fetching User Type: ${err}`);
@@ -432,13 +434,12 @@ const InactiveUserList = () => {
          setOptionBoardDesignations([]);
          setLoadingProgress("বোর্ডের অফিস তথ্য খুঁজা হচ্ছে...");
          try {
-            const response = await axios.post(`${BACKEND_URL}/user/designation-list`);
+            const response = await axiosApi.post(`/user/designation-list`);
             setBoardOffices(response.data);
          } catch (err) {
             setLoadingError("বোর্ডের অফিস তথ্য পাওয়া যায়নি! কিছুক্ষণ পর আবার চেষ্টা করুন।");
             if (err.status === 401) {
                navigate("/auth/sign-out");
-
             }
          } finally {
             setLoadingProgress(false);
@@ -510,11 +511,7 @@ const InactiveUserList = () => {
       }
    }, [boardDesignations]); // eslint-disable-line react-hooks/exhaustive-deps
 
-   if (!ceb_session) {
-      return null;
-   }
-
-   if ((ceb_session.ceb_user_role === "17" || ceb_session.ceb_user_role === "18") && loadingSuccess) return (
+   if ((permissionData.role === "17" || permissionData.role === "18") && loadingSuccess) return (
       <Fragment>
          <Row>
             <Col md={12}>
@@ -1145,7 +1142,7 @@ const InactiveUserList = () => {
       </Fragment>
    )
 
-   if (ceb_session.ceb_user_role === "17" || ceb_session.ceb_user_role === "18") return (
+   if (permissionData.role === "17" || permissionData.role === "18") return (
       <Fragment>
          <Row className='d-flex justify-content-center align-items-center'>
             <Col md="12">

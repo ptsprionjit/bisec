@@ -1,13 +1,16 @@
-import React, { useEffect, memo, Fragment, useState } from "react";
-import { Row, Col, Dropdown, Button, Card } from "react-bootstrap";
+import React, { useEffect, memo, Fragment, useState, useMemo, useCallback } from "react";
+import { Modal, Row, Col, Dropdown, Button, Card } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 
-import axios from "axios";
+// import axios from "axios";
+import axiosApi from "../../lib/axiosApi.jsx";
 
 import { differenceInDays } from "date-fns";
 
 //circular
 import Circularprogressbar from "../../components/circularprogressbar";
+
+import { FadeLoader } from "react-spinners";
 
 // AOS
 import AOS from "aos";
@@ -40,17 +43,18 @@ import styles from "../../assets/custom/css/bisec.module.css";
 
 import * as InputValidation from "./input_validation.js";
 
+import { useAuthProvider } from "../../context/AuthContext.jsx";
+
 // install Swiper modules
 SwiperCore.use([Navigation]);
 
 const Index = memo((props) => {
-  // enable axios credentials include
-  axios.defaults.withCredentials = true;
-
-  const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
-  const dash_data = JSON.parse(window.localStorage.getItem("dash_data"));
-
+  const { permissionData } = useAuthProvider();
   const navigate = useNavigate();
+
+  const [dashBoardData, setDashBoardData] = useState(useMemo(() => {
+    try { return JSON.parse(window.sessionStorage.getItem("dashBoardData")); } catch { return null; }
+  }, []));
 
   const [regData, setRegData] = useState([]);
   const [exmData, setExmData] = useState([]);
@@ -70,25 +74,50 @@ const Index = memo((props) => {
   const [chartData4, setChartData4] = useState("01");
 
   // File Attachment
-  const [files, setFiles] = useState([]);
+  const [filesMap, setFilesMap] = useState([]);
 
   const [profileData, setProfileData] = useState([]);
   const [loadingData, setLoadingData] = useState(true);
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+  // const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
-  const curDate = new Date();
-  curDate.setHours(curDate.getUTCHours() + 12);
+  // minor derived date used in original
+  const curDate = useMemo(() => {
+    const d = new Date();
+    d.setHours(d.getUTCHours() + 12);
+    return d;
+  }, []);
 
+  useSelector(SettingSelector.theme_color);
+
+  /* Get CSS variable colors once */
+  const variableColors = useMemo(() => {
+    const defaultPrefix = "bs-";
+    const prefixRaw = getComputedStyle(document.body).getPropertyValue("--prefix") || defaultPrefix;
+    const prefix = prefixRaw.trim() || defaultPrefix;
+    const _get = (name) => (getComputedStyle(document.body).getPropertyValue(`--${prefix}${name}`) || "").trim();
+    return {
+      primary: _get("primary") || "#3a57e8",
+      info: _get("info") || "#4bc7d2",
+      warning: _get("warning") || "#ffc107",
+      primary_light: _get("primary-tint-20") || "#dbe7ff",
+    };
+  }, []);
+
+  const colors = useMemo(() => [variableColors.primary, variableColors.info], [variableColors]);
+
+  /* AOS init once */
   useEffect(() => {
-    if (ceb_session?.ceb_user_id) {
-      if (ceb_session?.ceb_user_type === "13") {
-        navigate("/home");
-      }
-    } else {
-      navigate("/auth/sign-out");
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    AOS.init({
+      startEvent: "DOMContentLoaded",
+      disable: () => window.innerWidth < 996,
+      throttleDelay: 10,
+      once: true,
+      duration: 700,
+      offset: 10,
+    });
+  }, []);
 
+  // Set Chart Data
   const setChart = () => {
     var dataValue1 = [];
     var dataTitle1 = [];
@@ -101,24 +130,8 @@ const Index = memo((props) => {
       const st_classQQ10 = regData.st_classQQ10 || 0;
       const st_classQQ11 = regData.st_classQQ11 || 0;
       const st_classQQ12 = regData.st_classQQ12 || 0;
-      dataValue1 = [
-        st_classQQ06,
-        st_classQQ07,
-        st_classQQ08,
-        st_classQQ09,
-        st_classQQ10,
-        st_classQQ11,
-        st_classQQ12,
-      ];
-      dataTitle1 = [
-        "VI (06)",
-        "VII (07)",
-        "VIII (08)",
-        "IX (09)",
-        "X (10)",
-        "XI (11)",
-        "XII (12)",
-      ];
+      dataValue1 = [st_classQQ06, st_classQQ07, st_classQQ08, st_classQQ09, st_classQQ10, st_classQQ11, st_classQQ12,];
+      dataTitle1 = ["VI (06)", "VII (07)", "VIII (08)", "IX (09)", "X (10)", "XI (11)", "XII (12)",];
     } else {
       const id_examQQ03 = exmData.id_examQQ03 || 0;
       const id_examQQ05 = exmData.id_examQQ05 || 0;
@@ -343,74 +356,124 @@ const Index = memo((props) => {
     ];
     //chart3
     const myChart3 = {
+      // options: {
+      //   chart: {
+      //     stacked: true,
+      //     toolbar: {
+      //       show: true,
+      //     },
+      //   },
+      //   colors: colors,
+      //   plotOptions: {
+      //     bar: {
+      //       horizontal: false,
+      //       columnWidth: "25%",
+      //       endingShape: "rounded",
+      //       borderRadius: 5,
+      //       distributed: true
+      //     },
+      //   },
+      //   legend: {
+      //     show: true,
+      //   },
+      //   dataLabels: {
+      //     enabled: false,
+      //   },
+      //   stroke: {
+      //     show: true,
+      //     width: 2,
+      //     colors: ["transparent"],
+      //   },
+      //   xaxis: {
+      //     categories: dataTitleReg,
+      //     labels: {
+      //       minHeight: 20,
+      //       maxHeight: 20,
+      //       style: {
+      //         colors: "#8A92A6",
+      //       },
+      //       offsetY: -2,
+      //     },
+      //   },
+      //   yaxis: {
+      //     title: {
+      //       text: "",
+      //     },
+      //     labels: {
+      //       minWidth: 19,
+      //       maxWidth: 19,
+      //       style: {
+      //         colors: "#8A92A6",
+      //       },
+      //       offsetX: -5,
+      //     },
+      //   },
+      //   fill: {
+      //     opacity: 1,
+      //   },
+      //   tooltip: {
+      //     y: {
+      //       formatter: function (val) {
+      //         return val + " জন";
+      //       },
+      //     },
+      //   },
+      // },
+      // series: [
+      //   {
+      //     name: "নিবন্ধিত শিক্ষার্থী",
+      //     data: dataValueReg,
+      //   },
+      //   {
+      //     name: "নিবন্ধিত পরীক্ষার্থী",
+      //     data: dataValueExm,
+      //   },
+      // ],
       options: {
         chart: {
-          stacked: true,
-          toolbar: {
-            show: true,
-          },
+          type: 'bar',
+          height: 350
         },
-        colors: colors,
         plotOptions: {
           bar: {
             horizontal: false,
-            columnWidth: "28%",
-            endingShape: "rounded",
+            columnWidth: '25%',
             borderRadius: 5,
+            borderRadiusApplication: 'end'
           },
         },
-        legend: {
-          show: false,
-        },
         dataLabels: {
-          enabled: false,
+          enabled: false
         },
         stroke: {
           show: true,
-          width: 2,
-          colors: ["transparent"],
+          width: 1,
+          colors: ['transparent']
         },
         xaxis: {
           categories: dataTitleReg,
-          labels: {
-            minHeight: 20,
-            maxHeight: 20,
-            style: {
-              colors: "#8A92A6",
-            },
-            offsetY: -2,
-          },
         },
         yaxis: {
           title: {
-            text: "",
-          },
-          labels: {
-            minWidth: 19,
-            maxWidth: 19,
-            style: {
-              colors: "#8A92A6",
-            },
-            offsetX: 20,
-          },
+            text: ''
+          }
         },
         fill: {
-          opacity: 1,
+          opacity: 1
         },
         tooltip: {
           y: {
             formatter: function (val) {
               return val + " জন";
             },
-          },
-        },
+          }
+        }
       },
       series: [
         {
           name: "নিবন্ধিত শিক্ষার্থী",
           data: dataValueReg,
-        },
-        {
+        }, {
           name: "নিবন্ধিত পরীক্ষার্থী",
           data: dataValueExm,
         },
@@ -579,227 +642,116 @@ const Index = memo((props) => {
     setChart4(myChart4);
   };
 
-  // Hanlde File View
-  const handleFileView = (field) => {
-    if (files[field] instanceof Blob) {
-      const pdfURL = URL.createObjectURL(files[field]);
-      window.open(pdfURL, "_blank");
-      URL.revokeObjectURL(pdfURL);
+  /* File view */
+  const handleFileView = useCallback((field) => {
+    const file = filesMap[field];
+    if (file instanceof Blob || file instanceof File) {
+      const pdfURL = URL.createObjectURL(file);
+      window.open(pdfURL, '_blank');
+      // Do not revoke immediately (some browsers will fail) — revoke after short timeout
+      setTimeout(() => URL.revokeObjectURL(pdfURL), 10000);
     }
-  };
+  }, [filesMap]);
 
-  // Fetch Files
-  const fetchFiles = async (appData) => {
-    const pdfFiles = {};
-
-    const promises = appData.map(async (dataItem) => {
-      try {
-        const res = await axios.post(
-          `${BACKEND_URL}/board/notice/fetch_files`,
-          { id_notice: dataItem.id_notice, file_notice: dataItem.file_notice },
-          { responseType: "blob" }
-        );
-
-        if (res.status === 200) {
-          const file = new File([res.data], `${dataItem.file_notice}.pdf`, {
-            type: "application/pdf",
-          });
-          pdfFiles[dataItem.file_notice] = file;
-        } else {
-          pdfFiles[dataItem.file_notice] = null;
+  /* File fetch: fetch blobs and convert to File objects, store a map */
+  const fetchFiles = useCallback(async (noticeList) => {
+    if (!Array.isArray(noticeList)) {
+      setFilesMap({});
+      return;
+    }
+    const results = await Promise.all(
+      noticeList.map(async (item) => {
+        try {
+          const res = await axiosApi.post(`/board/notice/fetch_files`, { id_notice: item.id_notice, file_notice: item.file_notice }, { responseType: 'blob' });
+          if (res.status === 200) {
+            const file = new File([res.data], `${item.file_notice}.pdf`, { type: 'application/pdf' });
+            return [item.file_notice, file];
+          }
+        } catch (err) {
+          if (err?.status === 401) navigate("/auth/sign-out");
         }
-      } catch (err) {
-        if (err.status === 401) {
-          navigate("/auth/sign-out");
+        return [item.file_notice, null];
+      })
+    );
+    const map = Object.fromEntries(results);
+    setFilesMap(map);
+  }, [navigate]);
+
+  /* API: fetch profile */
+  const fetchProfileData = useCallback(async () => {
+    try {
+      const res = await axiosApi.post(`/user/details`);
+      if (res?.status === 200) setProfileData(res.data.data || {});
+    } catch (err) {
+      if (err?.status === 401) navigate("/auth/sign-out");
+    }
+  }, [navigate]);
+
+  // Aggregate Counts & Data
+  const aggregateCounts = ({ dataSource, totalKey, extraTotals = [] }) => {
+    const result = {
+      active_total: 0,
+    };
+
+    extraTotals.forEach((k) => (result[k] = 0));
+
+    Object.entries(dataSource).forEach(([fieldKey, rowData]) => {
+      Object.entries(rowData).forEach(([fieldKey, colValue]) => {
+        const key = `${fieldKey}QQ${String(colValue).toLowerCase()}`;
+        result[key] ??= 0;
+        result[key] += Number(rowData.st_total);
+        if (fieldKey === totalKey) {
+          result.active_total += Number(rowData.st_total);
+
+          if (rowData.pay_total != null && result.payment_total != null) {
+            result.payment_total += Number(rowData.pay_total);
+          }
         }
-        pdfFiles[dataItem.file_notice] = null;
-      }
+      });
     });
 
-    await Promise.all(promises);
-    setFiles(pdfFiles);
-    // console.log(pdfFiles);
-  };
-
-  // Profile Data Fetch
-  const fetchProfileData = async () => {
-    try {
-      const response = await axios.post(`${BACKEND_URL}/user/details`);
-      if (response.status === 200) {
-        setProfileData(response.data.data);
-      }
-    } catch (err) {
-      if (err.status === 401) {
-        navigate("/auth/sign-out");
-      }
-    }
+    return result;
   };
 
   // Fetch Dashboard Data
   const getData = async () => {
     try {
-      const response = await axios.post(`${BACKEND_URL}/dashboard/board`, {});
+      const response = await axiosApi.post(`/dashboard/board`, {});
       if (response.status === 200) {
-        // Define Reg Values
-        const regData = {
-          active_total: 0,
-        };
+        // Reg Values
+        const regData = aggregateCounts({
+          dataSource: response.data.activeRegResult,
+          totalKey: "st_session",
+        });
 
-        // Define Field Values
-        Object.entries(response.data.activeRegResult).map(
-          ([field, rowData]) => {
-            Object.entries(rowData).map(([field, colData]) => {
-              regData[field + "QQ" + String(colData).toLocaleLowerCase()] = 0;
-              if (field === "st_session") {
-                regData.active_total =
-                  regData.active_total + Number(rowData.st_total);
-              }
-              return null;
-            });
-            return null;
-          }
-        );
+        // Exam Values
+        const exmData = aggregateCounts({
+          dataSource: response.data.activeExmResult,
+          totalKey: "st_session",
+        });
 
-        // Set Field Values
-        Object.entries(response.data.activeRegResult).map(
-          ([field, rowData]) => {
-            Object.entries(rowData).map(([field, colData]) => {
-              regData[field + "QQ" + String(colData).toLocaleLowerCase()] =
-                Number(
-                  regData[field + "QQ" + String(colData).toLocaleLowerCase()]
-                ) + Number(rowData.st_total);
-              return null;
-            });
-            return null;
-          }
-        );
+        // User Values
+        const usrData = aggregateCounts({
+          dataSource: response.data.activeUsrResult,
+          totalKey: "st_session",
+        });
 
-        // console.log(regData);
-        // Set regData
-        await setRegData(regData);
+        // Account Values
+        const accData = aggregateCounts({
+          dataSource: response.data.activeAccResult,
+          totalKey: "st_session",
+          extraTotals: ["payment_total"],
+        });
 
-        // Define Exam Values
-        const exmData = {
-          active_total: 0,
-        };
+        setRegData(regData);
+        setExmData(exmData);
+        setUsrData(usrData);
+        setAccData(accData);
+        setDateData(response.data.dateResult);
+        setNoticeData(response.data.noticeResult);
+        fetchFiles(response.data.noticeResult);
 
-        // Define Field Values
-        Object.entries(response.data.activeExmResult).map(
-          ([field, rowData]) => {
-            Object.entries(rowData).map(([field, colData]) => {
-              exmData[field + "QQ" + String(colData).toLocaleLowerCase()] = 0;
-              if (field === "st_session") {
-                exmData.active_total =
-                  exmData.active_total + Number(rowData.st_total);
-              }
-              return null;
-            });
-            return null;
-          }
-        );
-
-        // Set Field Values
-        Object.entries(response.data.activeExmResult).map(
-          ([field, rowData]) => {
-            Object.entries(rowData).map(([field, colData]) => {
-              exmData[field + "QQ" + String(colData).toLocaleLowerCase()] =
-                Number(
-                  exmData[field + "QQ" + String(colData).toLocaleLowerCase()]
-                ) + Number(rowData.st_total);
-              return null;
-            });
-            return null;
-          }
-        );
-        // console.log(exmData);
-        // Set exmData
-        await setExmData(exmData);
-
-        // Define Exam Values
-        const usrData = {
-          active_total: 0,
-        };
-
-        // Define Field Values
-        Object.entries(response.data.activeUsrResult).map(
-          ([field, rowData]) => {
-            Object.entries(rowData).map(([field, colData]) => {
-              usrData[field + "QQ" + String(colData).toLocaleLowerCase()] = 0;
-              if (field === "id_user_entity") {
-                usrData.active_total =
-                  usrData.active_total + Number(rowData.st_total);
-              }
-              return null;
-            });
-            return null;
-          }
-        );
-
-        // Set Field Values
-        Object.entries(response.data.activeUsrResult).map(
-          ([field, rowData]) => {
-            Object.entries(rowData).map(([field, colData]) => {
-              usrData[field + "QQ" + String(colData).toLocaleLowerCase()] =
-                Number(
-                  usrData[field + "QQ" + String(colData).toLocaleLowerCase()]
-                ) + Number(rowData.st_total);
-              return null;
-            });
-            return null;
-          }
-        );
-        // console.log(usrData);
-        // Set usrData
-        await setUsrData(usrData);
-
-        // Define Exam Values
-        const accData = {
-          active_total: 0,
-          payment_total: 0,
-        };
-
-        // Define Field Values
-        Object.entries(response.data.activeAccResult).map(
-          ([field, rowData]) => {
-            Object.entries(rowData).map(([field, colData]) => {
-              accData[field + "QQ" + String(colData).toLocaleLowerCase()] = 0;
-              if (field === "income_code_economic") {
-                accData.active_total =
-                  accData.active_total + Number(rowData.st_total);
-                accData.payment_total =
-                  accData.payment_total + Number(rowData.pay_total);
-              }
-              return null;
-            });
-            return null;
-          }
-        );
-
-        // Set Field Values
-        Object.entries(response.data.activeAccResult).map(
-          ([field, rowData]) => {
-            Object.entries(rowData).map(([field, colData]) => {
-              accData[field + "QQ" + String(colData).toLocaleLowerCase()] =
-                Number(
-                  accData[field + "QQ" + String(colData).toLocaleLowerCase()]
-                ) + Number(rowData.st_total);
-              return null;
-            });
-            return null;
-          }
-        );
-        // console.log(accData);
-        // Set accData
-        await setAccData(accData);
-
-        // Set Dates Data
-        await setDateData(response.data.dateResult);
-
-        // Set Notice Data
-        await setNoticeData(response.data.noticeResult);
-        await fetchFiles(response.data.noticeResult);
-
-        const dash_data = await JSON.stringify({
+        const dashBoardData = JSON.stringify({
           regData: regData,
           exmData: exmData,
           usrData: usrData,
@@ -808,16 +760,14 @@ const Index = memo((props) => {
           noticeData: response.data.noticeResult,
         });
 
-        window.localStorage.setItem("dash_data", dash_data);
+        setDashBoardData(dashBoardData);
+
+        window.sessionStorage.setItem("dashBoardData", dashBoardData);
         setChart();
       }
     } catch (err) {
       if (err.status === 401) {
         navigate("/auth/sign-out");
-      } else if (err.status === 403) {
-        // navigate("/registration/new-app");
-        navigate("/auth/sign-out");
-        return null;
       }
     } finally {
       setLoadingData(false);
@@ -826,110 +776,77 @@ const Index = memo((props) => {
 
   // Set Dashboard Data
   const setData = async () => {
-    await setRegData(dash_data.regData);
-    await setExmData(dash_data.exmData);
-    await setUsrData(dash_data.usrData);
-    await setAccData(dash_data.accData);
-    await setDateData(dash_data.dateData);
-    await setNoticeData(dash_data.noticeData);
-    await setChart();
-    await fetchFiles(dash_data.noticeData);
+    setRegData(dashBoardData.regData);
+    setExmData(dashBoardData.exmData);
+    setUsrData(dashBoardData.usrData);
+    setAccData(dashBoardData.accData);
+    setDateData(dashBoardData.dateData);
+    setNoticeData(dashBoardData.noticeData);
+    setChart();
+    await fetchFiles(dashBoardData.noticeData);
     setLoadingData(false);
-    // console.log(dash_data);
   };
 
-  // Fetch & Set Data
-  useEffect(() => {
-    if (ceb_session?.ceb_user_id) fetchProfileData();
-    // setChartData3(curDate.getFullYear());
-    // Chesk If Data is Present
-    if (
-      !dash_data?.regData ||
-      !dash_data?.exmData ||
-      !dash_data?.usrData ||
-      !dash_data?.accData ||
-      !dash_data?.dateData ||
-      !dash_data?.noticeData
-    ) {
-      if (ceb_session?.ceb_user_id) getData();
-    } else {
-      setData();
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
+  // Ste Chart on Data Change
   useEffect(() => {
     setChart();
-  }, [files, chartData1, chartData2, chartData4]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [filesMap, chartData1, chartData2, chartData4]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useSelector(SettingSelector.theme_color);
-
-  const getVariableColor = () => {
-    let prefix =
-      getComputedStyle(document.body).getPropertyValue("--prefix") || "bs-";
-    if (prefix) {
-      prefix = prefix.trim();
-    }
-    const color1 = getComputedStyle(document.body).getPropertyValue(
-      `--${prefix}primary`
-    );
-    const color2 = getComputedStyle(document.body).getPropertyValue(
-      `--${prefix}info`
-    );
-    const color3 = getComputedStyle(document.body).getPropertyValue(
-      `--${prefix}primary-tint-20`
-    );
-    const color4 = getComputedStyle(document.body).getPropertyValue(
-      `--${prefix}warning`
-    );
-    return {
-      primary: color1.trim(),
-      info: color2.trim(),
-      warning: color4.trim(),
-      primary_light: color3.trim(),
-    };
-  };
-
-  const variableColors = getVariableColor();
-
-  const colors = [variableColors.primary, variableColors.info];
+  /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
   useEffect(() => {
-    return () => colors;
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    let mounted = true;
+    (async () => {
+      if (permissionData.type === '13') {
+        navigate("/home", { replace: true });
+      } else {
+        fetchProfileData();
+        // Chesk If Data is Present
+        if (!dashBoardData?.regData || !dashBoardData?.exmData || !dashBoardData?.usrData || !dashBoardData?.accData || !dashBoardData?.dateData || !dashBoardData?.noticeData) {
+          getData();
+        } else {
+          setData();
+        }
+      }
+    })();
+    return () => { mounted = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, [permissionData, loading, dashBoardData]); // run only once on mount
+  }, [permissionData, dashBoardData]); // run only once on mount
 
-  useEffect(() => {
-    AOS.init({
-      startEvent: "DOMContentLoaded",
-      disable: function () {
-        var maxWidth = 996;
-        return window.innerWidth < maxWidth;
-      },
-      throttleDelay: 10,
-      once: true,
-      duration: 700,
-      offset: 10,
-    });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  if (!ceb_session?.ceb_user_id || ceb_session?.ceb_user_type === "13")
-    return <></>;
-
-  if (loadingData)
+  if (loadingData) {
     return (
       <Fragment>
         <Row data-aos="fade-up" data-aos-delay="100">
-          <Col md={12}>
-            <Card className="mb-5">
-              <Card.Body>
-                <h5 className={styles.SiyamRupaliFont + " text-center"}>
-                  অপেক্ষা করুন... ডাটা লোড হচ্ছে...
-                </h5>
-              </Card.Body>
-            </Card>
-          </Col>
-          <Col md={12} className={styles.dashboard_loader + " mt-5"}></Col>
+          <Modal
+            show={true}
+            backdrop={"static"}
+            keyboard={false}
+            className='modal-fullscreen bg-transparent d-flex justify-content-center align-items-center'
+          >
+            <Modal.Body className="bg-transparent">
+              <Card className="bg-transparent">
+                <Card.Header className="bg-transparent">
+                  <h5 className="text-center">অপেক্ষা করুন... ডাটা লোড হচ্ছে...</h5>
+                </Card.Header>
+                <Card.Body className="bg-transparent">
+                  {/* <Col md={12} className={styles.dashboard_loader + " mt-5"}></Col> */}
+                  <Col md={12} className="d-flex justify-content-center align-items-center">
+                    <FadeLoader
+                      color="#000000"
+                      loading={true}
+                      radius={15}
+                      width={5}
+                      height={20}
+                    />
+                  </Col>
+                </Card.Body>
+              </Card>
+            </Modal.Body>
+          </Modal>
         </Row>
       </Fragment>
     );
+  }
 
   return (
     <Fragment>
@@ -1363,7 +1280,7 @@ const Index = memo((props) => {
                                 </h6>
                               </td>
                               <td className="text-center align-center text-wrap text_dark">
-                                {files[noticeItem.file_notice] && (
+                                {filesMap[noticeItem.file_notice] && (
                                   <Button onClick={() => handleFileView(noticeItem.file_notice)} type="button" variant="btn btn-link" className="w-100 m-0 p-0"><span className={styles.SiyamRupaliFont + " text-center text-danger"}>নোটিশ</span></Button>
                                 )}
                               </td>
@@ -1695,7 +1612,7 @@ const Index = memo((props) => {
                       <div>
                         <h5 className="font-weight-bold">ACCOUNT DETAILS</h5>
                         <p className="mb-0">
-                          {ceb_session.ceb_user_type === "13"
+                          {permissionData.type === "13"
                             ? "INSTITUTIONAL ACCOUNT"
                             : "PERSONAL ACCOUNT"}
                         </p>

@@ -120,11 +120,11 @@ const TcPayResponse = () => {
             } catch (err) {
 
 
-    if (err.status === 401) {
-        navigate("/auth/sign-out");
-        
-    }
-setStRedirect("");
+               if (err.status === 401) {
+                  navigate("/auth/sign-out");
+
+               }
+               setStRedirect("");
                setStError('Unauthorized Action Detected!');
                // console.error("Unauthorized Action Detected!", err);
             } finally {

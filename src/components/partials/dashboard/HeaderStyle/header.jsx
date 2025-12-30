@@ -1,5 +1,5 @@
-import React, { useEffect, useState, Fragment, memo } from 'react'
-import { Navbar, Container, Nav, Dropdown, Card } from 'react-bootstrap'
+import React, { useEffect, useState, Fragment, memo, useMemo } from 'react'
+import { Navbar, Container, Nav, Dropdown, Card, Row, Col } from 'react-bootstrap'
 import { Link, useNavigate } from 'react-router-dom'
 import CustomToggle from '../../../dropdowns'
 
@@ -11,19 +11,25 @@ import Logo from '../../components/logo'
 // Redux Selector / Action
 import { useSelector } from 'react-redux';
 
-import axios from 'axios';
+// import axios from 'axios';
 
 // Import selectors & action from setting store
 import * as SettingSelector from '../../../../store/setting/selectors'
 
 import * as InputValidation from '../../../../views/partials/input_validation'
+import { FadeLoader } from "react-spinners";
+
+import { useAuthProvider } from '../../../../context/AuthContext'
+import axiosApi from '../../../../lib/axiosApi.jsx';
 
 const Header = memo((props) => {
-    axios.defaults.withCredentials = true;
-    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+    const { permissionData, loading } = useAuthProvider();
     const navigate = useNavigate();
+    const [loadingData, setLoadingData] = useState(true);
 
-    const dash_data = JSON.parse(window.localStorage.getItem("dash_data"));
+    const dashBoardData = useMemo(() => {
+        try { return JSON.parse(window.localStorage.getItem("dashBoardData")); } catch { return null; }
+    }, []);
 
     const navbarHide = useSelector(SettingSelector.navbar_show); // array
     const headerNavbar = useSelector(SettingSelector.header_navbar);
@@ -33,22 +39,11 @@ const Header = memo((props) => {
     const [noticeData, setNoticeData] = useState([]);
     const [dateData, setDateData] = useState([]);
 
-    const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
-
     const [profileImage, setProfileImage] = useState(null);
 
     const minisidebar = () => {
         document.getElementsByTagName('ASIDE')[0].classList.toggle('sidebar-mini')
     }
-
-    useEffect(() => {
-        if (dash_data?.noticeData) {
-            setNoticeData(dash_data.noticeData);
-        }
-        if (dash_data?.dateData) {
-            setDateData(dash_data.dateData);
-        }
-    }, []);// eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
         // navbarstylemode
@@ -61,36 +56,65 @@ const Header = memo((props) => {
                 }
             }
         }
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    // Fetch User Data
-    useEffect(() => {
-        if (profileImage) {
-            URL.revokeObjectURL(profileImage); // Free up memory
+        if (loading) {
+            return;
         }
 
-        const fetchProfileImage = async () => {
-            await axios.post(`${BACKEND_URL}/user/image-fetch?`, {}, { responseType: 'blob' })
-                .then(response => {
-                    const profile_image = URL.createObjectURL(response.data);
-                    setProfileImage(profile_image);
-                })
-                .catch(err => {
-                    // console.error(err);
-                    if (err.status === 401) {
-                        navigate("/auth/sign-out");
-                        return null;
-                    }
-                });
-        };
+        if (!permissionData) {
+            navigate("/auth/sign-out", { replace: true });
+        } else {
+            // Set Notice Data
+            if (dashBoardData?.noticeData) {
+                setNoticeData(dashBoardData.noticeData);
+            }
 
-        if (ceb_session?.ceb_user_id) {
+            // Set Date Data
+            if (dashBoardData?.dateData) {
+                setDateData(dashBoardData.dateData);
+            }
+
+            // Cleanup previous profile image URL
+            if (profileImage) {
+                URL.revokeObjectURL(profileImage); // Free up memory
+            }
+
+            // Fetch Profile Image
+            const fetchProfileImage = async () => {
+                try {
+                    const response = await axiosApi.post(`/user/image-fetch?`, {}, { responseType: 'blob' });
+                    if (response.status === 200) {
+                        const imageUrl = URL.createObjectURL(response.data);
+                        setProfileImage(imageUrl);
+                        setLoadingData(false);
+                    } else {
+                        setProfileImage(null);
+                    }
+                } catch (error) {
+                    setProfileImage(null);
+                }
+            };
+
             fetchProfileImage();
         }
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [permissionData, loading]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    if (!ceb_session?.ceb_user_id) {
-        return <></>;
+    if (loading || loadingData) {
+        return (
+            <Fragment>
+                <Row data-aos="fade-up" data-aos-delay="100" className=' m-0 p-0'>
+                    <Col md={12} className="vw-100 vh-100 d-flex justify-content-center align-items-center">
+                        <FadeLoader
+                            color="#000000"
+                            loading={true}
+                            radius={15}
+                            width={5}
+                            height={20}
+                        />
+                    </Col>
+                </Row>
+            </Fragment>
+        );
     }
 
     return (
@@ -173,7 +197,7 @@ const Header = memo((props) => {
                                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-square-pen-icon lucide-square-pen"><path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z" /></svg>
                                                         <div className="ms-3 w-100">
                                                             <h6 className="mb-0" style={{ textAlign: 'justify' }}>
-                                                                {dateItem.income_code_details}
+                                                                {String(dateItem.income_code_details).split('ফিস')[0]}
                                                                 {/* <small className="float-right font-size-12">-{InputValidation.E2BDigit(differenceInDays(new Date(dateItem.dt_end), new Date()) + 1)} দিন</small> */}
                                                             </h6>
                                                             <div className="d-flex justify-content-between align-items-center">
@@ -193,15 +217,15 @@ const Header = memo((props) => {
                                 <Dropdown.Toggle as={CustomToggle} variant=" nav-link py-0 d-flex align-items-center" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                     <img src={profileImage} alt="User-Profile" className="img-fluid avatar avatar-50 avatar-rounded" />
                                     <div className="caption ms-3 d-none d-md-block ">
-                                        <h6 className="mb-0 text-wrap text-uppercase text-end caption-title">{ceb_session.ceb_user_name}</h6>
-                                        <p className="mb-0 text-end text-capitalize text-end caption-sub-title">{ceb_session.ceb_user_post}</p>
+                                        <h6 className="mb-0 text-wrap text-uppercase text-end caption-title">{permissionData.name}</h6>
+                                        <p className="mb-0 text-end text-capitalize text-end caption-sub-title">{permissionData.post}</p>
                                     </div>
                                 </Dropdown.Toggle>
                                 <Dropdown.Menu className="dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                    <Dropdown.Item> <Link to="/admin/user-profile">প্রোফাইল বিস্তারিত</Link></Dropdown.Item>
-                                    <Dropdown.Item> <Link to="/admin/user-update">প্রোফাইল আপডেট</Link></Dropdown.Item>
+                                    <Dropdown.Item as={Link} to="/admin/user-profile">প্রোফাইল বিস্তারিত</Dropdown.Item>
+                                    <Dropdown.Item as={Link} to="/admin/user-update">প্রোফাইল আপডেট</Dropdown.Item>
                                     <Dropdown.Divider />
-                                    <Dropdown.Item> <Link to="/auth/sign-out">লগআউট</Link></Dropdown.Item>
+                                    <Dropdown.Item as={Link} to="/auth/sign-out">লগআউট</Dropdown.Item>
                                     <Dropdown.Divider />
                                 </Dropdown.Menu>
                             </Dropdown>

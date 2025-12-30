@@ -69,7 +69,7 @@ import * as SettingSelector from "../store/setting/selectors";
 // Redux Selector / Action
 import { useSelector } from "react-redux";
 
-import { MdOutlineHouse } from "react-icons/md";
+// import { MdOutlineHouse } from "react-icons/md";
 import { PiStudent } from "react-icons/pi";
 import { MdOutlineBroadcastOnPersonal } from "react-icons/md";
 import { BiSolidSchool } from "react-icons/bi";
@@ -135,7 +135,7 @@ const Index = () => {
               <div>
                 <Link
                   className="btn btn-light bg-white d-flex"
-                  to="/auth/sign-out"
+                  to="/auth/sign-in"
                 >
                   <svg
                     width="22"
@@ -193,11 +193,11 @@ const Index = () => {
                       <span className='text-primary'>বোর্ড</span>
                     </Dropdown.Toggle>
                     <Dropdown.Menu className="dropdown-menu-end" aria-labelledby="navbarDropdown">
-                      <Dropdown.Item> <Link to="/">বোর্ডের ইতিহাস</Link></Dropdown.Item>
-                      <Dropdown.Item> <Link to="/">বোর্ড অর্ডিন্যান্স</Link></Dropdown.Item>
-                      <Dropdown.Item> <Link to="/">প্রবিধানমালা</Link></Dropdown.Item>
-                      <Dropdown.Item> <Link to="/">বোর্ডের দপ্তরসমূহ</Link></Dropdown.Item>
-                      <Dropdown.Item> <Link to="/">বোর্ডের শাখাসমূহ</Link></Dropdown.Item>
+                      <Dropdown.Item as={Link} to="/">বোর্ডের ইতিহাস</Dropdown.Item>
+                      <Dropdown.Item as={Link} to="/">বোর্ড অর্ডিন্যান্স</Dropdown.Item>
+                      <Dropdown.Item as={Link} to="/">প্রবিধানমালা</Dropdown.Item>
+                      <Dropdown.Item as={Link} to="/">বোর্ডের দপ্তরসমূহ</Dropdown.Item>
+                      <Dropdown.Item as={Link} to="/">বোর্ডের শাখাসমূহ</Dropdown.Item>
                     </Dropdown.Menu>
                   </Dropdown>
                   <Dropdown as="li" className="nav-item">
@@ -206,9 +206,9 @@ const Index = () => {
                       <span className='text-success'>শিক্ষার্থী</span>
                     </Dropdown.Toggle>
                     <Dropdown.Menu className="dropdown-menu-end" aria-labelledby="navbarDropdown">
-                      <Dropdown.Item> <Link to="/tc/new-app">ছাড়পত্রের (TC) আবেদন</Link></Dropdown.Item>
+                      <Dropdown.Item as={Link} to="/tc/new-app">ছাড়পত্রের (TC) আবেদন</Dropdown.Item>
                       <Dropdown.Divider />
-                      <Dropdown.Item> <Link to="/">ফলাফল যাচাই</Link></Dropdown.Item>
+                      <Dropdown.Item as={Link} to="/">ফলাফল যাচাই</Dropdown.Item>
                     </Dropdown.Menu>
                   </Dropdown>
                   <Dropdown as="li" className="nav-item">
@@ -217,15 +217,15 @@ const Index = () => {
                       <span className='text-danger'>প্রতিষ্ঠান</span>
                     </Dropdown.Toggle>
                     <Dropdown.Menu className="dropdown-menu-end" aria-labelledby="navbarDropdown">
-                      <Dropdown.Item> <Link to="/institute/establishment/application">স্থাপনের আবেদন</Link></Dropdown.Item>
-                      <Dropdown.Item> <Link to="/institute/establishment/payment">আবেদন ফি প্রদান</Link></Dropdown.Item>
-                      <Dropdown.Item> <Link to="/institute/establishment/payment">আবেদনের স্ট্যাটাস</Link></Dropdown.Item>
+                      <Dropdown.Item as={Link} to="/institute/establishment/application">স্থাপনের আবেদন</Dropdown.Item>
+                      <Dropdown.Item as={Link} to="/institute/establishment/payment">আবেদন ফি প্রদান</Dropdown.Item>
+                      <Dropdown.Item as={Link} to="/institute/establishment/payment">আবেদনের স্ট্যাটাস</Dropdown.Item>
                       <Dropdown.Divider />
-                      <Dropdown.Item> <Link to="/institute/class-start/application">পাঠদানের আবেদন</Link></Dropdown.Item>
-                      <Dropdown.Item> <Link to="/institute/class-start/payment">আবেদন ফি প্রদান</Link></Dropdown.Item>
-                      <Dropdown.Item> <Link to="/institute/class-start/payment">আবেদনের স্ট্যাটাস</Link></Dropdown.Item>
+                      <Dropdown.Item as={Link} to="/institute/class-start/application">পাঠদানের আবেদন</Dropdown.Item>
+                      <Dropdown.Item as={Link} to="/institute/class-start/payment">আবেদন ফি প্রদান</Dropdown.Item>
+                      <Dropdown.Item as={Link} to="/institute/class-start/payment">আবেদনের স্ট্যাটাস</Dropdown.Item>
                       <Dropdown.Divider />
-                      <Dropdown.Item> <Link to="/">ফলাফল যাচাই</Link></Dropdown.Item>
+                      <Dropdown.Item as={Link} to="/">ফলাফল যাচাই</Dropdown.Item>
                     </Dropdown.Menu>
                   </Dropdown>
                 </Nav>

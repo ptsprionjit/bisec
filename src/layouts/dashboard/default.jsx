@@ -20,7 +20,7 @@ import Sidebar from "../../components/partials/dashboard/SidebarStyle/sidebar";
 import Footer from "../../components/partials/dashboard/FooterStyle/footer";
 
 //default
-// import {DefaultRouter} from '../../router/default-router'
+// import { DefaultRouter } from '../../router/default-router'
 
 //seetingoffCanvas
 import SettingOffCanvas from "../../components/setting/SettingOffCanvas";
@@ -38,10 +38,7 @@ const Tour = () => {
   const tour = useContext(ShepherdTourContext);
   const { pathname } = useLocation();
   useEffect(() => {
-    if (
-      pathname === "/dashboard" &&
-      sessionStorage.getItem("tour") !== "true"
-    ) {
+    if (pathname === "/" && sessionStorage.getItem("tour") !== "true") {
       tour?.start();
     }
   });

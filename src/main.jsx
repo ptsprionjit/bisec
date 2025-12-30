@@ -15,6 +15,10 @@ import Index from "./views/index.jsx";
 import { SimpleRouter } from "./router/simple-router.jsx";
 import { DefaultRouter } from "./router/default-router.jsx";
 
+// Auth Provider
+import { AuthProvider } from "./context/AuthContext.jsx";
+import ProtectedRoute from "./context/ProtectedRoute.jsx";
+
 // React Pdf Worker File Set
 import { pdfjs } from 'react-pdf';
 
@@ -23,21 +27,36 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url,
 ).toString();
 
-const router = createBrowserRouter([
+const router = createBrowserRouter(
+  [
+    {
+      path: "/",
+      element: <Index />,
+    },
+    ...SimpleRouter,
+    ...DefaultRouter.map(route => ({
+      ...route,
+      element: (
+        <ProtectedRoute>
+          {route.element}
+        </ProtectedRoute>
+      ),
+    })),
+  ],
   {
-    path: "/",
-    element: <Index />,
-  },
-  ...DefaultRouter,
-  // ...IndexRouters,
-  ...SimpleRouter
-]);
+    future: {
+      v7_startTransition: true,
+    },
+  }
+);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <Provider store={store}>
       <App>
-        <RouterProvider router={router}></RouterProvider>
+        <AuthProvider>
+          <RouterProvider router={router}></RouterProvider>
+        </AuthProvider>
       </App>
     </Provider>
   </React.StrictMode>

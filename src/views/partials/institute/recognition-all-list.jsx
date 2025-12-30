@@ -3,8 +3,6 @@ import { Row, Col, Form, Button, Modal, Image } from 'react-bootstrap'
 import { useNavigate } from 'react-router-dom'
 import Card from '../../../components/Card'
 
-import axios from "axios";
-
 import styles from '../../../assets/custom/css/bisec.module.css'
 
 import error01 from '../../../assets/images/error/01.png'
@@ -13,21 +11,25 @@ import * as ValidationInput from '../input_validation'
 
 import RecognitionPrint from './print/recog_app_print'
 
+import { useAuthProvider } from "../../../context/AuthContext.jsx";
+import axiosApi from "../../../lib/axiosApi.jsx";
+
 const InstRecognitionListAll = () => {
-    // enable axios credentials include
-    axios.defaults.withCredentials = true;
-
-    const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
-
+    const { permissionData, loading } = useAuthProvider();
     const navigate = useNavigate();
 
+    /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
     useEffect(() => {
-        if (!ceb_session?.ceb_user_id) {
-            navigate("/auth/sign-out");
-        }
-    }, []);// eslint-disable-line react-hooks/exhaustive-deps
+        let mounted = true;
+        (async () => {
+            if (!(permissionData?.type === '13' || permissionData?.role === '17' || permissionData?.role === '18')) {
+                navigate('/errors/error404', { replace: true });
+            }
+        })();
+        return () => { mounted = false; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [permissionData, loading]); // run only once on mount
 
-    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
     const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL;
 
     const [activeAppDetails, setActiveAppDetails] = useState([]);
@@ -64,8 +66,8 @@ const InstRecognitionListAll = () => {
 
         const promises = fields.map(async (field) => {
             try {
-                const res = await axios.post(
-                    `${BACKEND_URL}/institute/recognition/fetch_files`,
+                const res = await axiosApi.post(
+                    `/institute/recognition/fetch_files`,
                     { inst_eiin: appData.inst_eiin, recog_inst_status: appData.recog_inst_status, count_applicaton: appData.count_applicaton, file_name: field },
                     { responseType: 'blob' }
                 );
@@ -132,7 +134,7 @@ const InstRecognitionListAll = () => {
     const fetchDataList = async () => {
         setLoadingProgress("আবেদনের তথ্য খুঁজা হচ্ছে...! অপেক্ষা করুন।");
         try {
-            const response = await axios.post(`${BACKEND_URL}/institute/recognition/all_list`);
+            const response = await axiosApi.post(`/institute/recognition/all_list`);
             // console.log(response.data.recData);
             if (response.status === 200 && response?.data?.recData && response.data.recData.length) {
                 setDataList(response.data.recData);
@@ -165,7 +167,7 @@ const InstRecognitionListAll = () => {
             fetchDataList();
         }, 1000); // Simulate loading delay
 
-        if (ceb_session?.ceb_user_id) return () => clearTimeout(timer); // Cleanup on unmount
+        if (permissionData.id) return () => clearTimeout(timer); // Cleanup on unmount
     }, []);// eslint-disable-line react-hooks/exhaustive-deps
 
     //Handle Page Row Number Change
@@ -195,13 +197,7 @@ const InstRecognitionListAll = () => {
         setDetailsShow(true);
     };
 
-    if (!ceb_session?.ceb_user_id) {
-        return (
-            <></>
-        )
-    }
-
-    if ((ceb_session.ceb_user_type === "13" || ceb_session.ceb_user_role === "17") && loadingSuccess) return (
+    if ((permissionData.type === "13" || permissionData.role === "17") && loadingSuccess) return (
         <Fragment>
             <Row>
                 <Col md={12}>
@@ -357,7 +353,7 @@ const InstRecognitionListAll = () => {
         </Fragment>
     )
 
-    if (ceb_session.ceb_user_type === "13" || ceb_session.ceb_user_role === "17") return (
+    if (permissionData.type === "13" || permissionData.role === "17") return (
         <Fragment>
             <Row className='d-flex justify-content-center align-items-center'>
                 <Col md="12">

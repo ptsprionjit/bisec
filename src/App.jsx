@@ -25,16 +25,18 @@ function App({ children }) {
       const { key, ctrlKey, altKey, shiftKey, metaKey } = e;
       const isFunctionKey = /^F[1-9]$|^F1[0-1]$/.test(key);
 
-      if (ctrlKey || altKey || shiftKey || metaKey || isFunctionKey) {
-        if (isFunctionKey) {
-          e.preventDefault();
-          // console.log(`Blocked: ${ctrlKey ? 'Ctrl+' : ''}${altKey ? 'Alt+' : ''}${shiftKey ? 'Shift+' : ''}${metaKey ? 'Meta+' : ''}${key}`);
-        }
+      if (altKey || metaKey || isFunctionKey) {
+        // if (ctrlKey || altKey || shiftKey || metaKey || isFunctionKey) {
+        e.preventDefault();
+        // if (isFunctionKey) {
+        //   e.preventDefault();
+        //   console.log(`Blocked: ${ctrlKey ? 'Ctrl+' : ''}${altKey ? 'Alt+' : ''}${shiftKey ? 'Shift+' : ''}${metaKey ? 'Meta+' : ''}${key}`);
+        // }
 
-        if (key === 'Control') {
-          e.preventDefault();
-          // console.log('Blocked: Control key');
-        }
+        // if (key === 'Control') {
+        //   e.preventDefault();
+        //   console.log('Blocked: Control key');
+        // }
       }
     };
 

@@ -47,7 +47,13 @@ window.addEventListener("keydown", (e) => {
   if (e.key === "F12") {
     e.preventDefault();
   }
-  if (e.ctrlKey || e.altKey) {
+  // if (e.ctrlKey) {
+  //   e.preventDefault();
+  // }
+  if (e.altKey) {
+    e.preventDefault();
+  }
+  if (e.metaKey) {
     e.preventDefault();
   }
 });

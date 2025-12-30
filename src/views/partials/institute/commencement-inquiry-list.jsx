@@ -5,8 +5,6 @@ import Card from '../../../components/Card'
 
 import { Document, Page } from 'react-pdf';
 
-import axios from "axios";
-
 import styles from '../../../assets/custom/css/bisec.module.css'
 
 import * as ValidationInput from '../input_validation'
@@ -17,23 +15,25 @@ import { HandleFileView } from './handlers/files'
 
 import ClassStartAppPrint from './print/clst_app_print.jsx'
 
+import { useAuthProvider } from "../../../context/AuthContext.jsx";
+import axiosApi from "../../../lib/axiosApi.jsx";
+
 const InstClassStartInquiry = () => {
-    // enable axios credentials include
-    axios.defaults.withCredentials = true;
-
-    // pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
-
-    const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
-
+    const { permissionData, loading } = useAuthProvider();
     const navigate = useNavigate();
 
+    /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
     useEffect(() => {
-        if (!ceb_session?.ceb_user_id) {
-            navigate("/auth/sign-out");
-        }
-    }, []);// eslint-disable-line react-hooks/exhaustive-deps
+        let mounted = true;
+        (async () => {
+            if (!(((permissionData?.office === '04' || permissionData?.office === '05') && (permissionData?.role === '15')) || permissionData?.role === '16' || permissionData?.role === '17' || permissionData?.role === '18')) {
+                navigate('/errors/error404', { replace: true });
+            }
+        })();
+        return () => { mounted = false; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [permissionData, loading]); // run only once on mount
 
-    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
     const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL;
 
     const [activeAppDetails, setActiveAppDetails] = useState([]);
@@ -114,8 +114,8 @@ const InstClassStartInquiry = () => {
 
         const promises = fields.map(async (field) => {
             try {
-                const res = await axios.post(
-                    `${BACKEND_URL}/institute/class_start/fetch_files`,
+                const res = await axiosApi.post(
+                    `/institute/class_start/fetch_files`,
                     { inst_mobile: classData.inst_mobile, inst_stage: classData.inst_stage, file_name: field },
                     { responseType: 'blob' }
                 );
@@ -167,8 +167,8 @@ const InstClassStartInquiry = () => {
 
         const promises = fields.map(async (field) => {
             try {
-                const res = await axios.post(
-                    `${BACKEND_URL}/institute/establishment/fetch_files`,
+                const res = await axiosApi.post(
+                    `/institute/establishment/fetch_files`,
                     { inst_mobile: item.inst_mobile, inst_status: item.inst_status, file_name: field },
                     { responseType: 'blob' }
                 );
@@ -238,7 +238,7 @@ const InstClassStartInquiry = () => {
     const fetchDataList = async () => {
         setLoadingProgress("আবেদনের তথ্য খুঁজা হচ্ছে...! অপেক্ষা করুন।");
         try {
-            const st_list = await axios.post(`${BACKEND_URL}/institute/class_start/inquiry_list`, {});
+            const st_list = await axiosApi.post(`/institute/class_start/inquiry_list`, {});
             if (st_list.data.data.length !== 0) {
                 setDataList(st_list.data.data);
                 setLoadingSuccess(true);
@@ -337,7 +337,7 @@ const InstClassStartInquiry = () => {
                 formData.append('userData', JSON.stringify(myData));
                 formData.append('files', buildFiles.inquiry_details);
 
-                const response = await axios.post(`${BACKEND_URL}/institute/class_start/inquiry_forward`, formData, {
+                const response = await axiosApi.post(`/institute/class_start/inquiry_forward`, formData, {
                     headers: { 'Content-Type': 'multipart/form-data' },
                 });
 
@@ -397,11 +397,7 @@ const InstClassStartInquiry = () => {
         setUserDataError(prev => ({ ...prev, [dataName]: '' }));
     }
 
-    if (!ceb_session) {
-        return null;
-    }
-
-    if ((ceb_session.ceb_user_office === "04" || ceb_session.ceb_user_office === "05" || ceb_session.ceb_user_role === "16" || ceb_session.ceb_user_role === "17") && loadingSuccess) return (
+    if ((permissionData.office === "04" || permissionData.office === "05" || permissionData.role === "16" || permissionData.role === "17") && loadingSuccess) return (
         <>
             <div>
                 <Row>
@@ -713,7 +709,7 @@ const InstClassStartInquiry = () => {
         </>
     )
 
-    if (ceb_session.ceb_user_office === "04" || ceb_session.ceb_user_office === "05" || ceb_session.ceb_user_role === "16" || ceb_session.ceb_user_role === "17") return (
+    if (permissionData.office === "04" || permissionData.office === "05" || permissionData.role === "16" || permissionData.role === "17") return (
         <>
             <div>
                 <Row className='d-flex justify-content-center align-items-center'>

@@ -4,8 +4,6 @@ import { Row, Col, Form, Button } from 'react-bootstrap'
 import { Link, useNavigate } from 'react-router-dom'
 import { useSelector } from "react-redux"
 
-import axios from "axios";
-
 import Card from '../../../components/Card'
 
 import Logo from '../../../components/partials/components/logo'
@@ -16,31 +14,27 @@ import styles from '../../../assets/custom/css/bisec.module.css'
 
 import * as ValidationInput from '../input_validation'
 
-// img
-// import facebook from '../../../assets/images/brands/fb.svg'
-// import google from '../../../assets/images/brands/gm.svg'
-// import instagram from '../../../assets/images/brands/im.svg'
-// import linkedin from '../../../assets/images/brands/li.svg'
+import { useAuthProvider } from "../../../context/AuthContext.jsx";
+import axiosApi from "../../../lib/axiosApi.jsx";
+
 
 const ChangePassword = () => {
-   // enable axios credentials include
-   axios.defaults.withCredentials = true;
-
-   //Session Variable to Check if User is Logged  
-   const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
-
+   const { permissionData, loading } = useAuthProvider();
    const navigate = useNavigate();
 
+   /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
    useEffect(() => {
-      if (!ceb_session?.ceb_user_id) {
-         navigate("/auth/sign-out");
-         
-      }
-   }, []);// eslint-disable-line react-hooks/exhaustive-deps
+      let mounted = true;
+      (async () => {
+         if (permissionData.type === '13') {
+            navigate("/auth/sign-out", { replace: true });
+         }
+      })();
+      return () => { mounted = false; };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [permissionData]); // run only once on mount
 
    const appShortName = useSelector(SettingSelector.app_short_name);
-
-   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
    const [validated, setValidated] = useState(false);
    const [userData, setUserData] = useState({
@@ -57,7 +51,7 @@ const ChangePassword = () => {
    const updatePassword = (async () => {
       setLoadingData("পাসওয়ার্ড পরিবর্তন করা হচ্ছে... অপেক্ষা করুন...");
       try {
-         const response = await axios.post(`${BACKEND_URL}/user/password_change?`, { userData });
+         const response = await axiosApi.post(`/user/password_change?`, { userData });
          if (response.status === 200) {
             setUpdateMessage(response.data.message);
             let count_down = 5000;
@@ -80,7 +74,7 @@ const ChangePassword = () => {
          setLoadingError("পাসওয়ার্ড পরিবর্তন সফল হয়নি।");
          if (err.status === 401) {
             navigate("/auth/sign-out");
-            
+
          }
       } finally {
          setLoadingData(false);
@@ -176,10 +170,6 @@ const ChangePassword = () => {
       setRedirectMessage(false);
    };
 
-   if (!ceb_session) {
-      return null;
-   }
-
    return (
       <>
          <section className={styles.bgImageLogin + " login-content"}>
@@ -206,7 +196,7 @@ const ChangePassword = () => {
                                     className='text-uppercase'
                                     type="text"
                                     id="user_name"
-                                    defaultValue={ceb_session.ceb_user_name}
+                                    defaultValue={permissionData.name}
                                     disabled
                                  />
                               </Col>
@@ -215,7 +205,7 @@ const ChangePassword = () => {
                                  <Form.Control
                                     className='text-uppercase'
                                     type="text" id="user_id"
-                                    defaultValue={ceb_session.ceb_user_id}
+                                    defaultValue={permissionData.id}
                                     disabled
                                  />
                               </Col>

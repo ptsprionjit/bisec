@@ -11,30 +11,28 @@ import error01 from '../../../assets/images/error/01.png'
 
 import * as ValidationInput from '../input_validation'
 
-import axios from 'axios';
-
 import styles from '../../../assets/custom/css/bisec.module.css'
 
 // import Maintenance from '../errors/maintenance';
 
+import { useAuthProvider } from "../../../context/AuthContext.jsx";
+import axiosApi from "../../../lib/axiosApi.jsx";
+
 const UserAdd = () => {
-   // enable axios credentials include
-   axios.defaults.withCredentials = true;
-
-   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-   const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
-
+   const { permissionData, loading } = useAuthProvider();
    const navigate = useNavigate();
 
+   /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
    useEffect(() => {
-      if (!ceb_session?.ceb_user_id) {
-         navigate("/auth/sign-out");
-      } else {
-         if (!(ceb_session.ceb_user_role === '17' || ceb_session.ceb_user_role === '18')) {
-            navigate("/auth/sign-out");
+      let mounted = true;
+      (async () => {
+         if (!(permissionData.role === '17' || permissionData.role === '18')) {
+            navigate("/errors/error404", { replace: true });
          }
-      }
-   }, []);// eslint-disable-line react-hooks/exhaustive-deps
+      })();
+      return () => { mounted = false; };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [permissionData]); // run only once on mount
 
    // Modal Variales
    const [modalError, setModalError] = useState(false);
@@ -72,7 +70,7 @@ const UserAdd = () => {
 
    const sendEmail = async (emailData) => {
       try {
-         const response = await axios.post(`${BACKEND_URL}/email/send/password`, { emailData });
+         const response = await axiosApi.post(`/email/send/password`, { emailData });
          if (response.status === 200) {
             alert(response.data.message);
          } else {
@@ -172,7 +170,7 @@ const UserAdd = () => {
             setLoadingError("ব্যবহারকারীর সব তথ্য সঠিকভাবে পূরণ করতে হবে!");
          } else {
             try {
-               const user_data = await axios.post(`${BACKEND_URL}/user/registration/new`, { userData });
+               const user_data = await axiosApi.post(`/user/registration/new`, { userData });
                if (user_data.status === 200) {
                   setLoadingSuccess(user_data.data.message);
                   // sendEmail(user_data.data.newUser);
@@ -240,7 +238,7 @@ const UserAdd = () => {
          setOptionUserType([]);
          setLoadingData("ইউজার টাইপ তথ্য খুঁজা হচ্ছে! অপেক্ষা করুন!");
          try {
-            const response = await axios.post(`${BACKEND_URL}/user/type-list`);
+            const response = await axiosApi.post(`/user/type-list`);
             setUserType(response.data);
          } catch (err) {
             // console.error(`Error Fetching User Type: ${err}`);
@@ -273,7 +271,7 @@ const UserAdd = () => {
          setOptionUserRole([]);
          setLoadingData("ইউজার রোল তথ্য খুঁজা হচ্ছে! অপেক্ষা করুন!");
          try {
-            const response = await axios.post(`${BACKEND_URL}/user/role-list`);
+            const response = await axiosApi.post(`/user/role-list`);
             setUserRole(response.data);
          } catch (err) {
             // console.error(`Error Fetching User Type: ${err}`);
@@ -308,7 +306,7 @@ const UserAdd = () => {
          setOptionBoardDesignations([]);
          setLoadingData("বোর্ডের অফিস তথ্য খুঁজা হচ্ছে...");
          try {
-            const response = await axios.post(`${BACKEND_URL}/user/designation-list`);
+            const response = await axiosApi.post(`/user/designation-list`);
             setBoardOffices(response.data);
          } catch (err) {
             setLoadingError("বোর্ডের অফিস তথ্য পাওয়া যায়নি! কিছুক্ষণ পর আবার চেষ্টা করুন।");
@@ -351,7 +349,7 @@ const UserAdd = () => {
       //    if (userData.en_office) {
       //       setLoadingData("বোর্ডের শাখা লিস্ট তথ্য খুঁজা হচ্ছে...");
       //       try {
-      //          const response = await axios.post(`${BACKEND_URL}/department-list/section?`, { en_office: userData.en_office });
+      //          const response = await axiosApi.post(`/department-list/section?`, { en_office: userData.en_office });
       //          setBoardSections(response.data);
       //       } catch (err) {
       //          setLoadingError("বোর্ডের শাখা লিস্ট পাওয়া যায়নি! কিছুক্ষণ পর আবার চেষ্টা করুন।");
@@ -393,7 +391,7 @@ const UserAdd = () => {
       //    if (userData.en_section) {
       //       setLoadingData("বোর্ডের পদবী লিস্ট খুঁজা হচ্ছে...");
       //       try {
-      //          const response = await axios.post(`${BACKEND_URL}/section-list/designation?`, { en_section: userData.en_section });
+      //          const response = await axiosApi.post(`/section-list/designation`, { en_section: userData.en_section });
       //          setBoardDesignations(response.data);
       //       } catch (err) {
       //          setLoadingError("বোর্ডের পদবী লিস্ট পাওয়া যায়নি! কিছুক্ষণ পর আবার চেষ্টা করুন।");
@@ -422,13 +420,8 @@ const UserAdd = () => {
       }
    }, [boardDesignations]); // eslint-disable-line react-hooks/exhaustive-deps
 
-   // Return if no session
-   if (!ceb_session) {
-      return null;
-   }
-
    // Return if Search is Valid
-   if (ceb_session.ceb_user_role === '17') return (
+   if (permissionData.role === '17') return (
       <Fragment>
          <Row>
             <Col md={12}>

@@ -3,32 +3,31 @@ import { Row, Col, Form, Button, Modal, Image } from 'react-bootstrap'
 import { useNavigate } from 'react-router-dom'
 import Card from '../../../components/Card'
 
-import { PDFDocument, StandardFonts, rgb } from 'pdf-lib'
-
-import axios from "axios";
-
 import styles from '../../../assets/custom/css/bisec.module.css'
 
 import error01 from '../../../assets/images/error/01.png'
 
 import EstbAppPrint from './print/estab_app_print.jsx'
 
+import { useAuthProvider } from "../../../context/AuthContext.jsx";
+import axiosApi from "../../../lib/axiosApi.jsx";
+
 const InstEstablishmentReject = () => {
-   // enable axios credentials include
-   axios.defaults.withCredentials = true;
-
-   const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
-
+   const { permissionData, loading } = useAuthProvider();
    const navigate = useNavigate();
 
+   /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
    useEffect(() => {
-      if (!ceb_session?.ceb_user_id) {
-         navigate("/auth/sign-out");
+      let mounted = true;
+      (async () => {
+         if (!(((permissionData?.office === '04' || permissionData?.office === '05') && (permissionData?.role === '13' || permissionData?.role === '14' || permissionData?.role === '15')) || permissionData?.role === '16' || permissionData?.role === '17' || permissionData?.role === '18')) {
+            navigate('/errors/error404', { replace: true });
+         }
+      })();
+      return () => { mounted = false; };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [permissionData, loading]); // run only once on mount
 
-      }
-   }, []);// eslint-disable-line react-hooks/exhaustive-deps
-
-   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
    const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL;
 
    const [activeAppDetails, setActiveAppDetails] = useState([]);
@@ -74,8 +73,8 @@ const InstEstablishmentReject = () => {
 
       const promises = fields.map(async (field) => {
          try {
-            const res = await axios.post(
-               `${BACKEND_URL}/institute/establishment/fetch_files`,
+            const res = await axiosApi.post(
+               `/institute/establishment/fetch_files`,
                { inst_mobile: item.inst_mobile, inst_status: item.inst_status, file_name: field },
                { responseType: 'blob' }
             );
@@ -142,7 +141,7 @@ const InstEstablishmentReject = () => {
    const fetchDataList = async () => {
       setLoadingProgress("আবেদনের তথ্য খুঁজা হচ্ছে...! অপেক্ষা করুন।");
       try {
-         const st_list = await axios.post(`${BACKEND_URL}/institute/establishment/list`, { app_status: '18' });
+         const st_list = await axiosApi.post(`/institute/establishment/list`, { app_status: '18' });
          if (st_list.data.data.length !== 0) {
             setDataList(st_list.data.data);
             setLoadingSuccess(true);
@@ -201,11 +200,7 @@ const InstEstablishmentReject = () => {
       setDetailsShow(true);
    };
 
-   if (!ceb_session) {
-      return null;
-   }
-
-   if ((ceb_session.ceb_user_office === "04" || ceb_session.ceb_user_office === "05" || ceb_session.ceb_user_role === "16" || ceb_session.ceb_user_role === "17") && loadingSuccess) return (
+   if ((permissionData.office === "04" || permissionData.office === "05" || permissionData.role === "16" || permissionData.role === "17") && loadingSuccess) return (
       <>
          <div>
             <Row>
@@ -373,7 +368,7 @@ const InstEstablishmentReject = () => {
       </>
    )
 
-   if (ceb_session.ceb_user_office === "04" || ceb_session.ceb_user_office === "05" || ceb_session.ceb_user_role === "16" || ceb_session.ceb_user_role === "17") return (
+   if (permissionData.office === "04" || permissionData.office === "05" || permissionData.role === "16" || permissionData.role === "17") return (
       <>
          <div>
             <Row className='d-flex justify-content-center align-items-center'>

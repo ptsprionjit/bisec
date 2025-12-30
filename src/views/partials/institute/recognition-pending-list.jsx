@@ -3,8 +3,6 @@ import { Row, Col, Form, Button, Modal, Image } from 'react-bootstrap'
 import { useNavigate } from 'react-router-dom'
 import Card from '../../../components/Card'
 
-import axios from "axios";
-
 import styles from '../../../assets/custom/css/bisec.module.css'
 
 import * as ValidationInput from '../input_validation'
@@ -13,21 +11,25 @@ import error01 from '../../../assets/images/error/01.png'
 
 import RecognitionPrint from './print/recog_app_print'
 
+import { useAuthProvider } from "../../../context/AuthContext.jsx";
+import axiosApi from "../../../lib/axiosApi.jsx";
+
 const InstRecognitionTemp = () => {
-    // enable axios credentials include
-    axios.defaults.withCredentials = true;
-
-    const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
-
+    const { permissionData, loading } = useAuthProvider();
     const navigate = useNavigate();
 
+    /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
     useEffect(() => {
-        if (!ceb_session?.ceb_user_id) {
-            navigate("/auth/sign-out");
-        }
-    }, []);// eslint-disable-line react-hooks/exhaustive-deps
+        let mounted = true;
+        (async () => {
+            if (!(((permissionData?.office === '04' || permissionData?.office === '05') && (permissionData?.role === '13' || permissionData?.role === '14' || permissionData?.role === '15')) || permissionData?.role === '16' || permissionData?.role === '17' || permissionData?.role === '18')) {
+                navigate('/errors/error404', { replace: true });
+            }
+        })();
+        return () => { mounted = false; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [permissionData, loading]); // run only once on mount
 
-    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
     const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL;
 
     const [activeAppDetails, setActiveAppDetails] = useState([]);
@@ -97,8 +99,8 @@ const InstRecognitionTemp = () => {
 
         const promises = fields.map(async (field) => {
             try {
-                const res = await axios.post(
-                    `${BACKEND_URL}/institute/recognition/fetch_files`,
+                const res = await axiosApi.post(
+                    `/institute/recognition/fetch_files`,
                     { inst_eiin: appData.inst_eiin, recog_inst_status: appData.recog_inst_status, count_applicaton: appData.count_applicaton, file_name: field },
                     { responseType: 'blob' }
                 );
@@ -164,7 +166,7 @@ const InstRecognitionTemp = () => {
     const fetchDataList = async () => {
         setLoadingProgress("আবেদনের তথ্য খুঁজা হচ্ছে...! অপেক্ষা করুন।");
         try {
-            const response = await axios.post(`${BACKEND_URL}/institute/recognition/list`, { app_status: '13' });
+            const response = await axiosApi.post(`/institute/recognition/list`, { app_status: '13' });
             if (response.data.data.length !== 0) {
                 setDataList(response.data.data);
                 setLoadingSuccess(true);
@@ -192,7 +194,7 @@ const InstRecognitionTemp = () => {
     const fetchEmployeeList = async () => {
         setLoadingProgress("কর্মকর্তাদের তথ্য খুঁজা হচ্ছে...! অপেক্ষা করুন।");
         try {
-            const response = await axios.post(`${BACKEND_URL}/employee/employee_list`, {});
+            const response = await axiosApi.post(`/employee/employee_list`, {});
             if (response.status === 200) {
                 setEmployeeData(response.data.data);
             }
@@ -352,7 +354,7 @@ const InstRecognitionTemp = () => {
             setModifyError(false);
 
             try {
-                const response = await axios.post(`${BACKEND_URL}/institute/recognition/app_forward`, { id_invoice: app_data.id_invoice, institute_message: userData.institute_message });
+                const response = await axiosApi.post(`/institute/recognition/app_forward`, { id_invoice: app_data.id_invoice, institute_message: userData.institute_message });
                 if (response.status === 200) {
                     setDataList(((prevData) => prevData.filter((item) => item.id_invoice !== app_data.id_invoice)));
                     setModifySuccess(response.data.message);
@@ -417,7 +419,7 @@ const InstRecognitionTemp = () => {
             setLoadingError(false);
 
             try {
-                await axios.post(`${BACKEND_URL}/institute/recognition/app_reject`, { id_invoice: app_data.id_invoice, institute_message: userData.institute_message });
+                await axiosApi.post(`/institute/recognition/app_reject`, { id_invoice: app_data.id_invoice, institute_message: userData.institute_message });
                 setDataList(((prevData) => prevData.filter((item) => item.id_invoice !== app_data.id_invoice)));
                 setModifySuccess("আবেদন বাতিল সফল হয়েছে!");
             } catch (err) {
@@ -476,7 +478,7 @@ const InstRecognitionTemp = () => {
             setModifyError(false);
 
             try {
-                const response = await axios.post(`${BACKEND_URL}/institute/recognition/app_sendback`, { id_invoice: app_data.id_invoice, institute_message: userData.institute_message });
+                const response = await axiosApi.post(`/institute/recognition/app_sendback`, { id_invoice: app_data.id_invoice, institute_message: userData.institute_message });
                 if (response.status === 200) {
                     setDataList(((prevData) => prevData.filter((item) => item.id_invoice !== app_data.id_invoice)));
                     setModifySuccess(response.data.message);
@@ -501,7 +503,7 @@ const InstRecognitionTemp = () => {
 
     const sendEmail = async () => {
         try {
-            const response = await axios.post(`${BACKEND_URL}/email/send/inquiry`, { emailData: userData });
+            const response = await axiosApi.post(`/email/send/inquiry`, { emailData: userData });
             if (response.status === 200) {
                 alert(response.data.message);
             }
@@ -587,7 +589,7 @@ const InstRecognitionTemp = () => {
             setModifySuccess(false);
             setModifyError(false);
             try {
-                const response = await axios.post(`${BACKEND_URL}/institute/recognition/app_inquiry`, { userData: userData });
+                const response = await axiosApi.post(`/institute/recognition/app_inquiry`, { userData: userData });
                 if (response.status === 200) {
                     setDataList(((prevData) => prevData.filter((item) => item.id_invoice !== app_data.id_invoice)));
                     setModifySuccess(response.data.message);
@@ -704,11 +706,7 @@ const InstRecognitionTemp = () => {
         setUserDataError(prev => ({ ...prev, [dataName]: '' }));
     }
 
-    if (!ceb_session?.ceb_user_id) {
-        return null;
-    }
-
-    if ((ceb_session.ceb_user_office === "04" || ceb_session.ceb_user_office === "05" || ceb_session.ceb_user_role === "16" || ceb_session.ceb_user_role === "17") && loadingSuccess) return (
+    if ((permissionData.office === "04" || permissionData.office === "05" || permissionData.role === "16" || permissionData.role === "17") && loadingSuccess) return (
         <Fragment>
             <Row>
                 <Col sm="12">
@@ -815,12 +813,12 @@ const InstRecognitionTemp = () => {
                                                         </td>
                                                         <td>
                                                             <div className="d-flex justify-content-center align-items-center flex-wrap gap-3">
-                                                                {item.proc_status === ceb_session.ceb_user_role && <Button className='m-0 p-1' type="button" onClick={() => handleForwardClick(item)} variant="btn btn-success" data-toggle="tooltip" data-placement="top" title="অনুমোদন" data-original-title="অনুমোদন">
+                                                                {item.proc_status === permissionData.role && <Button className='m-0 p-1' type="button" onClick={() => handleForwardClick(item)} variant="btn btn-success" data-toggle="tooltip" data-placement="top" title="অনুমোদন" data-original-title="অনুমোদন">
                                                                     <span className="btn-inner">
                                                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-square-check"><rect width="18" height="18" x="3" y="3" rx="2" /><path d="m9 12 2 2 4-4" /></svg>
                                                                     </span>
                                                                 </Button>}
-                                                                {Number(ceb_session.ceb_user_role) >= 16 && <Button className='m-0 p-1' type="button" onClick={() => handleInqueryClick(item)} variant="btn btn-info" data-toggle="tooltip" data-placement="top" title="তদন্তের জন্য প্রেরণ" data-original-title="তদন্তের জন্য প্রেরণ">
+                                                                {Number(permissionData.role) >= 16 && <Button className='m-0 p-1' type="button" onClick={() => handleInqueryClick(item)} variant="btn btn-info" data-toggle="tooltip" data-placement="top" title="তদন্তের জন্য প্রেরণ" data-original-title="তদন্তের জন্য প্রেরণ">
                                                                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-calendar-search-icon lucide-calendar-search"><path d="M16 2v4" /><path d="M21 11.75V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7.25" /><path d="m22 22-1.875-1.875" /><path d="M3 10h18" /><path d="M8 2v4" /><circle cx="18" cy="18" r="3" /></svg>
                                                                 </Button>}
                                                                 <Button className='m-0 p-1' type="button" onClick={() => handleDetailsClick(item)} variant="btn btn-secondary" data-toggle="tooltip" data-placement="top" title="বিস্তারিত" data-original-title="বিস্তারিত">
@@ -828,12 +826,12 @@ const InstRecognitionTemp = () => {
                                                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-scan-eye"><path d="M3 7V5a2 2 0 0 1 2-2h2" /><path d="M17 3h2a2 2 0 0 1 2 2v2" /><path d="M21 17v2a2 2 0 0 1-2 2h-2" /><path d="M7 21H5a2 2 0 0 1-2-2v-2" /><circle cx="12" cy="12" r="1" /><path d="M18.944 12.33a1 1 0 0 0 0-.66 7.5 7.5 0 0 0-13.888 0 1 1 0 0 0 0 .66 7.5 7.5 0 0 0 13.888 0" /></svg>
                                                                     </span>
                                                                 </Button>
-                                                                {item.proc_status === ceb_session.ceb_user_role && <Button className='m-0 p-1' type="button" onClick={() => handleSendBackClick(item)} variant="btn btn-warning" data-toggle="tooltip" data-placement="top" title="ফের‌ৎ পাঠানো" data-original-title="ফেরৎ পাঠানো">
+                                                                {item.proc_status === permissionData.role && <Button className='m-0 p-1' type="button" onClick={() => handleSendBackClick(item)} variant="btn btn-warning" data-toggle="tooltip" data-placement="top" title="ফের‌ৎ পাঠানো" data-original-title="ফেরৎ পাঠানো">
                                                                     <span className="btn-inner">
                                                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeধinecap="round" strokeধinejoin="round" className="lucide lucide-undo2-icon lucide-undo-2"><path d="M9 14 4 9l5-5" /><path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5a5.5 5.5 0 0 1-5.5 5.5H11" /></svg>
                                                                     </span>
                                                                 </Button>}
-                                                                {item.proc_status === ceb_session.ceb_user_role && Number(ceb_session.ceb_user_role) >= 16 && <Button className='m-0 p-1' type="button" onClick={() => handleRejectClick(item)} variant="btn btn-danger" data-toggle="tooltip" data-placement="top" title="বাতিল" data-original-title="বাতিল">
+                                                                {item.proc_status === permissionData.role && Number(permissionData.role) >= 16 && <Button className='m-0 p-1' type="button" onClick={() => handleRejectClick(item)} variant="btn btn-danger" data-toggle="tooltip" data-placement="top" title="বাতিল" data-original-title="বাতিল">
                                                                     <span className="btn-inner">
                                                                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-square-x"><rect width="18" height="18" x="3" y="3" rx="2" ry="2" /><path d="m15 9-6 6" /><path d="m9 9 6 6" /></svg>
                                                                     </span>
@@ -896,7 +894,7 @@ const InstRecognitionTemp = () => {
                 >
                     <Modal.Header closeButton>
                         <Modal.Title className={styles.SiyamRupaliFont + ' text-center'}>
-                            <h4 className={styles.SiyamRupaliFont + ' text-center'}>আবেদন {ceb_session.ceb_user_role !== '16' ? 'পরবর্তী ব্যবহারকারীর নিকট প্রেরণ' : 'অনুমোদন'} করতে চান?</h4>
+                            <h4 className={styles.SiyamRupaliFont + ' text-center'}>আবেদন {permissionData.role !== '16' ? 'পরবর্তী ব্যবহারকারীর নিকট প্রেরণ' : 'অনুমোদন'} করতে চান?</h4>
                             {modifyError && <h6 className={styles.SiyamRupaliFont + " text-center text-danger flex-fill py-2"}>{modifyError}</h6>}
                             {modifySuccess && <h6 className={styles.SiyamRupaliFont + " text-center text-success flex-fill py-2"}>{modifySuccess}</h6>}
                             {modifyProcess && <h6 className={styles.SiyamRupaliFont + " text-center text-primary flex-fill py-2"}>{modifyProcess}</h6>}
@@ -921,12 +919,12 @@ const InstRecognitionTemp = () => {
                                         data-style="py-0"
                                     >
                                         <option value='' disabled>-- মন্তব্য সিলেক্ট করুন --</option>
-                                        {(ceb_session.ceb_user_role !== '16' || ceb_session.ceb_user_role === '17') && <>
+                                        {(permissionData.role !== '16' || permissionData.role === '17') && <>
                                             <option>প্রতিষ্ঠানের আবেদনের প্রেক্ষিতে এবং আবেদনের প্রাথমিক তথ্য যাচাইয়ের পর সন্তোষজনক বলে প্রতিয়মান হয়েছে। আবেদনটি অনুমোদনের জন্য উত্থাপন করা হলো।</option>
                                             <option>প্রতিষ্ঠানের আবেদনের প্রেক্ষিতে এবং আবেদনের প্রাথমিক তথ্য যাচাইয়ের পর সন্তোষজনক বলে প্রতিয়মান হয়েছে। আবেদনটি তদন্তের জন্য উত্থাপন করা হলো।</option>
                                             <option>প্রতিষ্ঠানের আবেদনের প্রেক্ষিতে এবং আবেদনের প্রাথমিক তথ্য যাচাইয়ের পর সন্তোষজনক বলে প্রতিয়মান হয়নি বিধায় আবেদনটি বাতিলের জন্য উত্থাপন করা হলো।</option>
                                         </>}
-                                        {(ceb_session.ceb_user_role === '16' || ceb_session.ceb_user_role === '16') && <>
+                                        {(permissionData.role === '16' || permissionData.role === '16') && <>
                                             <option>প্রতিষ্ঠানের আবেদনের প্রেক্ষিতে এবং আবেদনের প্রাথমিক তথ্য যাচাইয়ের পর সন্তোষজনক তদন্ত প্রতিবেদনের সাপেক্ষে স্থাপনের আবেদনটি সন্তোষজনক বলে প্রতিয়মান হয়েছে। অনুমোদন কমিটির সভায় সর্বসম্মতিক্রমে আবেদনটি গৃহীত হওয়ায় চূড়ান্ত অনুমোদন প্রদান করা হলো</option>
                                         </>}
                                         <option value='_'>অন্যান্য (বক্সে লিখুন)!</option>
@@ -1270,7 +1268,7 @@ const InstRecognitionTemp = () => {
         </Fragment >
     )
 
-    if (ceb_session.ceb_user_office === "04" || ceb_session.ceb_user_office === "05" || ceb_session.ceb_user_role === "16" || ceb_session.ceb_user_role === "17") return (
+    if (permissionData.office === "04" || permissionData.office === "05" || permissionData.role === "16" || permissionData.role === "17") return (
         <Fragment>
             <Row className='d-flex justify-content-center align-items-center'>
                 <Col md="12">

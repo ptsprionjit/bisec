@@ -1,21 +1,11 @@
 import React, { Fragment, useEffect, useState, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
-// import { useSelector } from "react-redux"
-
-// import { Document, Page } from 'react-pdf';
-// import { Modal, Row, Col, Button, Form } from 'react-bootstrap'
 import { Row, Col, Button } from 'react-bootstrap'
 import Card from '../../../components/Card'
 
 import * as ValidationInput from '../input_validation'
 
-import axios from 'axios';
-
 import styles from '../../../assets/custom/css/bisec.module.css'
-
-// import cb_logo from '../../../assets/images/board/cb_logo.jpg'
-// import Logo from '../../../components/partials/components/logo'
-// import * as SettingSelector from '../../../store/setting/selectors.ts'
 
 import { DEFAULT_RECOG_DATA, DEFAULT_RECOG_FILES, RECOG_FILE_PAGES } from './data/default_data.jsx';
 
@@ -24,22 +14,26 @@ import { recognitionAppEvalReg, recognitionAppEvalExm } from './validation/recog
 import RecognitionApp from './application/recog_app';
 import RecognitionPrint from './print/recog_app_print';
 
+import { useAuthProvider } from "../../../context/AuthContext.jsx";
+import axiosApi from "../../../lib/axiosApi.jsx";
+
 const InstRecognitionNew = () => {
-    // enable axios credentials include
-    axios.defaults.withCredentials = true;
-
-    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-    const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL;
-
-    const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
-
+    const { permissionData, loading } = useAuthProvider();
     const navigate = useNavigate();
 
+    const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL;
+
+    /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
     useEffect(() => {
-        if (!ceb_session?.ceb_user_id) {
-            navigate("/auth/sign-out");
-        }
-    }, []);// eslint-disable-line react-hooks/exhaustive-deps
+        let mounted = true;
+        (async () => {
+            if (!(permissionData?.type === '13' || permissionData?.role === '17' || permissionData?.role === '18')) {
+                navigate('/errors/error404', { replace: true });
+            }
+        })();
+        return () => { mounted = false; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [permissionData, loading]); // run only once on mount
 
     // Modal Variales
     const [modalError, setModalError] = useState(false);
@@ -144,8 +138,8 @@ const InstRecognitionNew = () => {
 
         const promises = fields.map(async (field) => {
             try {
-                const res = await axios.post(
-                    `${BACKEND_URL}/institute/recognition/fetch_files`,
+                const res = await axiosApi.post(
+                    `/institute/recognition/fetch_files`,
                     { inst_eiin: appData.inst_eiin, recog_inst_status: appData.recog_inst_status, count_applicaton: appData.count_applicaton, file_name: field },
                     { responseType: 'blob' }
                 );
@@ -182,7 +176,7 @@ const InstRecognitionNew = () => {
         setUpdateStatus({ loading: false, success: false, error: false });
 
         try {
-            const user_data = await axios.post(`${BACKEND_URL}/institute/recognition/application_details`);
+            const user_data = await axiosApi.post(`/institute/recognition/application_details`);
             if (user_data.status === 200) {
                 setFetchStatus({ loading: false, success: user_data.data.message, error: false });
                 setUserData({ ...userData, ...user_data.data.recData, ...user_data.data.instData, ...user_data.data.prevRefData, ...user_data.data.lastRefData });
@@ -618,11 +612,11 @@ const InstRecognitionNew = () => {
                 try {
                     const user_data =
                         userData.id_application ?
-                            await axios.post(`${BACKEND_URL}/institute/recognition/update_application`, formData, {
+                            await axiosApi.post(`/institute/recognition/update_application`, formData, {
                                 headers: { 'Content-Type': 'multipart/form-data' },
                             })
                             :
-                            await axios.post(`${BACKEND_URL}/institute/recognition/new_application`, formData, {
+                            await axiosApi.post(`/institute/recognition/new_application`, formData, {
                                 headers: { 'Content-Type': 'multipart/form-data' },
                             });
                     if (user_data.status === 200) {
@@ -667,7 +661,7 @@ const InstRecognitionNew = () => {
         // Call Payment API
         try {
             const myData = { id_application: userData.id_application, id_invoice: userData.id_invoice, recog_inst_status: userData.recog_inst_status, count_applicaton: userData.count_applicaton };
-            const user_data = await axios.post(`${BACKEND_URL}/institute/recognition/payment`, { userData: myData });
+            const user_data = await axiosApi.post(`/institute/recognition/payment`, { userData: myData });
             if (user_data.status === 200) {
                 setFetchStatus({ loading: false, success: user_data.data.message, error: false });
                 window.location.href = user_data.data.data.RedirectToGateway;
@@ -683,11 +677,6 @@ const InstRecognitionNew = () => {
             setFetchStatus((prev) => ({ ...prev, loading: false }));
         }
     };
-
-    if (!ceb_session?.ceb_user_id) return (
-        <>
-        </>
-    )
 
     if (navigateRecognitionApp) return (
         <RecognitionApp

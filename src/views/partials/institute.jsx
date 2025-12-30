@@ -2,8 +2,12 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { Row, Col, Dropdown, Button, Card } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+
+// import axios from "axios";
+import axiosApi from "../../lib/axiosApi.jsx";
+
 import { differenceInDays } from "date-fns";
+import { FadeLoader } from "react-spinners";
 
 // components
 import Circularprogressbar from "../../components/circularprogressbar";
@@ -29,16 +33,16 @@ import * as InputValidation from './input_validation.js';
 SwiperCore.use([Navigation]);
 
 // Set axios defaults once
-axios.defaults.withCredentials = true;
+// axios.defaults.withCredentials = true;
+
+import { useAuthProvider } from "../../context/AuthContext.jsx";
 
 const IndexInstitute = React.memo(() => {
+  const { permissionData, loading } = useAuthProvider();
   const navigate = useNavigate();
-  const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-  const ceb_session = useMemo(() => {
-    try { return JSON.parse(window.localStorage.getItem("ceb_session")); } catch { return null; }
-  }, []);
-  const storedDash = useMemo(() => {
-    try { return JSON.parse(window.localStorage.getItem("dash_data")); } catch { return null; }
+
+  const dashBoardData = useMemo(() => {
+    try { return JSON.parse(window.sessionStorage.getItem("dashBoardData")); } catch { return null; }
   }, []);
 
   /* State */
@@ -68,17 +72,26 @@ const IndexInstitute = React.memo(() => {
   // access theme selector to keep behaviour consistent (this prevents unused-lint)
   useSelector(SettingSelector.theme_color);
 
-  /* Guard & redirect early */
+  // CHeck Permission & Fetch Data
   useEffect(() => {
-    if (!ceb_session?.ceb_user_id) {
-      navigate("/auth/sign-out");
+    if (loading) {
       return;
+    } else if (!permissionData) {
+      navigate("/auth/sign-out", { replace: true });
+    } else {
+      if (!(permissionData.type === '13' || permissionData.role === '17')) {
+        navigate("/dashboard", { replace: true });
+      } else {
+        fetchProfileData();
+        // Chesk If Data is Present
+        if (!dashBoardData?.regData || !dashBoardData?.exmData || !dashBoardData?.usrData || !dashBoardData?.accData || !dashBoardData?.dateData || !dashBoardData?.noticeData) {
+          getData();
+        } else {
+          setData();
+        }
+      }
     }
-    if (ceb_session?.ceb_user_id && ceb_session?.ceb_user_type !== "13" && ceb_session?.ceb_user_role !== "17") {
-      navigate("/dashboard");
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // run once on mount
+  }, [permissionData, loading, dashBoardData]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* Get CSS variable colors once */
   const variableColors = useMemo(() => {
@@ -140,11 +153,7 @@ const IndexInstitute = React.memo(() => {
     const results = await Promise.all(
       noticeList.map(async (item) => {
         try {
-          const res = await axios.post(
-            `${BACKEND_URL}/board/notice/fetch_files`,
-            { id_notice: item.id_notice, file_notice: item.file_notice },
-            { responseType: 'blob' }
-          );
+          const res = await axiosApi.post(`/board/notice/fetch_files`, { id_notice: item.id_notice, file_notice: item.file_notice }, { responseType: 'blob' });
           if (res.status === 200) {
             const file = new File([res.data], `${item.file_notice}.pdf`, { type: 'application/pdf' });
             return [item.file_notice, file];
@@ -157,22 +166,22 @@ const IndexInstitute = React.memo(() => {
     );
     const map = Object.fromEntries(results);
     setFilesMap(map);
-  }, [BACKEND_URL, navigate]);
+  }, [navigate]);
 
   /* API: fetch profile */
   const fetchProfileData = useCallback(async () => {
     try {
-      const res = await axios.post(`${BACKEND_URL}/user/details`);
+      const res = await axiosApi.post(`/user/details`);
       if (res?.status === 200) setProfileData(res.data.data || {});
     } catch (err) {
       if (err?.status === 401) navigate("/auth/sign-out");
     }
-  }, [BACKEND_URL, navigate]);
+  }, [navigate]);
 
   /* API: fetch dashboard data and aggregate */
-  const getDataFromBackend = useCallback(async () => {
+  const getData = useCallback(async () => {
     try {
-      const res = await axios.post(`${BACKEND_URL}/dashboard/institute`, {});
+      const res = await axiosApi.post(`/dashboard/institute`, {});
       if (res?.status === 200) {
         const response = res.data || {};
         const reg = aggregateCounts(response.activeRegResult || {});
@@ -185,7 +194,7 @@ const IndexInstitute = React.memo(() => {
         await fetchFiles(response.noticeResult || []);
         // persist for future loads
         try {
-          window.localStorage.setItem("dash_data", JSON.stringify({
+          window.sessionStorage.setItem("dashBoardData", JSON.stringify({
             regData: reg, exmData: exm, dateData: response.dateResult || [], noticeData: response.noticeResult || []
           }));
         } catch (e) { /* ignore localStorage write errors */ }
@@ -194,14 +203,11 @@ const IndexInstitute = React.memo(() => {
       }
     } catch (err) {
       if (err?.status === 401) navigate("/auth/sign-out");
-      if (err?.status === 403) {
-        navigate("/auth/sign-out");
-      }
     } finally {
       setLoadingData(false);
     }
     return false;
-  }, [BACKEND_URL, aggregateCounts, fetchFiles, navigate]);
+  }, [aggregateCounts, fetchFiles, navigate]);
 
   /* Build charts (memoized / only runs when dependencies change) */
   const buildCharts = useCallback(() => {
@@ -330,20 +336,53 @@ const IndexInstitute = React.memo(() => {
 
     setChart3({
       options: {
-        chart: { stacked: true, toolbar: { show: true } },
-        colors,
-        plotOptions: { bar: { horizontal: false, columnWidth: "28%", endingShape: "rounded", borderRadius: 5 } },
-        legend: { show: false },
-        dataLabels: { enabled: false },
-        stroke: { show: true, width: 2, colors: ["transparent"] },
-        xaxis: { categories: dataTitleReg, labels: { minHeight: 20, maxHeight: 20, style: { colors: "#8A92A6" }, offsetY: -2 } },
-        yaxis: { title: { text: "" }, labels: { minWidth: 19, maxWidth: 19, style: { colors: "#8A92A6" }, offsetX: 20 } },
-        fill: { opacity: 1 },
-        tooltip: { y: { formatter: (val) => `${val} জন` } },
+        chart: {
+          type: 'bar',
+          height: 350
+        },
+        plotOptions: {
+          bar: {
+            horizontal: false,
+            columnWidth: '25%',
+            borderRadius: 5,
+            borderRadiusApplication: 'end'
+          },
+        },
+        dataLabels: {
+          enabled: false
+        },
+        stroke: {
+          show: true,
+          width: 1,
+          colors: ['transparent']
+        },
+        xaxis: {
+          categories: dataTitleReg,
+        },
+        yaxis: {
+          title: {
+            text: ''
+          }
+        },
+        fill: {
+          opacity: 1
+        },
+        tooltip: {
+          y: {
+            formatter: function (val) {
+              return val + " জন";
+            },
+          }
+        }
       },
       series: [
-        { name: "নিবন্ধিত শিক্ষার্থী", data: dataValueReg },
-        { name: "নিবন্ধিত পরীক্ষার্থী", data: dataValueExm },
+        {
+          name: "নিবন্ধিত শিক্ষার্থী",
+          data: dataValueReg,
+        }, {
+          name: "নিবন্ধিত পরীক্ষার্থী",
+          data: dataValueExm,
+        },
       ],
     });
   }, [chartData1, chartData2, regData, exmData, colors]);
@@ -353,29 +392,42 @@ const IndexInstitute = React.memo(() => {
     buildCharts();
   }, [buildCharts, filesMap, chartData1, chartData2]);
 
-  /* On mount: fetch profile & dashboard (use stored dash_data when possible) */
+  /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
   useEffect(() => {
     let mounted = true;
     (async () => {
-      // fetch profile immediately (no need to wait)
-      if (ceb_session?.ceb_user_id) fetchProfileData();
-
-      if (ceb_session?.ceb_user_id && storedDash?.regData && storedDash?.exmData && storedDash?.dateData && storedDash?.noticeData) {
-        if (!mounted) return;
-        setRegData(storedDash.regData || {});
-        setExmData(storedDash.exmData || {});
-        setDateData(storedDash.dateData || []);
-        setNoticeData(storedDash.noticeData || []);
-        await fetchFiles(storedDash.noticeData || []);
-        setLoadingData(false);
-        buildCharts();
+      if (loading) {
+        return;
+      } else if (!permissionData) {
+        navigate("/auth/sign-out", { replace: true });
       } else {
-        if (ceb_session?.ceb_user_id) await getDataFromBackend();
+        if (!(permissionData.type === '13' || permissionData.role === '17')) {
+          navigate("/dashboard", { replace: true });
+        } else {
+          fetchProfileData();
+          // Chesk If Data is Present
+          if (!dashBoardData?.regData || !dashBoardData?.exmData || !dashBoardData?.usrData || !dashBoardData?.accData || !dashBoardData?.dateData || !dashBoardData?.noticeData) {
+            getData();
+          } else {
+            setData();
+          }
+        }
       }
     })();
     return () => { mounted = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // run only once on mount
+  }, [permissionData, loading, dashBoardData]); // run only once on mount
+
+  // Set Dashboard Data
+  const setData = async () => {
+    setRegData(dashBoardData.regData);
+    setExmData(dashBoardData.exmData);
+    setDateData(dashBoardData.dateData);
+    setNoticeData(dashBoardData.noticeData);
+    buildCharts();
+    await fetchFiles(dashBoardData.noticeData);
+    setLoadingData(false);
+  };
 
   /* File view */
   const handleFileView = useCallback((field) => {
@@ -388,11 +440,6 @@ const IndexInstitute = React.memo(() => {
     }
   }, [filesMap]);
 
-  /* If not authorized — render nothing (same as original) */
-  if (!(ceb_session?.ceb_user_id || ceb_session?.ceb_user_type === '13' || ceb_session?.ceb_user_role === '17')) {
-    return null;
-  }
-
   if (loadingData) {
     return (
       <Row data-aos="fade-up" data-aos-delay="100">
@@ -403,7 +450,16 @@ const IndexInstitute = React.memo(() => {
             </Card.Body>
           </Card>
         </Col>
-        <Col md={12} className={styles.dashboard_loader + " mt-5"}></Col>
+        {/* <Col md={12} className={styles.dashboard_loader + " mt-5"}></Col> */}
+        <Col md={12} className="d-flex justify-content-center align-items-center mt-5">
+          <FadeLoader
+            color="#000000"
+            loading={true}
+            radius={15}
+            width={5}
+            height={20}
+          />
+        </Col>
       </Row>
     );
   }
@@ -736,7 +792,7 @@ const IndexInstitute = React.memo(() => {
                   <div className="d-flex justify-content-between align-items-center">
                     <div>
                       <h5 className="font-weight-bold">ACCOUNT DETAILS</h5>
-                      <p className="mb-0">{ceb_session.ceb_user_type === '13' ? 'INSTITUTIONAL ACCOUNT' : 'PERSONAL ACCOUNT'}</p>
+                      <p className="mb-0">{permissionData.type === '13' ? 'INSTITUTIONAL ACCOUNT' : 'PERSONAL ACCOUNT'}</p>
                     </div>
                     <div className="master-card-content">
                       <svg className="master-card-1" width="60" height="60" viewBox="0 0 24 24"><path fill="#ffffff" d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z" /></svg>

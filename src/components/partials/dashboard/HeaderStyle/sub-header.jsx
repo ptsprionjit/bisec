@@ -1,5 +1,6 @@
-import React, { memo, Fragment } from 'react'
-// import { Row,Col,Container} from 'react-bootstrap'
+import React, { memo, Fragment, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Row, Col } from 'react-bootstrap'
 
 //img
 import topHeader from '../../../../assets/images/dashboard/top-header.png'
@@ -8,14 +9,42 @@ import topHeader2 from '../../../../assets/images/dashboard/top-header2.png'
 import topHeader3 from '../../../../assets/images/dashboard/top-header3.png'
 import topHeader4 from '../../../../assets/images/dashboard/top-header4.png'
 import topHeader5 from '../../../../assets/images/dashboard/top-header5.png'
-
+import { useAuthProvider } from '../../../../context/AuthContext'
+import { FadeLoader } from "react-spinners";
 
 const SubHeader = memo((props) => {
-    const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
+    const { permissionData, loading } = useAuthProvider();
+    const navigate = useNavigate();
 
-    if (!ceb_session) return null;
+    useEffect(() => {
+        if (loading) {
+            return;
+        }
 
-    if (ceb_session) return (
+        if (!permissionData) {
+            navigate("/auth/sign-out", { replace: true });
+        }
+    }, [permissionData, loading]);// eslint-disable-line react-hooks/exhaustive-deps
+
+    if (loading) {
+        return (
+            <Fragment>
+                <Row data-aos="fade-up" data-aos-delay="100" className=' m-0 p-0'>
+                    <Col md={12} className="vw-100 vh-100 d-flex justify-content-center align-items-center">
+                        <FadeLoader
+                            color="#000000"
+                            loading={true}
+                            radius={15}
+                            width={5}
+                            height={20}
+                        />
+                    </Col>
+                </Row>
+            </Fragment>
+        );
+    }
+
+    return (
         <Fragment>
             <div className="iq-navbar-header" style={{ height: "150px" }}>
                 {/* <Container fluid className=" iq-container">

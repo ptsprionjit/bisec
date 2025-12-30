@@ -3,30 +3,31 @@ import { Row, Col, Form, Button, Modal, Image } from 'react-bootstrap'
 import { useNavigate } from 'react-router-dom'
 import Card from '../../../components/Card'
 
-import axios from "axios";
-
 import styles from '../../../assets/custom/css/bisec.module.css'
 
 import error01 from '../../../assets/images/error/01.png'
 
 import RecognitionPrint from './print/recog_app_print'
 
+import { useAuthProvider } from "../../../context/AuthContext.jsx";
+import axiosApi from "../../../lib/axiosApi.jsx";
+
 const InstRecognitionReject = () => {
-    // enable axios credentials include
-    axios.defaults.withCredentials = true;
-
-    const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
-
+    const { permissionData, loading } = useAuthProvider();
     const navigate = useNavigate();
 
+    /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
     useEffect(() => {
-        if (!ceb_session?.ceb_user_id) {
-            navigate("/auth/sign-out");
+        let mounted = true;
+        (async () => {
+            if (!(((permissionData?.office === '04' || permissionData?.office === '05') && (permissionData?.role === '13' || permissionData?.role === '14' || permissionData?.role === '15')) || permissionData?.role === '16' || permissionData?.role === '17' || permissionData?.role === '18')) {
+                navigate('/errors/error404', { replace: true });
+            }
+        })();
+        return () => { mounted = false; };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [permissionData, loading]); // run only once on mount
 
-        }
-    }, []);// eslint-disable-line react-hooks/exhaustive-deps
-
-    const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
     const FRONTEND_URL = import.meta.env.VITE_FRONTEND_URL;
 
     const [activeAppDetails, setActiveAppDetails] = useState([]);
@@ -63,8 +64,8 @@ const InstRecognitionReject = () => {
 
         const promises = fields.map(async (field) => {
             try {
-                const res = await axios.post(
-                    `${BACKEND_URL}/institute/recognition/fetch_files`,
+                const res = await axiosApi.post(
+                    `/institute/recognition/fetch_files`,
                     { inst_eiin: appData.inst_eiin, recog_inst_status: appData.recog_inst_status, count_applicaton: appData.count_applicaton, file_name: field },
                     { responseType: 'blob' }
                 );
@@ -130,7 +131,7 @@ const InstRecognitionReject = () => {
     const fetchDataList = async () => {
         setLoadingProgress("আবেদনের তথ্য খুঁজা হচ্ছে...! অপেক্ষা করুন।");
         try {
-            const response = await axios.post(`${BACKEND_URL}/institute/recognition/list`, { app_status: '18' });
+            const response = await axiosApi.post(`/institute/recognition/list`, { app_status: '18' });
             if (response.data.data.length !== 0) {
                 setDataList(response.data.data);
                 setLoadingSuccess(true);
@@ -191,11 +192,7 @@ const InstRecognitionReject = () => {
         setDetailsShow(true);
     };
 
-    if (!ceb_session) {
-
-    }
-
-    if ((ceb_session.ceb_user_office === "04" || ceb_session.ceb_user_office === "05" || ceb_session.ceb_user_role === "16" || ceb_session.ceb_user_role === "17") && loadingSuccess) return (
+    if ((permissionData.office === "04" || permissionData.office === "05" || permissionData.role === "16" || permissionData.role === "17") && loadingSuccess) return (
         <>
             <div>
                 <Row>
@@ -356,7 +353,7 @@ const InstRecognitionReject = () => {
         </>
     )
 
-    if (ceb_session.ceb_user_office === "04" || ceb_session.ceb_user_office === "05" || ceb_session.ceb_user_role === "16" || ceb_session.ceb_user_role === "17") return (
+    if (permissionData.office === "04" || permissionData.office === "05" || permissionData.role === "16" || permissionData.role === "17") return (
         <>
             <div>
                 <Row className='d-flex justify-content-center align-items-center'>

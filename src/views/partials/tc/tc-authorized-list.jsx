@@ -5,27 +5,31 @@ import Card from '../../../components/Card'
 
 import { Modal } from 'react-bootstrap'
 
-import axios from "axios";
-
 import styles from '../../../assets/custom/css/bisec.module.css'
 
 import error01 from '../../../assets/images/error/01.png'
 
-const TcAuthorizedList = () => {
-   // enable axios credentials include
-   axios.defaults.withCredentials = true;
+import { useAuthProvider } from "../../../context/AuthContext.jsx";
+import axiosApi from "../../../lib/axiosApi.jsx";
 
-   const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
+const TcAuthorizedList = () => {
+   const { permissionData, loading } = useAuthProvider();
    const navigate = useNavigate();
+
    const [isBoard, setIsBoard] = useState(false);
 
+   /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
    useEffect(() => {
-      if (!ceb_session?.ceb_user_id) {
-         navigate("/auth/sign-out");
-      }
-   }, []);// eslint-disable-line react-hooks/exhaustive-deps
+      let mounted = true;
+      (async () => {
+         if (!(((permissionData?.office === '04' || permissionData?.office === '05') && (permissionData?.role === '14' || permissionData?.role === '15')) || permissionData?.role === '16' || permissionData?.role === '17' || permissionData?.role === '18' || permissionData?.type === '13')) {
+            navigate('/errors/error404', { replace: true });
+         }
+      })();
+      return () => { mounted = false; };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [permissionData, loading]); // run only once on mount
 
-   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
    const [activeAppDetails, setActiveAppDetails] = useState([]);
    // const [activeAppAuthorize, setActiveAppAuthorize] = useState([]);
@@ -109,13 +113,13 @@ const TcAuthorizedList = () => {
          "17",
       ];
       try {
-         const response = await axios.post(`${BACKEND_URL}/student/tc/application/list?`, { st_class, st_year, list_type });
+         const response = await axiosApi.post(`/student/tc/application/list?`, { st_class, st_year, list_type });
          // console.log(response.data);
          if (response.status === 200) {
             setStData(response.data.listData);
             setStSuccess(true);
             //Set Board Status 
-            ceb_session.ceb_user_type === "13" ? setIsBoard(false) : setIsBoard(true);
+            permissionData.type === "13" ? setIsBoard(false) : setIsBoard(true);
             //Set Data for Pagination
             setRowsPerPage(10);
             setTotalPage(Math.ceil(response.data.listData.length / 10));
@@ -195,7 +199,7 @@ const TcAuthorizedList = () => {
    //    setStError(false);
 
    //    try {
-   //       await axios.post(`${BACKEND_URL}/student/tc/application/authorize?`, { id_invoice });
+   //       await axiosApi.post(`/student/tc/application/authorize?`, { id_invoice });
    //       setStData(((prevData) => prevData.filter((item) => item.id_invoice !== id_invoice)));
    //       setModifySuccess("অনুমোদন সফল হয়েছে!");
    //    } catch (err) {
@@ -217,7 +221,7 @@ const TcAuthorizedList = () => {
          const myData = {
             'st_class': stClass, 'st_year': stSession, 'id_invoice': id_invoice
          };
-         await axios.post(`${BACKEND_URL}/student/tc/application/reject?`, { userData: myData });
+         await axiosApi.post(`/student/tc/application/reject?`, { userData: myData });
          setStData(((prevData) => prevData.filter((item) => item.id_invoice !== id_invoice)));
          setModifySuccess("আবেদন বাতিল সফল হয়েছে!");
       } catch (err) {
@@ -251,11 +255,7 @@ const TcAuthorizedList = () => {
       window.open(`/tc/tc-order?invoiceNo=${item.id_invoice}`, '_blank');
    }
 
-   if (!ceb_session) {
-      return null;
-   }
-
-   if (stSuccess && (ceb_session.ceb_user_type === "13" || ((ceb_session.ceb_user_office === "04" || ceb_session.ceb_user_office === "05") && (ceb_session.ceb_user_role === "14" || ceb_session.ceb_user_role === "15")) || ceb_session.ceb_user_role === "16" || ceb_session.ceb_user_role === "17")) return (
+   if (stSuccess && (permissionData.type === "13" || ((permissionData.office === "04" || permissionData.office === "05") && (permissionData.role === "14" || permissionData.role === "15")) || permissionData.role === "16" || permissionData.role === "17")) return (
       <>
          <div>
             <Row>
@@ -338,23 +338,23 @@ const TcAuthorizedList = () => {
                                        filteredData.map((item, idx) => (
                                           <tr key={idx}>
                                              <td className='text-center align-center text-wrap'>
-                                                {!isBoard && item.src_eiin === ceb_session.ceb_user_id &&
+                                                {!isBoard && item.src_eiin === permissionData.id &&
                                                    <span className='p-2 rounded-3 align-top' title='বহির্গামী (Outgoing) আবেদন'>
                                                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#991b1b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-log-out"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" x2="9" y1="12" y2="12" /></svg>
                                                    </span>
                                                 }
-                                                {!isBoard && item.dst_eiin === ceb_session.ceb_user_id &&
+                                                {!isBoard && item.dst_eiin === permissionData.id &&
                                                    <span className='p-2 rounded-3 align-top' title='আগত (Incoming) আবেদন'>
                                                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#166534" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-log-in"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" /><polyline points="10 17 15 12 10 7" /><line x1="15" x2="3" y1="12" y2="12" /></svg>
                                                    </span>
                                                 }
 
-                                                {isBoard && item.src_bid === ceb_session.ceb_board_id && item.src_bid !== item.dst_bid &&
+                                                {isBoard && item.src_bid === permissionData.board && item.src_bid !== item.dst_bid &&
                                                    <span className='p-2 rounded-3 align-top' title='বহির্গামী (Outgoing) আবেদন'>
                                                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#991b1b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-log-out"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" x2="9" y1="12" y2="12" /></svg>
                                                    </span>
                                                 }
-                                                {isBoard && item.dst_bid === ceb_session.ceb_board_id && item.src_bid !== item.dst_bid &&
+                                                {isBoard && item.dst_bid === permissionData.board && item.src_bid !== item.dst_bid &&
                                                    <span className='p-2 rounded-3 align-top' title='আগত (Incoming) আবেদন'>
                                                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#166534" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-log-in"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" /><polyline points="10 17 15 12 10 7" /><line x1="15" x2="3" y1="12" y2="12" /></svg>
                                                    </span>
@@ -539,25 +539,25 @@ const TcAuthorizedList = () => {
                                     <Modal.Title><span className={styles.SiyamRupaliFont}>আবেদন অনুমোদন করতে চান?</span></Modal.Title>
                                  </Modal.Header>
                                  <Modal.Body>
-                                    {!isBoard && activeAppAuthorize.src_eiin === ceb_session.ceb_user_id && <p><span className={styles.SiyamRupaliFont}>আবেদনের তথ্য নিশ্চিত হয়ে অনুমোদন করুন। ব্যত্যয়ে প্রতিষ্ঠান প্রধান ব্যক্তিগতভাবে দায়ী থাকবেন।</span></p>}
+                                    {!isBoard && activeAppAuthorize.src_eiin === permissionData.id && <p><span className={styles.SiyamRupaliFont}>আবেদনের তথ্য নিশ্চিত হয়ে অনুমোদন করুন। ব্যত্যয়ে প্রতিষ্ঠান প্রধান ব্যক্তিগতভাবে দায়ী থাকবেন।</span></p>}
 
-                                    {!isBoard && activeAppAuthorize.src_eiin !== ceb_session.ceb_user_id && activeAppAuthorize.src_eiin_auth !== "17" && <p><span className={styles.SiyamRupaliFont}>বর্তমান প্রতিষ্ঠান থেকে অনুমোদন দেয়া হয়নি! বর্তমান প্রতিষ্ঠানের অনুমোদনের পর আপনার প্রতিষ্ঠান থেকে অনুমোদন দেয়া যাবে।</span></p>}
+                                    {!isBoard && activeAppAuthorize.src_eiin !== permissionData.id && activeAppAuthorize.src_eiin_auth !== "17" && <p><span className={styles.SiyamRupaliFont}>বর্তমান প্রতিষ্ঠান থেকে অনুমোদন দেয়া হয়নি! বর্তমান প্রতিষ্ঠানের অনুমোদনের পর আপনার প্রতিষ্ঠান থেকে অনুমোদন দেয়া যাবে।</span></p>}
 
-                                    {!isBoard && activeAppAuthorize.src_eiin !== ceb_session.ceb_user_id && activeAppAuthorize.src_eiin_auth === "17" && <p><span className={styles.SiyamRupaliFont}>আপনার প্রতিষ্ঠানের নিবন্ধিত বিষয়ের সাথে শিক্ষার্থীর পঠিত বিষয় নিশ্চিত হয়েই অনুমোদন করুন। ব্যত্যয়ে প্রতিষ্ঠান প্রধান ব্যক্তিগতভাবে দায়ী থাকবেন।</span></p>}
+                                    {!isBoard && activeAppAuthorize.src_eiin !== permissionData.id && activeAppAuthorize.src_eiin_auth === "17" && <p><span className={styles.SiyamRupaliFont}>আপনার প্রতিষ্ঠানের নিবন্ধিত বিষয়ের সাথে শিক্ষার্থীর পঠিত বিষয় নিশ্চিত হয়েই অনুমোদন করুন। ব্যত্যয়ে প্রতিষ্ঠান প্রধান ব্যক্তিগতভাবে দায়ী থাকবেন।</span></p>}
 
-                                    {!isBoard && activeAppAuthorize.src_eiin !== ceb_session.ceb_user_id && activeAppAuthorize.src_eiin_auth === "17" && activeAppAuthorize.id_religion === '01' && <p><span className={styles.SiyamRupaliFont}>পঠিত বিষয়ঃ ১০১, ১০৭, ১০৯, ১১১, ১২৭, ১৪৮, ১৫৩, ১৫৪, ১৫৭</span></p>}
-                                    {!isBoard && activeAppAuthorize.src_eiin !== ceb_session.ceb_user_id && activeAppAuthorize.src_eiin_auth === "17" && activeAppAuthorize.id_religion === '02' && <p><span className={styles.SiyamRupaliFont}>পঠিত বিষয়ঃ ১০১, ১০৭, ১০৯, ১১২, ১২৭, ১৪৮, ১৫৩, ১৫৪, ১৫৭</span></p>}
-                                    {!isBoard && activeAppAuthorize.src_eiin !== ceb_session.ceb_user_id && activeAppAuthorize.src_eiin_auth === "17" && activeAppAuthorize.id_religion === '03' && <p><span className={styles.SiyamRupaliFont}>পঠিত বিষয়ঃ ১০১, ১০৭, ১০৯, ১১৩, ১২৭, ১৪৮, ১৫৩, ১৫৪, ১৫৭</span></p>}
-                                    {!isBoard && activeAppAuthorize.src_eiin !== ceb_session.ceb_user_id && activeAppAuthorize.src_eiin_auth === "17" && activeAppAuthorize.id_religion === '04' && <p><span className={styles.SiyamRupaliFont}>পঠিত বিষয়ঃ ১০১, ১০৭, ১০৯, ১১৪, ১২৭, ১৪৮, ১৫৩, ১৫৪, ১৫৭</span></p>}
+                                    {!isBoard && activeAppAuthorize.src_eiin !== permissionData.id && activeAppAuthorize.src_eiin_auth === "17" && activeAppAuthorize.id_religion === '01' && <p><span className={styles.SiyamRupaliFont}>পঠিত বিষয়ঃ ১০১, ১০৭, ১০৯, ১১১, ১২৭, ১৪৮, ১৫৩, ১৫৪, ১৫৭</span></p>}
+                                    {!isBoard && activeAppAuthorize.src_eiin !== permissionData.id && activeAppAuthorize.src_eiin_auth === "17" && activeAppAuthorize.id_religion === '02' && <p><span className={styles.SiyamRupaliFont}>পঠিত বিষয়ঃ ১০১, ১০৭, ১০৯, ১১২, ১২৭, ১৪৮, ১৫৩, ১৫৪, ১৫৭</span></p>}
+                                    {!isBoard && activeAppAuthorize.src_eiin !== permissionData.id && activeAppAuthorize.src_eiin_auth === "17" && activeAppAuthorize.id_religion === '03' && <p><span className={styles.SiyamRupaliFont}>পঠিত বিষয়ঃ ১০১, ১০৭, ১০৯, ১১৩, ১২৭, ১৪৮, ১৫৩, ১৫৪, ১৫৭</span></p>}
+                                    {!isBoard && activeAppAuthorize.src_eiin !== permissionData.id && activeAppAuthorize.src_eiin_auth === "17" && activeAppAuthorize.id_religion === '04' && <p><span className={styles.SiyamRupaliFont}>পঠিত বিষয়ঃ ১০১, ১০৭, ১০৯, ১১৪, ১২৭, ১৪৮, ১৫৩, ১৫৪, ১৫৭</span></p>}
 
                                     {isBoard && <p><span className={styles.SiyamRupaliFont}>উভয় প্রতিষ্ঠান থেকে অনুমোদনের পর বোর্ড থেকে অনুমোদন দেয়া যাবে। আবেদনের তথ্য নিশ্চিত হয়ে অনুমোদন করুন।</span></p>}
                                  </Modal.Body>
                                  <Modal.Footer>
-                                    {!isBoard && activeAppAuthorize.src_eiin === ceb_session.ceb_user_id && <Button variant="success" onClick={() => tcAuthorize(activeAppAuthorize.id_invoice)}>
+                                    {!isBoard && activeAppAuthorize.src_eiin === permissionData.id && <Button variant="success" onClick={() => tcAuthorize(activeAppAuthorize.id_invoice)}>
                                        সম্মত
                                     </Button>}
 
-                                    {!isBoard && activeAppAuthorize.src_eiin !== ceb_session.ceb_user_id && activeAppAuthorize.src_eiin_auth === "17" && <Button variant="success" onClick={() => tcAuthorize(activeAppAuthorize.id_invoice)}>
+                                    {!isBoard && activeAppAuthorize.src_eiin !== permissionData.id && activeAppAuthorize.src_eiin_auth === "17" && <Button variant="success" onClick={() => tcAuthorize(activeAppAuthorize.id_invoice)}>
                                        সম্মত
                                     </Button>}
 
@@ -585,20 +585,20 @@ const TcAuthorizedList = () => {
 
                                     {!isBoard && (activeAppReject.src_board_auth === '18' || activeAppReject.src_board_auth === '18') && <p><span className={styles.SiyamRupaliFont + " text-center"}>বোর্ডে আবেদনটি বাতিল হয়েছে। প্রতিষ্ঠান থেকে অনুমোদন/বাতিল করা সম্ভব নয়।</span></p>}
 
-                                    {!isBoard && activeAppReject.src_eiin !== ceb_session.ceb_user_id && activeAppReject.src_eiin_auth !== "17" && <p><span className={styles.SiyamRupaliFont + " text-center"}>বর্তমান প্রতিষ্ঠান থেকে অনুমোদন দেয়া হয়নি! বর্তমান প্রতিষ্ঠানের অনুমোদনের জন্য অপেক্ষা করুন।</span></p>}
+                                    {!isBoard && activeAppReject.src_eiin !== permissionData.id && activeAppReject.src_eiin_auth !== "17" && <p><span className={styles.SiyamRupaliFont + " text-center"}>বর্তমান প্রতিষ্ঠান থেকে অনুমোদন দেয়া হয়নি! বর্তমান প্রতিষ্ঠানের অনুমোদনের জন্য অপেক্ষা করুন।</span></p>}
 
-                                    {!isBoard && activeAppReject.src_eiin === ceb_session.ceb_user_id && activeAppReject.src_board_auth !== '18' && activeAppReject.src_board_auth === '13' && activeAppReject.src_board_auth === '13' && <p><span className={styles.SiyamRupaliFont + " text-center"}>যথাযথ কারণ নিশ্চিত হয়ে বাতিল করুন। ব্যত্যয়ে প্রতিষ্ঠান প্রধান ব্যক্তিগতভাবে দায়ী থাকবেন।</span></p>}
+                                    {!isBoard && activeAppReject.src_eiin === permissionData.id && activeAppReject.src_board_auth !== '18' && activeAppReject.src_board_auth === '13' && activeAppReject.src_board_auth === '13' && <p><span className={styles.SiyamRupaliFont + " text-center"}>যথাযথ কারণ নিশ্চিত হয়ে বাতিল করুন। ব্যত্যয়ে প্রতিষ্ঠান প্রধান ব্যক্তিগতভাবে দায়ী থাকবেন।</span></p>}
 
-                                    {!isBoard && activeAppReject.src_eiin !== ceb_session.ceb_user_id && activeAppReject.src_eiin_auth === "17" && activeAppReject.src_board_auth === '13' && activeAppReject.src_board_auth === '13' && <p><span className={styles.SiyamRupaliFont + " text-center"}>যথাযথ কারণ নিশ্চিত হয়ে বাতিল করুন। ব্যত্যয়ে প্রতিষ্ঠান প্রধান ব্যক্তিগতভাবে দায়ী থাকবেন।</span></p>}
+                                    {!isBoard && activeAppReject.src_eiin !== permissionData.id && activeAppReject.src_eiin_auth === "17" && activeAppReject.src_board_auth === '13' && activeAppReject.src_board_auth === '13' && <p><span className={styles.SiyamRupaliFont + " text-center"}>যথাযথ কারণ নিশ্চিত হয়ে বাতিল করুন। ব্যত্যয়ে প্রতিষ্ঠান প্রধান ব্যক্তিগতভাবে দায়ী থাকবেন।</span></p>}
 
                                     {isBoard && <p><span className={styles.SiyamRupaliFont + " text-center"}>যথাযথ কারণ নিশ্চিত হয়ে বাতিল করুন।</span></p>}
                                  </Modal.Body>
                                  <Modal.Footer>
-                                    {!isBoard && activeAppReject.src_eiin === ceb_session.ceb_user_id && activeAppReject.src_board_auth === '13' && activeAppReject.dst_board_auth === '13' && <Button variant="danger" onClick={() => tcReject(activeAppReject.id_invoice)}>
+                                    {!isBoard && activeAppReject.src_eiin === permissionData.id && activeAppReject.src_board_auth === '13' && activeAppReject.dst_board_auth === '13' && <Button variant="danger" onClick={() => tcReject(activeAppReject.id_invoice)}>
                                        সম্মত
                                     </Button>}
 
-                                    {!isBoard && activeAppReject.src_eiin !== ceb_session.ceb_user_id && activeAppReject.src_board_auth === '13' && activeAppReject.dst_board_auth === '13' && activeAppReject.src_eiin_auth === '17' && <Button variant="danger" onClick={() => tcReject(activeAppReject.id_invoice)}>
+                                    {!isBoard && activeAppReject.src_eiin !== permissionData.id && activeAppReject.src_board_auth === '13' && activeAppReject.dst_board_auth === '13' && activeAppReject.src_eiin_auth === '17' && <Button variant="danger" onClick={() => tcReject(activeAppReject.id_invoice)}>
                                        সম্মত
                                     </Button>}
 
@@ -636,7 +636,7 @@ const TcAuthorizedList = () => {
       </>
    )
 
-   if (ceb_session.ceb_user_type === "13" || ((ceb_session.ceb_user_office === "04" || ceb_session.ceb_user_office === "05") && (ceb_session.ceb_user_role === "14" || ceb_session.ceb_user_role === "15")) || ceb_session.ceb_user_role === "16" || ceb_session.ceb_user_role === "17") return (
+   if (permissionData.type === "13" || ((permissionData.office === "04" || permissionData.office === "05") && (permissionData.role === "14" || permissionData.role === "15")) || permissionData.role === "16" || permissionData.role === "17") return (
       <>
          <div>
             <Row className='d-flex justify-content-center align-items-center'>
@@ -658,14 +658,14 @@ const TcAuthorizedList = () => {
                                        <Form.Label htmlFor="user_class">Class</Form.Label>
                                        <Form.Select id="user_class" value={stClass} required onChange={(e) => setStClass(e.target.value)}>
                                           <option value="">Select Class</option>
-                                          {(ceb_session.ceb_user_type === "13" || ceb_session.ceb_user_office === "05" || ceb_session.ceb_user_role === "17") && <>
+                                          {(permissionData.type === "13" || permissionData.office === "05" || permissionData.role === "17") && <>
                                              <option value="06">Six</option>
                                              <option value="07">Seven</option>
                                              <option value="08">Eight</option>
                                              <option value="09">Nine</option>
                                              <option value="10">Ten</option>
                                           </>}
-                                          {(ceb_session.ceb_user_type === "13" || ceb_session.ceb_user_office === "04" || ceb_session.ceb_user_role === "17") && <>
+                                          {(permissionData.type === "13" || permissionData.office === "04" || permissionData.role === "17") && <>
                                              <option value="11">Eleven</option>
                                              <option value="12">Twelve</option>
                                           </>}

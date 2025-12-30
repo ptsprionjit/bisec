@@ -2,7 +2,6 @@ import React, { useRef, useMemo, useEffect, useState, Fragment } from 'react'
 import { Row, Col, Form, Button, Image } from 'react-bootstrap'
 import { useNavigate } from 'react-router-dom'
 
-import axios from "axios";
 
 import Card from '../../../components/Card'
 
@@ -12,21 +11,24 @@ import error01 from '../../../assets/images/error/01.png'
 
 import * as ValidationInput from '../input_validation'
 
+import { useAuthProvider } from "../../../context/AuthContext.jsx";
+import axiosApi from "../../../lib/axiosApi.jsx";
+
 const SummeryReport = () => {
-   // enable axios credentials include
-   axios.defaults.withCredentials = true;
-
+   const { permissionData, loading } = useAuthProvider();
    const navigate = useNavigate();
-   const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
 
+   /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
    useEffect(() => {
-      if (!ceb_session?.ceb_user_id) {
-         navigate("/auth/sign-out");
-         
-      }
-   }, []);// eslint-disable-line react-hooks/exhaustive-deps
-
-   const URL = import.meta.env.VITE_BACKEND_URL;
+      let mounted = true;
+      (async () => {
+         if (!((permissionData?.office === '06' && (permissionData?.role === '14' || permissionData?.role === '15')) || permissionData?.role === '16' || permissionData?.role === '17' || permissionData?.role === '18')) {
+            navigate('/errors/error404', { replace: true });
+         }
+      })();
+      return () => { mounted = false; };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [permissionData]); // run only once on mount
 
    //Form Validation and Error
    const [validated, setValidated] = useState(false);
@@ -58,8 +60,12 @@ const SummeryReport = () => {
    const [totalVoucher, setTotalVoucher] = useState(0);
    const [totalAmountWord, setTotalAmountWord] = useState('');
 
-   const maxDate = new Date();
-   maxDate.setHours(maxDate.getHours() - 12);
+   // minor derived date used in original
+   const maxDate = useMemo(() => {
+      const d = new Date();
+      d.setHours(d.getUTCHours() - 12);
+      return d;
+   }, []);
 
    const printRef = useRef();
 
@@ -260,7 +266,7 @@ const SummeryReport = () => {
          filteredData.map(item => {
             amount = amount + Number(item.voucher_amount);
             voucher = voucher + Number(item.voucher_number);
-            
+
          });
          setTotalAmount(amount);
          calculateWord(amount);
@@ -299,7 +305,7 @@ const SummeryReport = () => {
       setLoadingError(false);
       setLoadingData("তথ্য লোড হচ্ছে।");
       try {
-         const response = await axios.post(`${URL}/account/report-summery?`, { searchData: searchData });
+         const response = await axiosApi.post(`/account/report-summery`, { searchData: searchData });
          if (response.status === 200) {
             setReportData(response.data.data);
             setLoadingSuccess(response.data.message);
@@ -314,21 +320,11 @@ const SummeryReport = () => {
          }
          setValidated(true);
       } catch (err) {
-
-
-    if (err.status === 401) {
-        navigate("/auth/sign-out");
-        
-    }
-if (err.status === 404) {
-            setLoadingError(`${err.message}`);
-         } else if (err.status === 401) {
+         if (err.status === 401) {
             navigate("/auth/sign-out");
-            return null;
          } else {
-            setLoadingError(`${err.message}`);
+            setLoadingError(`${err.response.message}`);
          }
-         // console.error(err);
       } finally {
          setLoadingData(false);
       }
@@ -423,13 +419,8 @@ if (err.status === 404) {
       setTotalAmountWord('');
    };
 
-   // Return if Session Data not Defined
-   if (!ceb_session) {
-      return null;
-   }
-
    // Return if Search is Valid
-   if (loadingSuccess && (ceb_session.ceb_user_office === "06" || ceb_session.ceb_user_role === "17")) return (
+   if (loadingSuccess && (permissionData.office === "06" || permissionData.role === "17")) return (
       <Fragment>
          <Row>
             <Col md={12}>
@@ -560,7 +551,7 @@ if (err.status === 404) {
       </Fragment>
    )
 
-   if (ceb_session.ceb_user_office === "06" || ceb_session.ceb_user_role === "17") return (
+   if (permissionData.office === "06" || permissionData.role === "17") return (
       <>
          <div>
             <Row className='d-flex justify-content-center align-items-center'>

@@ -8,30 +8,32 @@ import Card from '../../../components/Card'
 import { useNavigate } from 'react-router-dom'
 
 import error01 from '../../../assets/images/error/01.png'
+import error403 from '../../../assets/images/error/403.png'
 
 import * as ValidationInput from '../input_validation'
-
-import axios from 'axios';
 
 import styles from '../../../assets/custom/css/bisec.module.css'
 
 // import Maintenance from '../errors/maintenance';
 
+import { useAuthProvider } from "../../../context/AuthContext.jsx";
+import axiosApi from "../../../lib/axiosApi.jsx";
+
 const DateEntryNew = () => {
-   // enable axios credentials include
-   axios.defaults.withCredentials = true;
-
-   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-   const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
-
+   const { permissionData, loading } = useAuthProvider();
    const navigate = useNavigate();
 
+   /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
    useEffect(() => {
-      if (!ceb_session?.ceb_user_id) {
-         navigate("/auth/sign-out");
-         
-      }
-   }, []);// eslint-disable-line react-hooks/exhaustive-deps
+      let mounted = true;
+      (async () => {
+         if (!(((permissionData?.office === '03' || permissionData?.office === '04' || permissionData?.office === '05') && (permissionData?.role === '13' || permissionData?.role === '14')) || permissionData?.role === '17' || permissionData?.role === '18')) {
+            navigate('/errors/error404', { replace: true });
+         }
+      })();
+      return () => { mounted = false; };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [permissionData, loading]); // run only once on mount
 
    // Form Validation Variable
    const [validated, setValidated] = useState(false);
@@ -110,7 +112,7 @@ const DateEntryNew = () => {
          } else {
             setLoadingData("তথ্য খুঁজা হচ্ছে! অপেক্ষা করুন...");
             try {
-               const response = await axios.post(`${BACKEND_URL}/entry/date/search`, { userData });
+               const response = await axiosApi.post(`/entry/date/search`, { userData });
                if (response.status === 200) {
                   // console.log(userData);
                   setLoadingSuccess(response.data.message);
@@ -130,7 +132,7 @@ const DateEntryNew = () => {
                // console.log(err);
                if (err.status === 401) {
                   navigate("/auth/sign-out");
-                  
+
                } else if (err.status === 403) {
                   // navigate("/registration/new-app");
                   navigate("/auth/sign-out");
@@ -221,7 +223,7 @@ const DateEntryNew = () => {
          } else {
             setLoadingData("তথ্য আপডেট করা হচ্ছে! অপেক্ষা করুন...");
             try {
-               const response = await axios.post(`${BACKEND_URL}/entry/date/update`, { userData });
+               const response = await axiosApi.post(`/entry/date/update`, { userData });
                if (response.status === 200) {
                   setLoadingSuccess(response.data.message);
                   setValidated(false);
@@ -236,7 +238,7 @@ const DateEntryNew = () => {
                // console.log(err);
                if (err.status === 401) {
                   navigate("/auth/sign-out");
-                  
+
                } else if (err.status === 403) {
                   // navigate("/registration/new-app");
                   navigate("/auth/sign-out");
@@ -291,7 +293,7 @@ const DateEntryNew = () => {
       const fetchAccountCodes = async () => {
          setLoadingData("Loading Account Codes...");
          try {
-            const response = await axios.post(`${BACKEND_URL}/account/account-codes`);
+            const response = await axiosApi.post(`/account/account-codes`);
             setAccountCodes(response.data);
             setUniqueEcoCode([...new Map(response.data.map(item => [item.income_code_economic, item])).values()]);
          } catch (err) {
@@ -299,7 +301,7 @@ const DateEntryNew = () => {
             // console.error(err);
             if (err.status === 401) {
                navigate("/auth/sign-out");
-               
+
             }
          } finally {
             setLoadingData(false);
@@ -344,13 +346,16 @@ const DateEntryNew = () => {
       handleSearchDataChange('online_code', codeValue);
    }
 
-   // Return if no session
-   if (!ceb_session) {
-      return null;
+   if (!(permissionData.office === '03' || permissionData.office === '04' || permissionData.office === '05')) {
+      return (
+         <div className='d-flex justify-content-center align-items-center'>
+            <Image src={error403} style={{ mixBlendMode: "multiply" }} alt="Forbidden" />
+         </div>
+      )
    }
 
    // Return if Search is Valid
-   if (validSearch && (ceb_session.ceb_user_type !== '13' || ceb_session.ceb_user_office === '05' || ceb_session.ceb_user_role === '17')) return (
+   if (validSearch && (permissionData.type !== '13' || permissionData.office === '05' || permissionData.role === '17')) return (
       <Fragment>
          <Row>
             <Col md={12}>
@@ -434,7 +439,7 @@ const DateEntryNew = () => {
                                     value={userData.user_class}
                                     disabled={true}
                                  >
-                                    {(ceb_session.ceb_user_office === "05" || ceb_session.ceb_user_role === "17") && <>
+                                    {(permissionData.office === "05" || permissionData.role === "17") && <>
                                        <option value='06'>ষষ্ট শ্রেণী</option>
                                        <option value='07'>সপ্তম শ্রেণী</option>
                                        <option value='08'>অষ্টম শ্রেণী</option>
@@ -444,7 +449,7 @@ const DateEntryNew = () => {
                                        <option value='13'>নিম্ন মাধ্যমিক</option>
                                        <option value='14'>মাধ্যমিক</option>
                                     </>}
-                                    {(ceb_session.ceb_user_office === "04" || ceb_session.ceb_user_role === "17") && <>
+                                    {(permissionData.office === "04" || permissionData.role === "17") && <>
                                        <option value='11'>একাদশ শ্রেণী</option>
                                        <option value='12'>দ্বাদশ শ্রেণী</option>
                                        <option value='15'>উচ্চ মাধ্যমিক</option>
@@ -667,7 +672,7 @@ const DateEntryNew = () => {
    )
 
    // Return if User is Authorized
-   if (ceb_session.ceb_user_type !== '13' || ceb_session.ceb_user_office === '05' || ceb_session.ceb_user_role === '17') return (
+   if (permissionData.type !== '13' || permissionData.office === '05' || permissionData.role === '17') return (
       <Fragment>
          <Row>
             <Col md={12}>
@@ -802,7 +807,7 @@ const DateEntryNew = () => {
                                     onChange={(e) => handleSearchDataChange('user_class', e.target.value)}
                                  >
                                     <option value="">--শ্রেণী সিলেক্ট করুন--</option>
-                                    {(ceb_session.ceb_user_office === "05" || ceb_session.ceb_user_role === "17") && <>
+                                    {(permissionData.office === "05" || permissionData.role === "17") && <>
                                        <option value='06'>ষষ্ট শ্রেণী</option>
                                        <option value='07'>সপ্তম শ্রেণী</option>
                                        <option value='08'>অষ্টম শ্রেণী</option>
@@ -812,7 +817,7 @@ const DateEntryNew = () => {
                                        <option value='13'>নিম্ন মাধ্যমিক</option>
                                        <option value='14'>মাধ্যমিক</option>
                                     </>}
-                                    {(ceb_session.ceb_user_office === "04" || ceb_session.ceb_user_role === "17") && <>
+                                    {(permissionData.office === "04" || permissionData.role === "17") && <>
                                        <option value='11'>একাদশ শ্রেণী</option>
                                        <option value='12'>দ্বাদশ শ্রেণী</option>
                                        <option value='15'>উচ্চ মাধ্যমিক</option>

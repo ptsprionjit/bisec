@@ -1,5 +1,7 @@
 import React from "react";
-import { Accordion, Card, Row, Col } from "react-bootstrap";
+import { Link } from 'react-router-dom'
+
+import { Accordion, Card, Row, Col, Button } from "react-bootstrap";
 
 import { FcPrivacy } from "react-icons/fc";
 import { FiUploadCloud } from "react-icons/fi";
@@ -18,6 +20,8 @@ import { TbExchange } from "react-icons/tb";
 import { MdOutlineContactMail } from "react-icons/md";
 
 const PrivacyPolicy = () => {
+
+    const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
 
     const cardHeaders = [
         { title: "গোপনীয়তা নীতিমালা (Privacy Policy)", icon: <GoLaw color="darkred" />, bg: "transparent", text: "primary", font: 'fs-4' },
@@ -39,13 +43,14 @@ const PrivacyPolicy = () => {
     ];
 
     return (
-        <Card className="p-5 m-0 bg-white">
+        <Card className="p-5 m-0">
             <Card.Header className="bg-transparent text-center m-0 p-0 pt-2">
                 <p className={`${cardHeaders[0].font} text-${cardHeaders[0].text} m-0 p-0`}>{cardHeaders[0].icon}</p>
-                <p className={`${cardHeaders[0].font} text-${cardHeaders[0].text}`}>{cardHeaders[0].title}</p>
+                <p className={`${cardHeaders[0].font} text-${cardHeaders[0].text} m-0 p-0`}>{cardHeaders[0].title}</p>
             </Card.Header>
             <Card.Body className="bg-transparent text-center m-0 p-0 pb-2">
-                <span className={`text-${cardHeaders[1].text} ${cardHeaders[1].font}`}>{cardHeaders[1].icon} {cardHeaders[1].title}</span>
+                <p className={`text-${cardHeaders[1].text} ${cardHeaders[1].font}`}>{cardHeaders[1].icon} {cardHeaders[1].title}</p>
+                {!ceb_session?.ceb_user_id && <Link className="text-danger m-0 p-0" to={"/"}>বোর্ড হোম</Link>}
             </Card.Body>
             <Card.Footer className="bg-transparent p-0 m-0 pt-4">
                 <Row className="justify-content-center">

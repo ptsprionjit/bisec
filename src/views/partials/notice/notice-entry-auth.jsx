@@ -10,28 +10,30 @@ import Card from '../../../components/Card'
 import { useNavigate } from 'react-router-dom'
 
 import error01 from '../../../assets/images/error/01.png'
+import error403 from '../../../assets/images/error/403.png'
 
 import * as ValidationInput from '../input_validation'
 
-import axios from 'axios';
-
 import styles from '../../../assets/custom/css/bisec.module.css'
 
+import { useAuthProvider } from "../../../context/AuthContext.jsx";
+import axiosApi from "../../../lib/axiosApi.jsx";
+
 const NoticeEntryFinal = () => {
-   // enable axios credentials include
-   axios.defaults.withCredentials = true;
-
-   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-   const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
-
+   const { permissionData, loading } = useAuthProvider();
    const navigate = useNavigate();
 
+   /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
    useEffect(() => {
-      if (!ceb_session?.ceb_user_id) {
-         navigate("/auth/sign-out");
-         
-      }
-   }, []);// eslint-disable-line react-hooks/exhaustive-deps
+      let mounted = true;
+      (async () => {
+         if (!(((permissionData?.office === '01' || permissionData?.office === '02') && (permissionData?.role === '14' || permissionData?.role === '15')) || permissionData?.role === '16' || permissionData?.role === '17' || permissionData?.role === '18')) {
+            navigate('/errors/error404', { replace: true });
+         }
+      })();
+      return () => { mounted = false; };
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+   }, [permissionData, loading]); // run only once on mount
 
    // Form Validation Variable
    const [validated, setValidated] = useState(false);
@@ -85,8 +87,8 @@ const NoticeEntryFinal = () => {
 
       const promises = fields.map(async (field) => {
          try {
-            const res = await axios.post(
-               `${BACKEND_URL}/board/notice/fetch_files`,
+            const res = await axiosApi.post(
+               `/board/notice/fetch_files`,
                { id_notice: userData.online_code, file_notice: appData.file_notice },
                { responseType: 'blob' }
             );
@@ -102,11 +104,11 @@ const NoticeEntryFinal = () => {
          } catch (err) {
 
 
-    if (err.status === 401) {
-        navigate("/auth/sign-out");
-        
-    }
-pdfFiles[field] = null;
+            if (err.status === 401) {
+               navigate("/auth/sign-out");
+
+            }
+            pdfFiles[field] = null;
          }
       });
 
@@ -171,7 +173,7 @@ pdfFiles[field] = null;
          } else {
             setLoadingData("তথ্য খুঁজা হচ্ছে! অপেক্ষা করুন...");
             try {
-               const response = await axios.post(`${BACKEND_URL}/entry/notice/search`, { userData });
+               const response = await axiosApi.post(`/entry/notice/search`, { userData });
                if (response.status === 200) {
                   // console.log(userData);
                   // setLoadingSuccess(response.data.message);
@@ -192,7 +194,7 @@ pdfFiles[field] = null;
                // console.log(err);
                if (err.status === 401) {
                   navigate("/auth/sign-out");
-                  
+
                } else if (err.status === 403) {
                   // navigate("/registration/new-app");
                   navigate("/auth/sign-out");
@@ -264,7 +266,7 @@ pdfFiles[field] = null;
                const myData = {
                   eco_code: userData.eco_code, new_code: userData.new_code, online_code: userData.online_code, user_session: userData.user_session, user_class: userData.user_class, user_group: userData.user_group, user_version: userData.user_version, user_application: userData.user_application, id_status: '17'
                }
-               const response = await axios.post(`${BACKEND_URL}/entry/notice/auth`, { userData: myData });
+               const response = await axiosApi.post(`/entry/notice/auth`, { userData: myData });
                if (response.status === 200) {
                   setLoadingSuccess(response.data.message);
                   alert(response.data.message);
@@ -281,7 +283,7 @@ pdfFiles[field] = null;
                // console.log(err);
                if (err.status === 401) {
                   navigate("/auth/sign-out");
-                  
+
                } else if (err.status === 403) {
                   // navigate("/registration/new-app");
                   navigate("/auth/sign-out");
@@ -353,7 +355,7 @@ pdfFiles[field] = null;
                const myData = {
                   eco_code: userData.eco_code, new_code: userData.new_code, online_code: userData.online_code, user_session: userData.user_session, user_class: userData.user_class, user_group: userData.user_group, user_version: userData.user_version, user_application: userData.user_application, id_status: '18'
                }
-               const response = await axios.post(`${BACKEND_URL}/entry/notice/auth`, { userData: myData });
+               const response = await axiosApi.post(`/entry/notice/auth`, { userData: myData });
                if (response.status === 200) {
                   setLoadingSuccess(response.data.message);
                   alert(response.data.message);
@@ -370,7 +372,7 @@ pdfFiles[field] = null;
                // console.log(err);
                if (err.status === 401) {
                   navigate("/auth/sign-out");
-                  
+
                } else if (err.status === 403) {
                   // navigate("/registration/new-app");
                   navigate("/auth/sign-out");
@@ -414,7 +416,7 @@ pdfFiles[field] = null;
       const fetchAccountCodes = async () => {
          setLoadingData("Loading Account Codes...");
          try {
-            const response = await axios.post(`${BACKEND_URL}/account/account-codes`);
+            const response = await axiosApi.post(`/account/account-codes`);
             setAccountCodes(response.data);
             setUniqueEcoCode([...new Map(response.data.map(item => [item.income_code_economic, item])).values()]);
          } catch (err) {
@@ -422,7 +424,7 @@ pdfFiles[field] = null;
             // console.error(err);
             if (err.status === 401) {
                navigate("/auth/sign-out");
-               
+
             }
          } finally {
             setLoadingData(false);
@@ -467,19 +469,25 @@ pdfFiles[field] = null;
       handleSearchDataChange('online_code', codeValue);
    }
 
-   // Return if no session
-   if (!ceb_session) {
-      return null;
+   if (!(permissionData.office === '02' || permissionData.office === '03')) {
+      return (
+         <div className='d-flex justify-content-center align-items-center'>
+            <Image src={error403} style={{ mixBlendMode: "multiply" }} alt="Forbidden" />
+         </div>
+      )
    }
 
    // Return if Search is Valid
-   if (validSearch && (ceb_session.ceb_user_type !== '13' || ceb_session.ceb_user_office === '05' || ceb_session.ceb_user_role === '17')) return (
+   if (validSearch && (permissionData.type !== '13' || permissionData.office === '05' || permissionData.role === '17')) return (
       <Fragment>
          <Row>
             <Col md={12}>
                <Card className="m-1">
                   <Card.Body>
                      <h4 className={styles.SiyamRupaliFont + " text-center text-uppercase w-100 card-title"}>নোটিশ অনুমোদন</h4>
+                     {userData.id_status === "13" && < p className='text-center text-primary p-0 m-0'>{userData.bn_app_status}</p>}
+                     {userData.id_status === "17" && < p className='text-center text-success p-0 m-0'>{userData.bn_app_status}</p>}
+                     {userData.id_status > 17 && < p className='text-center text-danger p-0 m-0'>{userData.bn_app_status}</p>}
                   </Card.Body>
                </Card>
             </Col>
@@ -568,7 +576,7 @@ pdfFiles[field] = null;
                                     value={userData.user_class}
                                     disabled={true}
                                  >
-                                    {(ceb_session.ceb_user_office === "05" || ceb_session.ceb_user_role === "17") && <>
+                                    {(permissionData.office === "05" || permissionData.role === "17") && <>
                                        <option value='06'>ষষ্ট শ্রেণী</option>
                                        <option value='07'>সপ্তম শ্রেণী</option>
                                        <option value='08'>অষ্টম শ্রেণী</option>
@@ -578,7 +586,7 @@ pdfFiles[field] = null;
                                        <option value='13'>নিম্ন মাধ্যমিক</option>
                                        <option value='14'>মাধ্যমিক</option>
                                     </>}
-                                    {(ceb_session.ceb_user_office === "04" || ceb_session.ceb_user_role === "17") && <>
+                                    {(permissionData.office === "04" || permissionData.role === "17") && <>
                                        <option value='11'>একাদশ শ্রেণী</option>
                                        <option value='12'>দ্বাদশ শ্রেণী</option>
                                        <option value='15'>উচ্চ মাধ্যমিক</option>
@@ -727,22 +735,25 @@ pdfFiles[field] = null;
                                  </Card>
                               </Col>
                            </Row>
-                           <Col md={12} className="d-flex justify-content-center gap-3 my-5">
+                           {userData.id_entry !== permissionData.id && <Col md={12} className="d-flex justify-content-center gap-3 my-5">
                               {userData.id_status !== '18' && <Button className='flex-fill' onClick={handleUpdateReject} type="reset" variant="btn btn-danger">বাতিল (Reject)</Button>}
                               <Button className='flex-fill' onClick={handleSearchReset} variant="btn btn-outline-primary">ফিরে যান</Button>
                               {userData.id_status !== '17' && <Button className='flex-fill' onClick={handleUpdateAuthorize} type="submit" variant="btn btn-success">অনুমোদন (Authorize)</Button>}
-                           </Col>
+                           </Col>}
+                           {userData.id_entry === permissionData.id && <Col md={12} className="d-flex justify-content-center gap-3 my-5">
+                              <Button onClick={handleSearchReset} variant="btn btn-outline-primary">ফিরে যান</Button>
+                           </Col>}
                         </Row>
                      </Card.Body>
                   </Card>
                </Form>
             </Col>
          </Row>
-      </Fragment>
+      </Fragment >
    )
 
    // Return if User is Authorized
-   if (ceb_session.ceb_user_type !== '13' || ceb_session.ceb_user_office === '05' || ceb_session.ceb_user_role === '17') return (
+   if (permissionData.type !== '13' || permissionData.office === '05' || permissionData.role === '17') return (
       <Fragment>
          <Row>
             <Col md={12}>
@@ -874,7 +885,7 @@ pdfFiles[field] = null;
                                     onChange={(e) => handleSearchDataChange('user_class', e.target.value)}
                                  >
                                     <option value="">--শ্রেণী সিলেক্ট করুন--</option>
-                                    {(ceb_session.ceb_user_office === "05" || ceb_session.ceb_user_role === "17") && <>
+                                    {(permissionData.office === "05" || permissionData.role === "17") && <>
                                        <option value='06'>ষষ্ট শ্রেণী</option>
                                        <option value='07'>সপ্তম শ্রেণী</option>
                                        <option value='08'>অষ্টম শ্রেণী</option>
@@ -884,7 +895,7 @@ pdfFiles[field] = null;
                                        <option value='13'>নিম্ন মাধ্যমিক</option>
                                        <option value='14'>মাধ্যমিক</option>
                                     </>}
-                                    {(ceb_session.ceb_user_office === "04" || ceb_session.ceb_user_role === "17") && <>
+                                    {(permissionData.office === "04" || permissionData.role === "17") && <>
                                        <option value='11'>একাদশ শ্রেণী</option>
                                        <option value='12'>দ্বাদশ শ্রেণী</option>
                                        <option value='15'>উচ্চ মাধ্যমিক</option>
