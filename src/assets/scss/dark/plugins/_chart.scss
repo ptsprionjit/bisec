@@ -1,0 +1,27 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+.apexcharts-svg{
+    .apexcharts-yaxis-texts-g{
+        text{
+            fill:$secondary;
+        }
+    }
+    .apexcharts-xaxis-texts-g{
+        text{
+            fill:$secondary;
+        }
+    }
+    line{
+        stroke:$secondary;
+    }
+    .apexcharts-track{
+        path {
+            stroke: $secondary;
+        }
+    }
+}

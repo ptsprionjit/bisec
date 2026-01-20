@@ -1,0 +1,19 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+&.boxed {
+    background: var(--#{$variable-prefix}primary) !important;
+    .boxed-inner {
+        background: $body-bg;
+    }
+}
+&.boxed-fancy {
+    background: $body-bg;
+    .boxed-inner{
+        background: $body-bg; 
+    }
+}

@@ -1,0 +1,20 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+.page-item {
+    &.active{
+        .page-link{
+            color:var(--#{$variable-prefix}white);
+            background-color: var(--#{$variable-prefix}primary);
+            border-color: var(--#{$variable-prefix}primary);
+        }
+    }
+    .page-link{
+        border-color: var(--bs-primary-tint-80);
+        color: var(--bs-primary);
+    }
+}

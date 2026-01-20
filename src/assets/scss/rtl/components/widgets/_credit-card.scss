@@ -1,0 +1,27 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+.credit-card-widget{
+    .card-header {
+        &::before {
+            left: auto;
+            right: -3.125rem;
+        }
+        &::after {
+            left: -3.125rem;
+            right: auto;
+        }
+    }
+    .primary-gradient-card {
+		.master-card-content {
+			.master-card-2 {
+                margin-left: unset;
+                margin-right: -2rem;
+			}
+		}
+	}
+}

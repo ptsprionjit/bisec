@@ -1,0 +1,13 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+.progress-widget{
+    .progress-detail{
+        margin-right: 1.5rem;
+        margin-left: unset;
+    }
+}

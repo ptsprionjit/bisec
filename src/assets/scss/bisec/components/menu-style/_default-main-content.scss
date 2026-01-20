@@ -1,0 +1,30 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+.main-content{
+    .content-inner {
+        min-height: calc(100vh - 6.6rem);
+    }
+}
+.sidebar {
+    &+.main-content {
+        margin-left: $navbar-vertical-width;
+        transition: $navbar-vertical-transition;
+    }
+}
+
+@include media-breakpoint-up(xl) {
+    .sidebar {
+        &+.main-content {
+            .nav {
+                .navbar-brand{
+                    display: none;
+                }
+            }
+        }
+    }
+}

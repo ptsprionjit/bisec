@@ -1,0 +1,15 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+@mixin avatar ($value, $radius: 0) {
+    height: $value + px; 
+    width: $value + px; 
+    min-width: $value + px;
+    @if $enable-rounded == true {
+        border-radius: $radius;
+    }
+}

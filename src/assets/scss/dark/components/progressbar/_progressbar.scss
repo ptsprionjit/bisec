@@ -1,0 +1,13 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+// Circle Progress
+
+
+.circle-progress-circle {
+	stroke: $secondary;
+}

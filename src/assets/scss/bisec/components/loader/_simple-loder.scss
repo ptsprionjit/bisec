@@ -1,0 +1,24 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+.loader.simple-loader {
+	background-color: $body-bg;
+	height: 100%;
+	width: 100%;
+	position: fixed;
+	place-content: center;
+	overflow: hidden !important;
+	right: 0px;
+	z-index: 1250;
+    .loader-body{
+        // background: url(../images/loader.gif) no-repeat scroll center center;
+        background-size: 20%;
+        width: 100%;
+        height: 100%;
+        position: relative;
+    }
+}

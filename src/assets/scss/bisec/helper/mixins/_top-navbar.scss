@@ -1,0 +1,25 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+@mixin top-nav-link {
+    .nav-item {
+        .nav-link {
+            color: $white;
+            &:hover, &:active {
+                color: $light;
+            }
+        }
+    }
+    .caption {
+        .caption-title {
+            color: $white;
+        }
+        .caption-sub-title {
+            color: $light;
+        }
+    }
+}

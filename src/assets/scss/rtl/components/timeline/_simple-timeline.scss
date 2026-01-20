@@ -1,0 +1,47 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+.iq-timeline0 {    
+    &::before {
+        left: auto;
+        right: 20px;
+    }
+    ul {
+        li {
+            &:nth-child(odd) {
+                float: right;
+                text-align: right;
+                padding: 0 60px 0 0;
+                .timeline-dots {
+                    right: 12px;
+                    left: auto;
+                }
+                .timeline-dots.timeline-dot1 {
+                    right: 12px;
+                    left: auto;
+                } 
+            }
+            &:nth-child(even) {
+                float: right;
+                text-align: right;
+                padding: 0 60px 0 0;
+                .timeline-dots {
+                    right: 12px;
+                    left: auto;
+                }
+                .timeline-dots.timeline-dot1 {
+                    right: 12px;
+                    left: auto;
+                }
+            }
+            .timeline-dots1 {
+                left: auto;
+                right: 0;
+            }
+        }
+    }
+}

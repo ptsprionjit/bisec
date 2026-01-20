@@ -1,0 +1,31 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+.dropdown-menu {
+    background-color: $body-bg;
+    color: $body-color;
+    .dropdown-item {
+        color: $body-color;
+        &:hover {
+            color: $primary;
+            background-color: transparent;
+        }
+    }
+}
+.like-block {
+    span {
+        color: $body-color;
+    }
+}
+
+
+.dropdown>.dropdown-menu {
+    background-color: $body-bg;
+}
+.dropdown>.dropdown-menu>a{
+    color: $body-color;
+}

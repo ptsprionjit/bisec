@@ -1,0 +1,12 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+.iq-media-group{
+    .iq-icon-box-3 {
+        border-color: var(--#{$variable-prefix}primary);
+    }
+}

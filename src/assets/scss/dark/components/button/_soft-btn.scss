@@ -1,0 +1,19 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+// Soft Button
+
+
+@each $color, $value in $theme-colors {
+    .btn-soft-#{$color} {
+        @include button-variant(
+          rgba($value, .1), rgba($value, .0), tint-color($value, 20%),
+          rgba($value, .2), rgba($value, .2), tint-color($value, 30%),
+          rgba($value, .3), rgba($value, .2), rgba($value,1), tint-color($value, 50%));
+        box-shadow: unset;
+    }
+}

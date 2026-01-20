@@ -1,0 +1,20 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+.sidebar {
+    &.sidebar-transparent {
+        background-color: transparent;
+        box-shadow: none;
+    }
+}
+@include media-breakpoint-down(xl) {
+    .sidebar {
+        &.sidebar-transparent{
+            background: $white;
+        }
+    }
+}

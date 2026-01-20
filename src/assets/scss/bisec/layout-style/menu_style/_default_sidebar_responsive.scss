@@ -1,0 +1,40 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+@media (max-width: 1199.98px){
+    .sidebar{
+        &+.main-content {
+            margin-left: 0;
+        }
+        .sidebar-toggle {
+            right: 18px;
+        }
+        &.sidebar-mini+.main-content {
+            margin-left: 0;
+        }
+        &.sidebar-mini{
+            transform: translateX(-250%);
+        }
+    }
+    .dual-compact{
+        &+.main-content {
+            margin-left: 0;
+        }
+    }
+    .dual-compact.dual-compact-mini+.main-content {
+        margin-left: 0;
+    }
+    .dual-compact.dual-compact-mini{
+        transform: translateX(-100%);
+    }
+}
+
+@include media-breakpoint-down(xl) {
+    .search-input {
+        display: none;
+    }
+}

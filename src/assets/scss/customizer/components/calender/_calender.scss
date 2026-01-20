@@ -1,0 +1,13 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+.fc-button-primary {
+    color: #fff !important;
+    background-color: var(--bs-primary) !important;
+    border-color:var(--bs-primary) !important ;
+   
+  }

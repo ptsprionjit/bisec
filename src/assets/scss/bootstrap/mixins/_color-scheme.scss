@@ -1,0 +1,16 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+// scss-docs-start mixin-color-scheme
+
+
+@mixin color-scheme($name) {
+  @media (prefers-color-scheme: #{$name}) {
+    @content;
+  }
+}
+// scss-docs-end mixin-color-scheme

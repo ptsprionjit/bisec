@@ -1,0 +1,19 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+// Sidebar Background Colors
+
+
+.sidebar {
+    &.sidebar-dark {
+        background-color: $navbar-vertical-dark-bg;
+    }
+
+    &.sidebar-color {
+        background-color: $navbar-vertical-color-bg;
+    }
+}

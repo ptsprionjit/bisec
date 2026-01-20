@@ -1,0 +1,28 @@
+@use "sass:string";
+@use "sass:color";
+@use "sass:list";
+@use "sass:map";
+@use "sass:math";
+@use "sass:meta";
+
+#top-tab-list {
+    li {
+        a {
+            color: var(--#{$variable-prefix}primary);
+            background: var(--#{$variable-prefix}primary-tint-80);
+            
+            .iq-icon {
+                background: var(--#{$variable-prefix}primary);
+            }
+        }
+        &.active {
+            a {
+                background: var(--#{$variable-prefix}primary);
+
+                .iq-icon {
+                    color: var(--#{$variable-prefix}primary); 
+                }
+            }
+        }
+    }
+}
