@@ -1,0 +1,27 @@
+{
+  "short_name": "BISEC DASHBOARD",
+  "name": "BOARD OF INTERMEDIATE AND SECONDARY EDUCATION, CUMILLA",
+  "icons": [
+    {
+      "src": "cb_logo.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "cb_dash.jpg",
+      "type": "image/jpg",
+      "sizes": "192x192"
+    },
+    {
+      "src": "cb_logo.jpg",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#FFFFFF",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#000000",
+  "description": "Admin Dashboard of Board of Intermediate and Secondary Education, Cumilla"
+}

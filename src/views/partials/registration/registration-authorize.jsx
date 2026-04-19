@@ -21,7 +21,7 @@ import { useAuthProvider } from "../../../context/AuthContext.jsx";
 import axiosApi from "../../../lib/axiosApi.jsx";
 
 const RegistrationAuth = () => {
-   const { permissionData } = useAuthProvider();
+   const { permissionData, loading } = useAuthProvider();
    const navigate = useNavigate();
 
    // minor derived date used in original
@@ -33,15 +33,16 @@ const RegistrationAuth = () => {
 
    /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
    useEffect(() => {
-      let mounted = true;
-      (async () => {
-         if (!(((permissionData?.office === '04' || permissionData?.office === '05') && (permissionData?.role === '13' || permissionData?.role === '14' || permissionData?.role === '15')) || permissionData?.role === '16' || permissionData?.role === '17' || permissionData?.role === '18' || permissionData?.type === '13')) {
+      if (loading) return null;
+
+      if (!permissionData?.id) {
+         navigate('/auth/sign-out', { replace: true });
+      } else {
+         if (!(((permissionData.office === '04' || permissionData.office === '05') && (permissionData.role === '13' || permissionData.role === '14' || permissionData.role === '15')) || permissionData.role === '16' || permissionData.role === '17' || permissionData.role === '18' || permissionData.type === '13')) {
             navigate('/errors/error403', { replace: true });
          }
-      })();
-      return () => { mounted = false; };
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-   }, [permissionData]); // run only once on mount
+      }
+   }, [permissionData, loading]); // eslint-disable-next-line react-hooks/exhaustive-deps
 
    // Profile Image Variables
    const [profileImagePreview, setProfileImagePreview] = useState(null);
@@ -213,7 +214,7 @@ const RegistrationAuth = () => {
    // Fetch Images
    const fetchImages = async (st_data) => {
       try {
-         const res = await axiosApi.post(`/student/image-fetch?`,
+         const res = await axiosApi.post(`/student/image/fetch?`,
             { st_data: st_data },
             { responseType: 'blob', });
 

@@ -1,13 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, Fragment } from 'react'
 import { Row, Col, Form, Button } from 'react-bootstrap'
-// import { Image, ListGroup } from 'react-bootstrap'
 import { Link, useNavigate } from 'react-router-dom'
 import { useSelector } from "react-redux"
 
 import Card from '../../../components/Card'
 
 import Logo from '../../../components/partials/components/logo'
-// import LoginLogo from '../../../components/partials/components/login-logo'
 import * as SettingSelector from '../../../store/setting/selectors'
 
 import styles from '../../../assets/custom/css/bisec.module.css'
@@ -17,32 +15,28 @@ import * as ValidationInput from '../input_validation'
 import { useAuthProvider } from "../../../context/AuthContext.jsx";
 import axiosApi from "../../../lib/axiosApi.jsx";
 
-
 const ChangePassword = () => {
-   const { permissionData } = useAuthProvider();
+   const { permissionData, loading } = useAuthProvider();
    const navigate = useNavigate();
 
    /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
    useEffect(() => {
-      let mounted = true;
-      (async () => {
-         if (!permissionData) {
-            navigate("/auth/sign-out", { replace: true });
-         } else {
-            if (permissionData.type === '13') {
-               navigate("/auth/sign-out", { replace: true });
-            }
+      if (loading) return null;
+
+      if (!permissionData?.id) {
+         navigate('/auth/sign-out', { replace: true });
+      } else {
+         if (permissionData.type === '13') {
+            navigate('/errors/error403', { replace: true });
          }
-      })();
-      return () => { mounted = false; };
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-   }, [permissionData]); // run only once on mount
+      }
+   }, [permissionData, loading]); // eslint-disable-next-line react-hooks/exhaustive-deps
 
    const appShortName = useSelector(SettingSelector.app_short_name);
 
    const [validated, setValidated] = useState(false);
    const [userData, setUserData] = useState({
-      prev_pass: '', new_pass: '', retype_pass: ''
+      oldPass: '', newPass1: '', newPass2: ''
    });
 
    //Data Fetch Status
@@ -55,7 +49,7 @@ const ChangePassword = () => {
    const updatePassword = (async () => {
       setLoadingData("পাসওয়ার্ড পরিবর্তন করা হচ্ছে... অপেক্ষা করুন...");
       try {
-         const response = await axiosApi.post(`/user/password_change?`, { userData });
+         const response = await axiosApi.post(`/user/password/change`, { userData });
          if (response.status === 200) {
             setUpdateMessage(response.data.message);
             let count_down = 5000;
@@ -107,21 +101,21 @@ const ChangePassword = () => {
          event.stopPropagation();
       } else {
          const requiredFields = [
-            'prev_pass', 'new_pass', 'retype_pass'
+            'oldPass', 'newPass1', 'newPass2'
          ];
 
          requiredFields.forEach(field => {
             let dataError = null;
 
             switch (field) {
-               case 'prev_pass':
+               case 'oldPass':
                   if (userData[field].length === 0) {
                      dataError = "পাসওয়ার্ড পূরণ করতে হবে";
                   }
                   break;
 
-               case 'new_pass':
-               case 'retype_pass':
+               case 'newPass1':
+               case 'newPass2':
                   dataError = ValidationInput.passwordCheck(userData[field]);
                   break;
 
@@ -136,9 +130,8 @@ const ChangePassword = () => {
             }
          });
 
-         if (userData.new_pass !== userData.retype_pass) {
-            let field = 'retype_pass';
-            newErrors[field] = "নতুন পাসওয়ার্ড একই হবে হবে";
+         if (userData.newPass1 !== userData.newPass2) {
+            newErrors.newPass1 = newErrors.newPass2 = "নতুন পাসওয়ার্ড একই হতে হবে";
             isValid = false;
             setValidated(false);
          }
@@ -160,7 +153,7 @@ const ChangePassword = () => {
       event.stopPropagation();
       setUserDataError([]);
       setUserData({
-         prev_pass: '', new_pass: '', retype_pass: ''
+         oldPass: '', newPass1: '', newPass2: ''
       });
       setValidated(false);
       setLoadingData(false);
@@ -170,7 +163,7 @@ const ChangePassword = () => {
    };
 
    return (
-      <>
+      <Fragment>
          <section className={styles.bgImageLogin + " login-content"}>
             <Row className="m-0 d-flex justify-content-center align-items-center">
                <Col md="6">
@@ -209,50 +202,50 @@ const ChangePassword = () => {
                                  />
                               </Col>
                               <Col md={12} className='mb-3'>
-                                 <Form.Label className='text-dark text-uppercase' htmlFor="prev_pass">পূর্বের পাসওয়ার্ড</Form.Label>
+                                 <Form.Label className='text-dark text-uppercase' htmlFor="oldPass">পূর্বের পাসওয়ার্ড</Form.Label>
                                  <Form.Control
                                     type="password"
-                                    id="prev_pass"
-                                    value={userData.prev_pass}
-                                    isInvalid={validated && !!userDataError.prev_pass}
-                                    isValid={validated && userData.prev_pass && !userDataError.prev_pass}
-                                    onChange={(e) => handleDataChange('prev_pass', e.target.value)}
+                                    id="oldPass"
+                                    value={userData.oldPass}
+                                    isInvalid={validated && !!userDataError.oldPass}
+                                    isValid={validated && userData.oldPass && !userDataError.oldPass}
+                                    onChange={(e) => handleDataChange('oldPass', e.target.value)}
                                  />
-                                 {validated && userDataError.prev_pass && (
+                                 {validated && userDataError.oldPass && (
                                     <Form.Control.Feedback type="invalid">
-                                       {userDataError.prev_pass}
+                                       {userDataError.oldPass}
                                     </Form.Control.Feedback>
                                  )}
                               </Col>
                               <Col md={6} className='mb-3'>
-                                 <Form.Label className='text-dark text-uppercase' htmlFor="new_pass">নতুন পাসওয়ার্ড</Form.Label>
+                                 <Form.Label className='text-dark text-uppercase' htmlFor="newPass1">নতুন পাসওয়ার্ড</Form.Label>
                                  <Form.Control
                                     type="password"
-                                    id="new_pass"
-                                    value={userData.new_pass}
-                                    isInvalid={validated && !!userDataError.new_pass}
-                                    isValid={validated && userData.new_pass && !userDataError.new_pass}
-                                    onChange={(e) => handleDataChange('new_pass', e.target.value)}
+                                    id="newPass1"
+                                    value={userData.newPass1}
+                                    isInvalid={validated && !!userDataError.newPass1}
+                                    isValid={validated && userData.newPass1 && !userDataError.newPass1}
+                                    onChange={(e) => handleDataChange('newPass1', e.target.value)}
                                  />
-                                 {validated && userDataError.new_pass && (
+                                 {validated && userDataError.newPass1 && (
                                     <Form.Control.Feedback type="invalid">
-                                       {userDataError.new_pass}
+                                       {userDataError.newPass1}
                                     </Form.Control.Feedback>
                                  )}
                               </Col>
                               <Col md={6} className='mb-3'>
-                                 <Form.Label className='text-dark text-uppercase' htmlFor="retype_pass">পুনরায় পাসওয়ার্ড প্রদান করুন</Form.Label>
+                                 <Form.Label className='text-dark text-uppercase' htmlFor="newPass2">পুনরায় পাসওয়ার্ড প্রদান করুন</Form.Label>
                                  <Form.Control
                                     type="password"
-                                    id="retype_pass"
-                                    value={userData.retype_pass}
-                                    isInvalid={validated && !!userDataError.retype_pass}
-                                    isValid={validated && userData.retype_pass && !userDataError.retype_pass}
-                                    onChange={(e) => handleDataChange('retype_pass', e.target.value)}
+                                    id="newPass2"
+                                    value={userData.newPass2}
+                                    isInvalid={validated && !!userDataError.newPass2}
+                                    isValid={validated && userData.newPass2 && !userDataError.newPass2}
+                                    onChange={(e) => handleDataChange('newPass2', e.target.value)}
                                  />
-                                 {validated && userDataError.retype_pass && (
+                                 {validated && userDataError.newPass2 && (
                                     <Form.Control.Feedback type="invalid">
-                                       {userDataError.retype_pass}
+                                       {userDataError.newPass2}
                                     </Form.Control.Feedback>
                                  )}
                               </Col>
@@ -269,7 +262,7 @@ const ChangePassword = () => {
                </Col>
             </Row>
          </section>
-      </>
+      </Fragment>
    )
 }
 

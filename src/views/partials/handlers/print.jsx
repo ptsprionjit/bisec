@@ -1,4 +1,4 @@
-export const handlePrint = async (printRef, pageType = 'A4', printTitle = 'প্রিন্ট ডকুমেন্ট') => {
+export const handlePrint = async (printRef, pageType = 'A4', printTitle = 'প্রিন্ট ডকুমেন্ট', pageLayout = 'portrait') => {
    if (!printRef) {
       alert("প্রিন্ট রেফারেন্স (Document to be Printed) প্রদান করতে হবে");
       return; // popup blocked safety
@@ -41,7 +41,7 @@ export const handlePrint = async (printRef, pageType = 'A4', printTitle = 'প�
    const style = doc.createElement("style");
    style.textContent = `
       @page {
-         size: ${pageType} portrait !important;
+         size: ${pageType} ${pageLayout} !important;
          margin: 0 !important;
          padding: 0.5in !important;
       }
@@ -49,7 +49,7 @@ export const handlePrint = async (printRef, pageType = 'A4', printTitle = 'প�
       div, table, tr, th, td, p, span {
          break-inside: avoid !important;
          page-break-inside: avoid !important;
-         border: 0px;
+         /* border: 0px; */
       }
       
       section {

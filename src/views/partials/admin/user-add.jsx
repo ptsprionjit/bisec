@@ -238,7 +238,7 @@ const UserAdd = () => {
          setOptionUserType([]);
          setLoadingData("ইউজার টাইপ তথ্য খুঁজা হচ্ছে! অপেক্ষা করুন!");
          try {
-            const response = await axiosApi.post(`/user/type-list`);
+            const response = await axiosApi.post(`/user/type/list`);
             setUserType(response.data);
          } catch (err) {
             // console.error(`Error Fetching User Type: ${err}`);
@@ -271,7 +271,7 @@ const UserAdd = () => {
          setOptionUserRole([]);
          setLoadingData("ইউজার রোল তথ্য খুঁজা হচ্ছে! অপেক্ষা করুন!");
          try {
-            const response = await axiosApi.post(`/user/role-list`);
+            const response = await axiosApi.post(`/user/role/list`);
             setUserRole(response.data);
          } catch (err) {
             // console.error(`Error Fetching User Type: ${err}`);

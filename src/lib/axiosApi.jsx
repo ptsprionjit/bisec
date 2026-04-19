@@ -1,51 +1,79 @@
 import axios from "axios";
-// import { authLogout } from "../auth/AuthEvents.jsx";
 
+/**
+ * --------------------------------------------
+ * Device Helpers and Client Information
+ * --------------------------------------------
+ */
+import { getClientInfo, getDeviceId } from "../handlers/clientInformation";
+/**
+ * --------------------------------------------
+ * Axios Instance
+ * --------------------------------------------
+ */
 const axiosApi = axios.create({
     baseURL: import.meta.env.VITE_BACKEND_URL,
     withCredentials: true,
+    // timeout: 60000, // 60 seconds timeout
 });
 
-//Session Data
-// const ceb_session = JSON.parse(window.localStorage.getItem("ceb_session"));
+/**
+ * --------------------------------------------
+ * Request ID Generator
+ * --------------------------------------------
+ */
+const generateRequestId = () => `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
+/**
+ * --------------------------------------------
+ * Request Interceptor
+ * --------------------------------------------
+ */
+axiosApi.interceptors.request.use((config) => {
+    config.headers = config.headers || {};
+
+    config.headers["x-request-id"] = generateRequestId();
+    config.headers["x-device-id"] = getDeviceId();
+    config.headers["x-client-info"] = JSON.stringify(getClientInfo());
+
+    return config;
+});
+
+/**
+ * --------------------------------------------
+ * Response Interceptor
+ * --------------------------------------------
+ */
 axiosApi.interceptors.response.use(
     (response) => response,
-    (error) => {
-        // Network error → no response object
-        if (!error.response) {
-            // retry ONCE
-            if (!error.config._retry) {
-                error.config._retry = true;
-                return axiosApi(error.config);
-            }
-            return Promise.reject(error);
-        }
-
-        const { status } = error.response;
+    async (error) => {
         const originalRequest = error.config;
+        const { status } = error.response;
 
-        // 🔴 AUTH FAILURE → LOGOUT, NO RETRY
-        // if (status === 401) {
-        //     axiosApi.post("/ceb/logout", { ceb_user_id: ceb_session ? ceb_session?.ceb_user_id : null }).finally(() => {
-        //         authLogout(); // clear store, cookies, localStorage, redirect
-        //         return Promise.reject(error);
-        //     });
-        // }
-
-        // 🟠 SERVER ERROR → // Just tag the error
+        // 🔴 Unauthorized Access Attempt → // Just Tag the Error
         if (status === 401) {
             error.isAuthError = true;
             return Promise.reject(error);
         }
 
-        // 🟡 Other errors → retry once
-        if (!originalRequest._retry) {
-            originalRequest._retry = true;
+        // 📡 Network Error → No Response Object
+        if (!error.response) {
+            if (!originalRequest?.__retryNetwork) {
+                originalRequest.__retryNetwork = true;
+                return axiosApi(originalRequest);
+            }
+            return Promise.reject(error);
+        }
+
+        // 🟡 Other Errors → Retry Once
+        if (status >= 500 && status < 600 && !originalRequest?._retryServer) {
+            originalRequest._retryServer = true;
             return axiosApi(originalRequest);
         }
 
+        // 🔴 All Other Errors → Reject
         return Promise.reject(error);
-    });
+    }
+);
 
 export default axiosApi;

@@ -19,20 +19,21 @@ import { useAuthProvider } from "../../../context/AuthContext.jsx";
 import axiosApi from "../../../lib/axiosApi.jsx";
 
 const RegistrationNew = () => {
-   const { permissionData } = useAuthProvider();
+   const { permissionData, loading } = useAuthProvider();
    const navigate = useNavigate();
 
    /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
    useEffect(() => {
-      let mounted = true;
-      (async () => {
-         if (!(((permissionData?.office === '04' || permissionData?.office === '05') && (permissionData?.role === '13' || permissionData?.role === '14' || permissionData?.role === '15')) || permissionData?.role === '16' || permissionData?.role === '17' || permissionData?.role === '18' || permissionData?.type === '13')) {
+      if (loading) return null;
+
+      if (!permissionData?.id) {
+         navigate('/auth/sign-out', { replace: true });
+      } else {
+         if (!(((permissionData.office === '04' || permissionData.office === '05') && (permissionData.role === '13' || permissionData.role === '14' || permissionData.role === '15')) || permissionData.role === '16' || permissionData.role === '17' || permissionData.role === '18' || permissionData.type === '13')) {
             navigate('/errors/error403', { replace: true });
          }
-      })();
-      return () => { mounted = false; };
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-   }, [permissionData]); // run only once on mount
+      }
+   }, [permissionData, loading]); // eslint-disable-next-line react-hooks/exhaustive-deps
 
    // Profile Image Variables
    const [profileImagePreview, setProfileImagePreview] = useState(null);
@@ -156,7 +157,7 @@ const RegistrationNew = () => {
          } else {
             setSearchLoading("তথ্য খুঁজা হচ্ছে! অপেক্ষা করুন...");
             try {
-               const response = await axiosApi.post(`/student/registration/date_fee`, { user_form: searchData.user_form, user_eiin: searchData.user_eiin, user_session: searchData.user_session, user_class: searchData.user_class, user_group: searchData.user_group, user_version: searchData.user_version, user_application: searchData.user_application });
+               const response = await axiosApi.post(`/student/registration/master/data`, { user_form: searchData.user_form, user_eiin: searchData.user_eiin, user_session: searchData.user_session, user_class: searchData.user_class, user_group: searchData.user_group, user_version: searchData.user_version, user_application: searchData.user_application });
                if (response.status === 200) {
                   setSearchSuccess(response.data.message);
                   setInsName(response.data.instData);

@@ -1,39 +1,26 @@
 import React, { Fragment, useEffect, useState } from 'react'
-// import FsLightbox from 'fslightbox-react';
-
 import Select from 'react-select'
-
-import { Row, Col, Image, Button, Form, Modal } from 'react-bootstrap'
-import Card from '../../../components/Card'
-
+import { Row, Col, Image, Button, Form, Modal, Card } from 'react-bootstrap'
 import { Link, useNavigate } from 'react-router-dom'
 
 import error01 from '../../../assets/images/error/01.png'
-
 import * as ValidationInput from '../input_validation'
-
 import styles from '../../../assets/custom/css/bisec.module.css'
-
-// import Maintenance from '../errors/maintenance';
-
 import { useAuthProvider } from "../../../context/AuthContext.jsx";
 import axiosApi from "../../../lib/axiosApi.jsx";
 
 const UserProfile = () => {
-   const { permissionData } = useAuthProvider();
+   const { permissionData, loading } = useAuthProvider();
    const navigate = useNavigate();
 
    /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
    useEffect(() => {
-      let mounted = true;
-      (async () => {
-         if (!permissionData) {
-            navigate("/auth/sign-out", { replace: true });
-         }
-      })();
-      return () => { mounted = false; };
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-   }, [permissionData]); // run only once on mount
+      if (loading) return; // Prevent multiple executions
+
+      if (!permissionData?.id) {
+         navigate("/auth/sign-out", { replace: true });
+      }
+   }, [permissionData, loading]);// eslint-disable-next-line react-hooks/exhaustive-deps
 
    const [profileImage, setProfileImage] = useState(null);
    const [profileImagePreview, setProfileImagePreview] = useState(null);
@@ -49,12 +36,10 @@ const UserProfile = () => {
 
    const [validated, setValidated] = useState(false);
    const [userData, setUserData] = useState({
-      inst_post: '', inst_address: '', inst_email: '', inst_mobile: '', inst_region: '', id_status: '', id_version: '', id_coed: '', id_group: '', id_bank: '', inst_branch: '', inst_routing: '', inst_account: '', en_father: '', en_mother: '', id_gender: '', id_religion: '', user_id_number: '', user_dob: '', id_quota: '', id_disability: '', en_dist: '', id_uzps: '', profile_post: '', profile_address: '', profile_email: '', profile_mobile: '', en_first_office: '', en_first_section: '', id_first_post: '', first_post_date: '', en_last_office: '', en_last_section: '', id_last_post: '', last_post_date: '', profile_branch: '', profile_routing: '', profile_account: ''
+      id_uzps: '', en_dist: '', en_postoffice: '', bn_postoffice: '', en_address: '', bn_address: '', inst_email: '', inst_mobile: '', inst_region: '', id_status: '', id_version: '', id_coed: '', id_group: '', id_bank: '', inst_routing: '', inst_account: '', en_father: '', en_mother: '', bn_father: '', bn_mother: '', en_spouse: '', bn_spouse: '', id_gender: '', id_religion: '', user_id_number: '', user_dob: '', id_quota: '', id_disability: '', en_curr_dist: '', id_curr_uzps: '', en_curr_postoffice: '', bn_curr_postoffice: '', en_curr_address: '', bn_curr_address: '', en_parm_dist: '', id_parm_uzps: '', en_parm_postoffice: '', bn_parm_postoffice: '', en_parm_address: '', bn_parm_address: '', profile_email: '', profile_mobile: '', en_first_office: '', en_first_section: '', id_first_post: '', first_post_date: '', en_last_office: '', en_last_section: '', id_last_post: '', last_post_date: '', en_branch: '', bn_branch: '', bank_routing: '', bank_account: '', id_birthreg: '', id_passport: '', passport_start: '', passport_end: '',
    });
    const [userDataError, setUserDataError] = useState([]);
-   const [userBnError, setUserBnError] = useState({
-      en_father: 'পিতার নাম', en_mother: 'মাতার নাম', id_gender: 'লিঙ্গ', id_religion: 'ধর্ম', user_id_number: 'এনআইডি নম্বর', user_dob: 'জন্ম তারিখ', id_quota: 'কোটা', id_disability: 'অক্ষমতা', en_dist: 'জেলা', id_uzps: 'উপজেলা', profile_post: 'ডাকঘর', profile_address: 'ঠিকানা', profile_email: 'ইমেইল', profile_mobile: 'মোবাইল', en_first_office: 'প্রথম অফিস', en_first_section: 'প্রথম শাখা', id_first_post: 'প্রথম পদবী', first_post_date: 'প্রথম যোগদান', en_last_office: 'বর্তমান অফিস', en_last_section: 'বর্তমান শাখা', id_last_post: 'বর্তমান পদবী', last_post_date: 'বর্তমান যোগদান', id_bank: 'ব্যাংকের নাম', profile_branch: 'ব্যাংকের শাখা', profile_routing: 'রাউটিং নম্বর', profile_account: 'একাউন্ট নম্বর', inst_post: 'ডাকঘর', inst_address: 'ঠিকানা', inst_email: 'ইমেইল', inst_mobile: 'মোবাইল', inst_region: 'এলাকা', id_status: 'প্রতিষ্ঠানের পর্যায়', id_version: 'প্রতিষ্ঠানের মাধ্যম', id_coed: 'প্রতিষ্ঠানের ধরণ', id_group: 'প্রতিষ্ঠানের বিভাগ', inst_branch: 'শাখার নাম', inst_routing: 'রাউটিং নম্বর', inst_account: 'একাউন্ট নম্বর'
-   });
+   const [userBnError, setUserBnError] = useState([]);
 
    // Modal Variales
    const [modalError, setModalError] = useState(false);
@@ -62,7 +47,9 @@ const UserProfile = () => {
    const [addressList, setAddressList] = useState([]);
 
    const [optionDistList, setOptionDistList] = useState([]);
-   const [optionUpazilaList, setOptionUpazilaList] = useState([]);
+   const [optionUpzList, setOptionUpzList] = useState([]);
+   const [optionCurrUpazilaList, setOptionCurrUpazilaList] = useState([]);
+   const [optionParmUpazilaList, setOptionParmUpazilaList] = useState([]);
 
    const [bankList, setBankList] = useState([]);
    const [optionBankList, setOptionBankList] = useState([]);
@@ -113,7 +100,7 @@ const UserProfile = () => {
       formData.append('image', profileImageFile);
 
       try {
-         const response = await axiosApi.post(`/user/image-update`, formData, {
+         const response = await axiosApi.post(`/user/image/update`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
          });
          if (response.status === 200) {
@@ -166,7 +153,7 @@ const UserProfile = () => {
       formData.append('image', profileSignFile);
 
       try {
-         const response = await axiosApi.post(`/user/sign-update`, formData, {
+         const response = await axiosApi.post(`/user/sign/update`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' },
          });
          if (response.status === 200) {
@@ -197,11 +184,11 @@ const UserProfile = () => {
       } else {
          if (permissionData.type === '13') {
             myData = {
-               en_dist: userData.en_dist, id_uzps: userData.id_uzps, inst_post: userData.inst_post, inst_address: userData.inst_address, inst_email: userData.inst_email, inst_mobile: userData.inst_mobile, inst_region: userData.inst_region, id_status: userData.id_status, id_version: userData.id_version, id_coed: userData.id_coed, id_group: userData.id_group, first_post_date: userData.first_post_date, last_post_date: userData.last_post_date, id_bank: userData.id_bank, inst_branch: userData.inst_branch, inst_routing: userData.inst_routing, inst_account: userData.inst_account
+               en_dist: userData.en_dist, id_uzps: userData.id_uzps, en_postoffice: userData.en_postoffice, bn_postoffice: userData.bn_postoffice, en_address: userData.en_address, bn_address: userData.bn_address, inst_email: userData.inst_email, inst_mobile: userData.inst_mobile, inst_region: userData.inst_region, id_status: userData.id_status, id_version: userData.id_version, id_coed: userData.id_coed, id_group: userData.id_group, first_post_date: userData.first_post_date, last_post_date: userData.last_post_date, id_bank: userData.id_bank, en_branch: userData.en_branch, bn_branch: userData.bn_branch, inst_routing: userData.inst_routing, inst_account: userData.inst_account
             }
 
             const requiredFields = [
-               'en_dist', 'id_uzps', 'inst_post', 'inst_address', 'inst_email', 'inst_mobile', 'inst_region', 'id_status', 'id_version', 'id_coed', 'id_group', 'first_post_date', 'last_post_date', 'id_bank', 'inst_branch', 'inst_routing', 'inst_account'
+               'en_dist', 'id_uzps', 'en_postoffice', 'bn_postoffice', 'en_address', 'bn_address', 'inst_email', 'inst_mobile', 'inst_region', 'id_status', 'id_version', 'id_coed', 'id_group', 'first_post_date', 'last_post_date', 'id_bank', 'en_branch', 'bn_branch', 'inst_routing', 'inst_account'
             ];
 
             requiredFields.forEach(field => {
@@ -218,11 +205,11 @@ const UserProfile = () => {
                      break;
 
                   case 'id_uzps':
-                  case 'inst_region':
-                  case 'id_status':
-                  case 'id_version':
-                  case 'id_coed':
-                  case 'id_group':
+                  // case 'inst_region':
+                  // case 'id_status':
+                  // case 'id_version':
+                  // case 'id_coed':
+                  // case 'id_group':
                   case 'inst_mobile':
                   case 'id_bank':
                   case 'inst_routing':
@@ -231,10 +218,16 @@ const UserProfile = () => {
                      break;
 
                   case 'en_dist':
-                  case 'inst_post':
-                  case 'inst_address':
-                  case 'inst_branch':
+                  case 'en_postoffice':
+                  case 'en_address':
+                  case 'en_branch':
                      dataError = ValidationInput.addressCheck(userData[field]);
+                     break;
+
+                  case 'bn_postoffice':
+                  case 'bn_address':
+                  case 'bn_branch':
+                     dataError = ValidationInput.banglaAddressCheck(userData[field]);
                      break;
 
                   case 'inst_email':
@@ -254,11 +247,11 @@ const UserProfile = () => {
             });
          } else {
             myData = {
-               en_father: userData.en_father, en_mother: userData.en_mother, id_gender: userData.id_gender, id_religion: userData.id_religion, user_id_number: userData.user_id_number, user_dob: userData.user_dob, id_quota: userData.id_quota, id_disability: userData.id_disability, en_dist: userData.en_dist, id_uzps: userData.id_uzps, profile_post: userData.profile_post, profile_address: userData.profile_address, profile_email: userData.profile_email, profile_mobile: userData.profile_mobile, en_first_office: userData.en_first_office, en_first_section: userData.en_first_section, id_first_post: userData.id_first_post, first_post_date: userData.first_post_date, en_last_office: userData.en_last_office, en_last_section: userData.en_last_section, id_last_post: userData.id_last_post, last_post_date: userData.last_post_date, id_bank: userData.id_bank, profile_branch: userData.profile_branch, profile_routing: userData.profile_routing, profile_account: userData.profile_account
+               en_father: userData.en_father, en_mother: userData.en_mother, bn_father: userData.bn_father, bn_mother: userData.bn_mother, en_spouse: userData.en_spouse, bn_spouse: userData.bn_spouse, id_gender: userData.id_gender, id_religion: userData.id_religion, user_id_number: userData.user_id_number, user_dob: userData.user_dob, id_quota: userData.id_quota, id_disability: userData.id_disability, en_curr_dist: userData.en_curr_dist, id_curr_uzps: userData.id_curr_uzps, en_curr_postoffice: userData.en_curr_postoffice, bn_curr_postoffice: userData.bn_curr_postoffice, en_curr_address: userData.en_curr_address, bn_curr_address: userData.bn_curr_address, en_parm_dist: userData.en_parm_dist, id_parm_uzps: userData.id_parm_uzps, en_parm_postoffice: userData.en_parm_postoffice, bn_parm_postoffice: userData.bn_parm_postoffice, en_parm_address: userData.en_parm_address, bn_parm_address: userData.bn_parm_address, profile_email: userData.profile_email, profile_mobile: userData.profile_mobile, en_first_office: userData.en_first_office, en_first_section: userData.en_first_section, id_first_post: userData.id_first_post, first_post_date: userData.first_post_date, en_last_office: userData.en_last_office, en_last_section: userData.en_last_section, id_last_post: userData.id_last_post, last_post_date: userData.last_post_date, id_bank: userData.id_bank, en_branch: userData.en_branch, bn_branch: userData.bn_branch, bank_routing: userData.bank_routing, bank_account: userData.bank_account, id_birthreg: userData.id_birthreg, id_passport: userData.id_passport, passport_start: userData.passport_start, passport_end: userData.passport_end
             }
 
             const requiredFields = [
-               'en_father', 'en_mother', 'id_gender', 'id_religion', 'user_id_number', 'user_dob', 'id_quota', 'id_disability', 'en_dist', 'id_uzps', 'profile_post', 'profile_address', 'profile_email', 'profile_mobile', 'en_first_office', 'en_first_section', 'id_first_post', 'first_post_date', 'en_last_office', 'en_last_section', 'id_last_post', 'last_post_date', 'id_bank', 'profile_branch', 'profile_routing', 'profile_account'
+               'en_father', 'en_mother', 'bn_father', 'bn_mother', 'en_spouse', 'bn_spouse', 'id_gender', 'id_religion', 'user_id_number', 'user_dob', 'id_quota', 'id_disability', 'en_curr_dist', 'id_curr_uzps', 'en_curr_postoffice', 'bn_curr_postoffice', 'en_curr_address', 'bn_curr_address', 'en_parm_dist', 'id_parm_uzps', 'en_parm_postoffice', 'bn_parm_postoffice', 'en_parm_address', 'bn_parm_address', 'profile_email', 'profile_mobile', 'en_first_office', 'en_first_section', 'id_first_post', 'first_post_date', 'en_last_office', 'en_last_section', 'id_last_post', 'last_post_date', 'id_bank', 'en_branch', 'bn_branch', 'bank_routing', 'bank_account', 'id_birthreg', 'id_passport', 'passport_start', 'passport_end',
             ];
 
             requiredFields.forEach(field => {
@@ -270,14 +263,39 @@ const UserProfile = () => {
                      dataError = ValidationInput.alphaCheck(userData[field]);
                      break;
 
+                  case 'bn_father':
+                  case 'bn_mother':
+                     dataError = ValidationInput.bengaliCheck(userData[field]);
+                     break;
+
+                  case 'en_spouse':
+                     dataError = userData[field] ? ValidationInput.alphaCheck(userData[field]) : false;
+                     break;
+
+                  case 'bn_spouse':
+                     dataError = userData[field] ? ValidationInput.bengaliCheck(userData[field]) : false;
+                     break;
+
+                  case 'id_birthreg':
+                     dataError = userData[field] ? ValidationInput.numberCheck(userData[field]) : false;
+                     break;
+
+                  case 'id_passport':
+                     dataError = userData[field] ? ValidationInput.alphanumCheck(userData[field]) : false;
+                     break;
+
                   case 'user_dob':
+                     dataError = ValidationInput.dateCheck(userData[field], userData[field], userData[field]);
+                     break;
+
+                  case 'passport_start':
+                  case 'passport_end':
+                     dataError = userData.id_passport ? ValidationInput.dateCheck(userData[field], userData.passport_start, userData.passport_end) : false;
+                     break;
+
                   case 'first_post_date':
                   case 'last_post_date':
-                     dataError = ValidationInput.dateCheck(
-                        userData[field],
-                        '1901-01-01',
-                        new Date().toISOString().split('T')[0]
-                     );
+                     dataError = ValidationInput.dateCheck(userData[field], userData.first_post_date, userData.last_post_date);
                      break;
 
                   case 'id_gender':
@@ -285,25 +303,37 @@ const UserProfile = () => {
                   case 'user_id_number':
                   case 'id_quota':
                   case 'id_disability':
-                  case 'id_uzps':
+                  case 'id_curr_uzps':
+                  case 'id_parm_uzps':
                   case 'profile_mobile':
                   case 'id_first_post':
                   case 'id_last_post':
                   case 'id_bank':
-                  case 'profile_routing':
-                  case 'profile_account':
+                  case 'bank_routing':
+                  case 'bank_account':
                      dataError = ValidationInput.numberCheck(userData[field]);
                      break;
 
-                  case 'en_dist':
-                  case 'profile_post':
-                  case 'profile_address':
+                  case 'en_curr_dist':
+                  case 'en_curr_postoffice':
+                  case 'en_curr_address':
+                  case 'en_parm_dist':
+                  case 'en_parm_postoffice':
+                  case 'en_parm_address':
                   case 'en_first_office':
                   case 'en_first_section':
                   case 'en_last_office':
                   case 'en_last_section':
-                  case 'profile_branch':
+                  case 'en_branch':
                      dataError = ValidationInput.addressCheck(userData[field]);
+                     break;
+
+                  case 'bn_curr_postoffice':
+                  case 'bn_curr_address':
+                  case 'bn_parm_postoffice':
+                  case 'bn_parm_address':
+                  case 'bn_branch':
+                     dataError = ValidationInput.banglaAddressCheck(userData[field]);
                      break;
 
                   case 'profile_email':
@@ -334,14 +364,17 @@ const UserProfile = () => {
                const response = await axiosApi.post(`/user/update`, { userData: myData });
                if (response.status === 200) {
                   setStatus({ loading: false, success: response.data.message, error: false });
+                  alert(response.data.message);
                } else {
                   setStatus({ loading: false, success: false, error: response.data.message });
+                  alert(response.data.message);
                }
             } catch (err) {
                if (err.status === 401) {
                   navigate("/auth/sign-out");
                }
                setStatus({ loading: false, success: false, error: err.response.data.message });
+               alert("অভ্যন্তরীণ সমস্যা। কিছুক্ষণ পর আবার চেষ্টা করুন!");
             } finally {
                setStatus((prev) => ({ ...prev, loading: false }));
             }
@@ -360,7 +393,7 @@ const UserProfile = () => {
       event.preventDefault();
       event.stopPropagation();
       setUserDataError([]);
-      setUserData(fetchedData);
+      setUserData((prev) => ({ ...prev, ...fetchedData }));
       setValidated(false);
       setStatus({ loading: false, success: false, error: false });
    };
@@ -387,7 +420,7 @@ const UserProfile = () => {
    const fetchProfileImage = async () => {
       setStatus({ loading: "প্রোফাইল ছবি খুঁজা হচ্ছে... অপেক্ষা করুন...", success: false, error: false });
       try {
-         const response = await axiosApi.post(`/user/image-fetch`, {}, { responseType: 'blob' });
+         const response = await axiosApi.post(`/user/image/fetch`, {}, { responseType: 'blob' });
          if (response.status === 200) {
             const profile_image = URL.createObjectURL(response.data);
             setProfileImage(profile_image);
@@ -409,7 +442,7 @@ const UserProfile = () => {
    const fetchProfileSign = async () => {
       setStatus({ loading: "প্রোফাইল স্বাক্ষর খুঁজা হচ্ছে... অপেক্ষা করুন...", success: false, error: false });
       try {
-         const response = await axiosApi.post(`/user/sign-fetch?`, {}, { responseType: 'blob' });
+         const response = await axiosApi.post(`/user/sign/fetch?`, {}, { responseType: 'blob' });
          if (response.status === 200) {
             const profile_sign = URL.createObjectURL(response.data);
             setProfileSign(profile_sign);
@@ -453,7 +486,7 @@ const UserProfile = () => {
       setStatus({ loading: "বোর্ডের অফিস/পদবী খুঁজা হচ্ছে... অপেক্ষা করুন...", success: false, error: false });
       try {
          const response = await axiosApi.post(`/user/designation-list`);
-         if (response.status) {
+         if (response.status === 200) {
             setStatus({ loading: false, success: true, error: false });
             setBoardOffices(response.data);
          } else {
@@ -493,12 +526,18 @@ const UserProfile = () => {
    // Fetch Profile Data
    const fetchProfileData = async () => {
       setStatus({ loading: "প্রোফাইল ডাটা লোড করা হচ্ছে... অপেক্ষা করুন...", success: false, error: false });
+      setUserBnError({ en_father: 'পিতার নাম (ইংরেজি)', en_mother: 'মাতার নাম (ইংরেজি)', bn_father: 'পিতার নাম (বাংলা)', bn_mother: 'মাতার নাম (বাংলা)', en_spouse: 'স্বামী/স্ত্রীর নাম (ইংরেজি)', bn_spouse: 'স্বামী/স্ত্রীর নাম (বাংলা)', id_gender: 'লিঙ্গ', id_religion: 'ধর্ম', user_id_number: 'এনআইডি নম্বর', user_dob: 'জন্ম তারিখ', id_quota: 'কোটা', id_disability: 'অক্ষমতা', en_curr_dist: 'বর্তমান জেলা', id_curr_uzps: 'বর্তমান উপজেলা', en_curr_postoffice: 'বর্তমান ডাকঘর (ইংরেজি)', bn_curr_postoffice: 'বর্তমান ডাকঘর (বাংলা)', en_curr_address: 'বর্তমান ঠিকানা (ইংরেজি)', bn_curr_address: 'বর্তমান ঠিকানা (বাংলা)', en_parm_dist: 'স্থায়ী জেলা', id_parm_uzps: 'স্থায়ী উপজেলা', en_parm_postoffice: 'স্থায়ী ডাকঘর (ইংরেজি)', bn_parm_postoffice: 'স্থায়ী ডাকঘর (বাংলা)', en_parm_address: 'স্থায়ী ঠিকানা (ইংরেজি)', bn_parm_address: 'স্থায়ী ঠিকানা (বাংলা)', profile_email: 'ইমেইল', profile_mobile: 'মোবাইল', en_first_office: 'প্রথম অফিস', en_first_section: 'প্রথম শাখা', id_first_post: 'প্রথম পদবী', first_post_date: 'প্রথম যোগদান', en_last_office: 'বর্তমান অফিস', en_last_section: 'বর্তমান শাখা', id_last_post: 'বর্তমান পদবী', last_post_date: 'বর্তমান যোগদান', id_bank: 'ব্যাংকের নাম', en_branch: 'ব্যাংকের শাখা (ইংরেজি)', bn_branch: 'ব্যাংকের শাখা (বাংলা)', bank_routing: 'রাউটিং নম্বর', bank_account: 'একাউন্ট নম্বর', en_post: 'ডাকঘর (ইংরেজি)', bn_post: 'ডাকঘর (বাংলা)', en_address: 'ঠিকানা (ইংরেজি)', bn_address: 'ঠিকানা (বাংলা)', inst_email: 'ইমেইল', inst_mobile: 'মোবাইল', inst_region: 'এলাকা', id_status: 'প্রতিষ্ঠানের পর্যায়', id_version: 'প্রতিষ্ঠানের মাধ্যম', id_coed: 'প্রতিষ্ঠানের ধরণ', id_group: 'প্রতিষ্ঠানের বিভাগ', inst_branch: 'শাখার নাম', inst_routing: 'রাউটিং নম্বর', inst_account: 'একাউন্ট নম্বর', id_birthreg: 'জন্মনিবন্ধন নম্বর', id_passport: 'পাসপোর্ট নম্বর', passport_start: 'পাসপোর্ট ইস্যুর তারিখ', passport_end: 'পাসপোর্ট মেয়াদোত্তীর্ণের তারিখ', id_uzps: 'উপজেলা', en_dist: 'জেলা', en_postoffice: 'ডাকঘর (ইংরেজি)', bn_postoffice: 'ডাকঘর (বাংলা)' });
       try {
          const response = await axiosApi.post(`/user/details`);
-         if (response.status = 200) {
+         if (response.status === 200) {
             setStatus({ loading: false, success: true, error: false });
+            Object.keys(response.data.data).forEach(key => {
+               if (!response.data.data[key]) {
+                  response.data.data[key] = "";
+               }
+            });
             setFetchedData(response.data.data);
-            setUserData(response.data.data);
+            setUserData((prev) => ({ ...prev, ...response.data.data }));
          } else {
             setStatus({ loading: false, success: false, error: response.data.message });
          }
@@ -623,7 +662,7 @@ const UserProfile = () => {
       if (addressList.length > 0) {
          const newOptions = addressList.map(data => ({
             value: data.en_dist,
-            label: String(data.en_dist).toLocaleUpperCase()
+            label: String(data.en_dist).toLocaleUpperCase() + " (" + data.bn_dist + ")"
          }));
          const uniqueValues = Array.from(
             new Map(newOptions.map(item => [item.value, item])).values()
@@ -640,21 +679,55 @@ const UserProfile = () => {
          );
          const newOptions = filteredData.map(data => ({
             value: data.id_uzps,
-            label: String(data.en_uzps).toLocaleUpperCase()
+            label: String(data.en_uzps).toLocaleUpperCase() + " (" + data.bn_uzps + ")"
          }));
          const uniqueValues = Array.from(
             new Map(newOptions.map(item => [item.value, item])).values()
          );
-         setOptionUpazilaList(uniqueValues);
+         setOptionUpzList(uniqueValues);
       }
    }, [userData.en_dist, addressList]); // eslint-disable-line react-hooks/exhaustive-deps
+
+   // Option Current Upazila List
+   useEffect(() => {
+      if (addressList.length > 0) {
+         const filteredData = addressList.filter(
+            item => item.en_dist === userData.en_curr_dist
+         );
+         const newOptions = filteredData.map(data => ({
+            value: data.id_uzps,
+            label: String(data.en_uzps).toLocaleUpperCase() + " (" + data.bn_uzps + ")"
+         }));
+         const uniqueValues = Array.from(
+            new Map(newOptions.map(item => [item.value, item])).values()
+         );
+         setOptionCurrUpazilaList(uniqueValues);
+      }
+   }, [userData.en_curr_dist, addressList]); // eslint-disable-line react-hooks/exhaustive-deps
+
+   // Option Permanent Upazila List
+   useEffect(() => {
+      if (addressList.length > 0) {
+         const filteredData = addressList.filter(
+            item => item.en_dist === userData.en_parm_dist
+         );
+         const newOptions = filteredData.map(data => ({
+            value: data.id_uzps,
+            label: String(data.en_uzps).toLocaleUpperCase() + " (" + data.bn_uzps + ")"
+         }));
+         const uniqueValues = Array.from(
+            new Map(newOptions.map(item => [item.value, item])).values()
+         );
+         setOptionParmUpazilaList(uniqueValues);
+      }
+   }, [userData.en_parm_dist, addressList]); // eslint-disable-line react-hooks/exhaustive-deps
 
    // Option Bank List
    useEffect(() => {
       if (bankList.length > 0) {
          const newOptions = bankList.map(data => ({
             value: data.id_bank,
-            label: String(data.en_bank).toLocaleUpperCase()
+            label: String(data.en_bank).toLocaleUpperCase()+" (" + data.bn_bank + ")"
          }));
          const uniqueValues = Array.from(
             new Map(newOptions.map(item => [item.value, item])).values()
@@ -765,9 +838,9 @@ const UserProfile = () => {
                               <h5 className="text-center w-100 card-title">সাধারণ তথ্য</h5>
                            </Col>
                            <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="user_name">নাম (ইংরেজি)</Form.Label>
+                              <Form.Label className="text-secondary" htmlFor="user_name">নাম (ইংরেজি)</Form.Label>
                               <Form.Control
-                                 className='bg-transparent text-uppercase'
+                                 className='bg-transparent text-uppercase text-dark'
                                  type="text"
                                  id="user_name"
                                  defaultValue={userData.en_user}
@@ -775,9 +848,9 @@ const UserProfile = () => {
                               />
                            </Col>
                            <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="user_id">নাম (বাংলা)</Form.Label>
+                              <Form.Label className="text-secondary" htmlFor="user_id">নাম (বাংলা)</Form.Label>
                               <Form.Control
-                                 className='bg-transparent text-uppercase'
+                                 className='bg-transparent text-uppercase  text-dark'
                                  type="text" id="user_id"
                                  defaultValue={userData.bn_user}
                                  disabled
@@ -785,10 +858,11 @@ const UserProfile = () => {
                            </Col>
                            <Col className='my-2' md={6}>
                               <Form.Group className="bg-transparent">
-                                 <Form.Label className="text-primary" htmlFor='en_dist'>জেলা</Form.Label>
+                                 <Form.Label className="text-secondary" htmlFor='en_dist'>জেলা</Form.Label>
                                  <Select
                                     inputId="en_dist"
                                     placeholder="--জেলা সিলেক্ট করুন--"
+                                    className='bg-transparent text-uppercase text-dark'
                                     value={
                                        optionDistList.find(opt => opt.value === userData.en_dist) || null
                                     }
@@ -808,17 +882,18 @@ const UserProfile = () => {
                            </Col>
                            <Col className='my-2' md={6}>
                               <Form.Group className="bg-transparent">
-                                 <Form.Label className="text-primary" htmlFor='id_uzps'>উপজেলা</Form.Label>
+                                 <Form.Label className="text-secondary" htmlFor='id_uzps'>উপজেলা</Form.Label>
                                  <Select
                                     inputId="id_uzps"
                                     placeholder="--উপজেলা সিলেক্ট করুন--"
+                                    className='bg-transparent text-uppercase text-dark'
                                     value={
-                                       optionUpazilaList.find(opt => opt.value === userData.id_uzps) || null
+                                       optionUpzList.find(opt => opt.value === userData.id_uzps) || null
                                     }
                                     onChange={(value) =>
                                        value ? handleDataChange('id_uzps', value.value) : handleDataChange('id_uzps', '')
                                     }
-                                    options={optionUpazilaList}
+                                    options={optionUpzList}
                                     isClearable={true}
                                     isSearchable={true}
                                  />
@@ -830,43 +905,77 @@ const UserProfile = () => {
                               </Form.Group>
                            </Col>
                            <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="inst_post">ডাকঘর-পোস্ট কোড</Form.Label>
+                              <Form.Label className="text-secondary" htmlFor="bn_postoffice">ডাকঘর (বাংলা)</Form.Label>
                               <Form.Control
-                                 className='bg-transparent text-uppercase'
+                                 className='bg-transparent text-uppercase text-dark'
                                  type="text"
-                                 id="inst_post"
-                                 value={userData.inst_post}
-                                 isInvalid={validated && !!userDataError.inst_post}
-                                 isValid={validated && userData.inst_post && !userDataError.inst_post}
-                                 onChange={(e) => handleDataChange('inst_post', e.target.value)}
+                                 id="bn_postoffice"
+                                 value={userData.bn_postoffice}
+                                 isInvalid={validated && !!userDataError.bn_postoffice}
+                                 isValid={validated && userData.bn_postoffice && !userDataError.bn_postoffice}
+                                 onChange={(e) => handleDataChange('bn_postoffice', e.target.value)}
                               />
-                              {validated && userDataError.inst_post && (
+                              {validated && userDataError.bn_postoffice && (
                                  <Form.Control.Feedback type="invalid">
-                                    {userDataError.inst_post}
+                                    {userDataError.bn_postoffice}
                                  </Form.Control.Feedback>
                               )}
                            </Col>
                            <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="inst_address">ঠিকানা</Form.Label>
+                              <Form.Label className="text-secondary" htmlFor="en_postoffice">ডাকঘর (ইংরেজি)</Form.Label>
                               <Form.Control
-                                 className='bg-transparent text-uppercase'
+                                 className='bg-transparent text-uppercase text-dark'
                                  type="text"
-                                 id="inst_address"
-                                 value={userData.inst_address}
-                                 isInvalid={validated && !!userDataError.inst_address}
-                                 isValid={validated && userData.inst_address && !userDataError.inst_address}
-                                 onChange={(e) => handleDataChange('inst_address', e.target.value)}
+                                 id="en_postoffice"
+                                 value={userData.en_postoffice}
+                                 isInvalid={validated && !!userDataError.en_postoffice}
+                                 isValid={validated && userData.en_postoffice && !userDataError.en_postoffice}
+                                 onChange={(e) => handleDataChange('en_postoffice', e.target.value)}
                               />
-                              {validated && userDataError.inst_address && (
+                              {validated && userDataError.en_postoffice && (
                                  <Form.Control.Feedback type="invalid">
-                                    {userDataError.inst_address}
+                                    {userDataError.en_postoffice}
                                  </Form.Control.Feedback>
                               )}
                            </Col>
                            <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="inst_email">ইমেইল</Form.Label>
+                              <Form.Label className="text-secondary" htmlFor="bn_address">ঠিকানা (বাংলা)</Form.Label>
                               <Form.Control
-                                 className='bg-transparent text-lowercase'
+                                 className='bg-transparent text-uppercase text-dark'
+                                 type="text"
+                                 id="bn_address"
+                                 value={userData.bn_address}
+                                 isInvalid={validated && !!userDataError.bn_address}
+                                 isValid={validated && userData.bn_address && !userDataError.bn_address}
+                                 onChange={(e) => handleDataChange('bn_address', e.target.value)}
+                              />
+                              {validated && userDataError.bn_address && (
+                                 <Form.Control.Feedback type="invalid">
+                                    {userDataError.bn_address}
+                                 </Form.Control.Feedback>
+                              )}
+                           </Col>
+                           <Col className='my-2' md={6}>
+                              <Form.Label className="text-secondary" htmlFor="en_address">ঠিকানা (ইংরেজি)</Form.Label>
+                              <Form.Control
+                                 className='bg-transparent text-uppercase text-dark'
+                                 type="text"
+                                 id="en_address"
+                                 value={userData.en_address}
+                                 isInvalid={validated && !!userDataError.en_address}
+                                 isValid={validated && userData.en_address && !userDataError.en_address}
+                                 onChange={(e) => handleDataChange('en_address', e.target.value)}
+                              />
+                              {validated && userDataError.en_address && (
+                                 <Form.Control.Feedback type="invalid">
+                                    {userDataError.en_address}
+                                 </Form.Control.Feedback>
+                              )}
+                           </Col>
+                           <Col className='my-2' md={6}>
+                              <Form.Label className="text-secondary" htmlFor="inst_email">ইমেইল</Form.Label>
+                              <Form.Control
+                                 className='bg-transparent text-uppercase text-dark'
                                  type="email"
                                  id="inst_email"
                                  value={userData.inst_email}
@@ -881,9 +990,9 @@ const UserProfile = () => {
                               )}
                            </Col>
                            <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="inst_mobile">মোবাইল</Form.Label>
+                              <Form.Label className="text-secondary" htmlFor="inst_mobile">মোবাইল</Form.Label>
                               <Form.Control
-                                 className='bg-transparent text-lowercase'
+                                 className='bg-transparent text-uppercase text-dark'
                                  type="text"
                                  // minLength={11}
                                  maxLength={11}
@@ -899,19 +1008,19 @@ const UserProfile = () => {
                                  </Form.Control.Feedback>
                               )}
                            </Col>
-                           <Col className='m-0 p-0 pt-3' md={12}>
+                           {/* <Col className='m-0 p-0 pt-3' md={12}>
                               <h5 className="text-center w-100 card-title">অন্যান্য তথ্য</h5>
                            </Col>
                            <Col className='my-2' md={4}>
                               <Form.Group className="bg-transparent">
-                                 <Form.Label className="text-primary" htmlFor='inst_region'>প্রতিষ্ঠানের এলাকা</Form.Label>
+                                 <Form.Label className="text-secondary" htmlFor='inst_region'>প্রতিষ্ঠানের এলাকা</Form.Label>
                                  <Form.Select
                                     id="inst_region"
                                     value={userData.inst_region}
                                     isInvalid={validated && !!userDataError.inst_region}
                                     isValid={validated && userData.inst_region && !userDataError.inst_region}
                                     onChange={(e) => handleDataChange('inst_region', e.target.value)}
-                                    className="selectpicker form-control"
+                                    className='bg-transparent text-uppercase text-dark'
                                     data-style="py-0"
                                  >
                                     <option value=''>-- প্রতিষ্ঠানের এলাকা সিলেক্ট করুন --</option>
@@ -928,14 +1037,14 @@ const UserProfile = () => {
                            </Col>
                            <Col className='my-2' md={4}>
                               <Form.Group className="bg-transparent">
-                                 <Form.Label className="text-primary" htmlFor='id_status'>প্রতিষ্ঠানের পর্যায়</Form.Label>
+                                 <Form.Label className="text-secondary" htmlFor='id_status'>প্রতিষ্ঠানের পর্যায়</Form.Label>
                                  <Form.Select
                                     id="id_status"
                                     value={userData.id_status}
                                     isInvalid={validated && !!userDataError.id_status}
                                     isValid={validated && userData.id_status && !userDataError.id_status}
                                     onChange={(e) => handleDataChange('id_status', e.target.value)}
-                                    className="selectpicker form-control"
+                                    className='bg-transparent text-uppercase text-dark'
                                     data-style="py-0"
                                  >
                                     <option value=''>-- প্রতিষ্ঠানের পর্যায় সিলেক্ট করুন --</option>
@@ -955,23 +1064,23 @@ const UserProfile = () => {
                            </Col>
                            <Col className='my-2' md={4}>
                               <Form.Group className="bg-transparent">
-                                 <Form.Label className="text-primary" htmlFor='id_coed'>প্রতিষ্ঠানের ধরণ</Form.Label>
+                                 <Form.Label className="text-secondary" htmlFor='id_coed'>প্রতিষ্ঠানের ধরণ</Form.Label>
                                  <Form.Select
                                     id="id_coed"
                                     value={userData.id_coed}
                                     isInvalid={validated && !!userDataError.id_coed}
                                     isValid={validated && userData.id_coed && !userDataError.id_coed}
                                     onChange={(e) => handleDataChange('id_coed', e.target.value)}
-                                    className="selectpicker form-control"
+                                    className='bg-transparent text-uppercase text-dark'
                                     data-style="py-0"
                                  >
                                     <option value=''>-- প্রতিষ্ঠানের ধরণ সিলেক্ট করুন --</option>
-                                    {userData.inst_status !== '13' && <>
+                                    {permissionData.type !== '13' && <>
                                        <option value='01'>বালক</option>
                                        <option value='02'>বালিকা</option>
                                     </>}
                                     <option value='03'>সহশিক্ষা</option>
-                                    {userData.inst_status === '13' && <option value='04'>মহিলা কলেজ</option>}
+                                    {permissionData.type === '13' && <option value='04'>মহিলা কলেজ</option>}
                                  </Form.Select>
                                  {validated && userDataError.id_coed && (
                                     <Form.Control.Feedback type="invalid">
@@ -982,14 +1091,14 @@ const UserProfile = () => {
                            </Col>
                            <Col className='my-2' md={6}>
                               <Form.Group className="bg-transparent">
-                                 <Form.Label className="text-primary" htmlFor='id_version'>প্রতিষ্ঠানের মাধ্যম</Form.Label>
+                                 <Form.Label className="text-secondary" htmlFor='id_version'>প্রতিষ্ঠানের মাধ্যম</Form.Label>
                                  <Form.Select
                                     id="id_version"
                                     value={userData.id_version}
                                     isInvalid={validated && !!userDataError.id_version}
                                     isValid={validated && userData.id_version && !userDataError.id_version}
                                     onChange={(e) => handleDataChange('id_version', e.target.value)}
-                                    className="selectpicker form-control"
+                                    className='bg-transparent text-uppercase text-dark'
                                     data-style="py-0"
                                  >
                                     <option value=''>-- প্রতিষ্ঠানের মাধ্যম সিলেক্ট করুন --</option>
@@ -1006,14 +1115,14 @@ const UserProfile = () => {
                            </Col>
                            <Col className='my-2' md={6}>
                               <Form.Group className="bg-transparent">
-                                 <Form.Label className="text-primary" htmlFor='id_group'>প্রতিষ্ঠানের বিভাগ</Form.Label>
+                                 <Form.Label className="text-secondary" htmlFor='id_group'>প্রতিষ্ঠানের বিভাগ</Form.Label>
                                  <Form.Select
                                     id="id_group"
                                     value={userData.id_group}
                                     isInvalid={validated && !!userDataError.id_group}
                                     isValid={validated && userData.id_group && !userDataError.id_group}
                                     onChange={(e) => handleDataChange('id_group', e.target.value)}
-                                    className="selectpicker form-control"
+                                    className='bg-transparent text-uppercase text-dark'
                                     data-style="py-0"
                                  >
                                     <option value=''>-- প্রতিষ্ঠানের বিভাগ সিলেক্ট করুন --</option>
@@ -1034,9 +1143,9 @@ const UserProfile = () => {
                               </Form.Group>
                            </Col>
                            <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="first_post_date">স্থাপনের তারিখ</Form.Label>
+                              <Form.Label className="text-secondary" htmlFor="first_post_date">স্থাপনের তারিখ</Form.Label>
                               <Form.Control
-                                 className='bg-transparent text-lowercase'
+                                 className='bg-transparent text-uppercase text-dark'
                                  type="date"
                                  id="first_post_date"
                                  value={userData.first_post_date}
@@ -1051,9 +1160,9 @@ const UserProfile = () => {
                               )}
                            </Col>
                            <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="last_post_date">সর্বশেষ পর্যায়/মাধ্যম/বিভাগ পরবির্তন</Form.Label>
+                              <Form.Label className="text-secondary" htmlFor="last_post_date">সর্বশেষ পর্যায়/মাধ্যম/বিভাগ পরবির্তন</Form.Label>
                               <Form.Control
-                                 className='bg-transparent text-lowercase'
+                                 className='bg-transparent text-uppercase text-dark'
                                  type="date"
                                  id="last_post_date"
                                  value={userData.last_post_date}
@@ -1066,15 +1175,16 @@ const UserProfile = () => {
                                     {userDataError.last_post_date}
                                  </Form.Control.Feedback>
                               )}
-                           </Col>
+                           </Col> */}
                            <Col className='m-0 p-0 pt-3' md={12}>
                               <h5 className="text-center w-100 card-title">ব্যাংক তথ্য</h5>
                            </Col>
-                           <Col className='my-2' md={6}>
+                           <Col className='my-2' md={12}>
                               <Form.Group className="bg-transparent">
-                                 <Form.Label className="text-primary" htmlFor='id_bank'>ব্যাংকের নাম</Form.Label>
+                                 <Form.Label className="text-secondary" htmlFor='id_bank'>ব্যাংকের নাম</Form.Label>
                                  <Select
                                     inputId="id_bank"
+                                    className='bg-transparent text-uppercase text-dark'
                                     placeholder="--ব্যাংক সিলেক্ট করুন--"
                                     value={
                                        optionBankList.find(opt => opt.value === userData.id_bank) || null
@@ -1094,26 +1204,43 @@ const UserProfile = () => {
                               </Form.Group>
                            </Col>
                            <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="inst_branch">শাখার নাম</Form.Label>
+                              <Form.Label className="text-secondary" htmlFor="bn_branch">শাখার নাম (বাংলা)</Form.Label>
                               <Form.Control
-                                 className='bg-transparent text-uppercase'
+                                 className='bg-transparent text-uppercase text-dark'
                                  type="text"
-                                 id="inst_branch"
-                                 value={userData.inst_branch}
-                                 isInvalid={validated && !!userDataError.inst_branch}
-                                 isValid={validated && userData.inst_branch && !userDataError.inst_branch}
-                                 onChange={(e) => handleDataChange('inst_branch', e.target.value)}
+                                 id="bn_branch"
+                                 value={userData.bn_branch}
+                                 isInvalid={validated && !!userDataError.bn_branch}
+                                 isValid={validated && userData.bn_branch && !userDataError.bn_branch}
+                                 onChange={(e) => handleDataChange('bn_branch', e.target.value)}
                               />
-                              {validated && userDataError.inst_branch && (
+                              {validated && userDataError.bn_branch && (
                                  <Form.Control.Feedback type="invalid">
-                                    {userDataError.inst_branch}
+                                    {userDataError.bn_branch}
                                  </Form.Control.Feedback>
                               )}
                            </Col>
                            <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="inst_routing">রাউটিং নম্বর</Form.Label>
+                              <Form.Label className="text-secondary" htmlFor="en_branch">শাখার নাম (ইংরেজি)</Form.Label>
                               <Form.Control
-                                 className='bg-transparent text-uppercase'
+                                 className='bg-transparent text-uppercase text-dark'
+                                 type="text"
+                                 id="en_branch"
+                                 value={userData.en_branch}
+                                 isInvalid={validated && !!userDataError.en_branch}
+                                 isValid={validated && userData.en_branch && !userDataError.en_branch}
+                                 onChange={(e) => handleDataChange('en_branch', e.target.value)}
+                              />
+                              {validated && userDataError.en_branch && (
+                                 <Form.Control.Feedback type="invalid">
+                                    {userDataError.en_branch}
+                                 </Form.Control.Feedback>
+                              )}
+                           </Col>
+                           <Col className='my-2' md={6}>
+                              <Form.Label className="text-secondary" htmlFor="inst_routing">রাউটিং নম্বর</Form.Label>
+                              <Form.Control
+                                 className='bg-transparent text-uppercase text-dark'
                                  // minLength={9}
                                  maxLength={9}
                                  type="text"
@@ -1130,9 +1257,9 @@ const UserProfile = () => {
                               )}
                            </Col>
                            <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="inst_account">হিসাব নম্বর</Form.Label>
+                              <Form.Label className="text-secondary" htmlFor="inst_account">হিসাব নম্বর</Form.Label>
                               <Form.Control
-                                 className='bg-transparent text-uppercase'
+                                 className='bg-transparent text-uppercase text-dark'
                                  // minLength={13}
                                  maxLength={17}
                                  type="text"
@@ -1283,7 +1410,7 @@ const UserProfile = () => {
                               <h5 className="text-center w-100 card-title">ব্যক্তিগত তথ্য</h5>
                            </Col> */}
                            <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="en_user">নাম (ইংরেজি)</Form.Label>
+                              <Form.Label className="text-secondary" htmlFor="en_user">নাম (ইংরেজি)</Form.Label>
                               <Form.Control
                                  className='bg-transparent text-uppercase'
                                  type="text"
@@ -1293,7 +1420,7 @@ const UserProfile = () => {
                               />
                            </Col>
                            <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="user_id">নাম (বাংলা)</Form.Label>
+                              <Form.Label className="text-secondary" htmlFor="user_id">নাম (বাংলা)</Form.Label>
                               <Form.Control
                                  className='bg-transparent text-uppercase'
                                  type="text" id="user_id"
@@ -1302,7 +1429,7 @@ const UserProfile = () => {
                               />
                            </Col>
                            <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="en_father">পিতার নাম</Form.Label>
+                              <Form.Label className="text-secondary" htmlFor="en_father">পিতার নাম (ইংরেজি)</Form.Label>
                               <Form.Control
                                  className='bg-transparent text-uppercase'
                                  type="text"
@@ -1319,7 +1446,24 @@ const UserProfile = () => {
                               )}
                            </Col>
                            <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="en_mother">মাতার নাম</Form.Label>
+                              <Form.Label className="text-secondary" htmlFor="bn_father">পিতার নাম (বাংলা)</Form.Label>
+                              <Form.Control
+                                 className='bg-transparent text-uppercase'
+                                 type="text"
+                                 id="bn_father"
+                                 value={userData.bn_father}
+                                 isInvalid={validated && !!userDataError.bn_father}
+                                 isValid={validated && userData.bn_father && !userDataError.bn_father}
+                                 onChange={(e) => handleDataChange('bn_father', e.target.value)}
+                              />
+                              {validated && userDataError.bn_father && (
+                                 <Form.Control.Feedback type="invalid">
+                                    {userDataError.bn_father}
+                                 </Form.Control.Feedback>
+                              )}
+                           </Col>
+                           <Col className='my-2' md={6}>
+                              <Form.Label className="text-secondary" htmlFor="en_mother">মাতার নাম (ইংরেজি)</Form.Label>
                               <Form.Control
                                  className='bg-transparent text-uppercase'
                                  type="text"
@@ -1336,8 +1480,60 @@ const UserProfile = () => {
                               )}
                            </Col>
                            <Col className='my-2' md={6}>
+                              <Form.Label className="text-secondary" htmlFor="bn_mother">মাতার নাম (বাংলা)</Form.Label>
+                              <Form.Control
+                                 className='bg-transparent text-uppercase'
+                                 type="text"
+                                 id="bn_mother"
+                                 value={userData.bn_mother}
+                                 isInvalid={validated && !!userDataError.bn_mother}
+                                 isValid={validated && userData.bn_mother && !userDataError.bn_mother}
+                                 onChange={(e) => handleDataChange('bn_mother', e.target.value)}
+                              />
+                              {validated && userDataError.bn_mother && (
+                                 <Form.Control.Feedback type="invalid">
+                                    {userDataError.bn_mother}
+                                 </Form.Control.Feedback>
+                              )}
+                           </Col>
+                           <Col className='my-2' md={6}>
+                              <Form.Label className="text-secondary" htmlFor="en_spouse">স্বামী/স্ত্রীর নাম (ইংরেজি)</Form.Label>
+                              <Form.Control
+                                 className='bg-transparent text-uppercase'
+                                 type="text"
+                                 id="en_spouse"
+                                 value={userData.en_spouse}
+                                 isInvalid={validated && !!userDataError.en_spouse}
+                                 isValid={validated && userData.en_spouse && !userDataError.en_spouse}
+                                 onChange={(e) => handleDataChange('en_spouse', e.target.value)}
+                              />
+                              {validated && userDataError.en_spouse && (
+                                 <Form.Control.Feedback type="invalid">
+                                    {userDataError.en_spouse}
+                                 </Form.Control.Feedback>
+                              )}
+                           </Col>
+                           <Col className='my-2' md={6}>
+                              <Form.Label className="text-secondary" htmlFor="bn_spouse">স্বামী/স্ত্রীর নাম (বাংলা)</Form.Label>
+                              <Form.Control
+                                 className='bg-transparent text-uppercase'
+                                 type="text"
+                                 id="bn_spouse"
+                                 value={userData.bn_spouse}
+                                 isInvalid={validated && !!userDataError.bn_spouse}
+                                 isValid={validated && userData.bn_spouse && !userDataError.bn_spouse}
+                                 onChange={(e) => handleDataChange('bn_spouse', e.target.value)}
+                              />
+                              {validated && userDataError.bn_spouse && (
+                                 <Form.Control.Feedback type="invalid">
+                                    {userDataError.bn_spouse}
+                                 </Form.Control.Feedback>
+                              )}
+                           </Col>
+
+                           <Col className='my-2' md={6}>
                               <Form.Group className="bg-transparent">
-                                 <Form.Label className="text-primary" htmlFor='id_gender'>লিঙ্গ</Form.Label>
+                                 <Form.Label className="text-secondary" htmlFor='id_gender'>লিঙ্গ</Form.Label>
                                  <Form.Select
                                     id="id_gender"
                                     value={userData.id_gender}
@@ -1361,7 +1557,7 @@ const UserProfile = () => {
                            </Col>
                            <Col className='my-2' md={6}>
                               <Form.Group className="bg-transparent">
-                                 <Form.Label className="text-primary" htmlFor='id_religion'>ধর্ম</Form.Label>
+                                 <Form.Label className="text-secondary" htmlFor='id_religion'>ধর্ম</Form.Label>
                                  <Form.Select
                                     id="id_religion"
                                     value={userData.id_religion}
@@ -1386,7 +1582,7 @@ const UserProfile = () => {
                               </Form.Group>
                            </Col>
                            <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="user_id_number">এনআইডি (NID)</Form.Label>
+                              <Form.Label className="text-secondary" htmlFor="user_id_number">এনআইডি (NID)</Form.Label>
                               <Form.Control
                                  className='bg-transparent text-uppercase'
                                  type="text"
@@ -1405,7 +1601,7 @@ const UserProfile = () => {
                               )}
                            </Col>
                            <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="user_dob">জন্ম তারিখ</Form.Label>
+                              <Form.Label className="text-secondary" htmlFor="user_dob">জন্ম তারিখ</Form.Label>
                               <Form.Control
                                  className='bg-transparent text-uppercase'
                                  type="date" id="user_dob"
@@ -1421,8 +1617,78 @@ const UserProfile = () => {
                               )}
                            </Col>
                            <Col className='my-2' md={6}>
+                              <Form.Label className="text-secondary" htmlFor="id_birthreg">জন্মনিবন্ধন নম্বর</Form.Label>
+                              <Form.Control
+                                 className='bg-transparent text-uppercase'
+                                 type="text"
+                                 maxLength={17}
+                                 id="id_birthreg"
+                                 value={userData.id_birthreg}
+                                 isInvalid={validated && !!userDataError.id_birthreg}
+                                 isValid={validated && userData.id_birthreg && !userDataError.id_birthreg}
+                                 onChange={(e) => handleDataChange('id_birthreg', e.target.value)}
+                              />
+                              {validated && userDataError.id_birthreg && (
+                                 <Form.Control.Feedback type="invalid">
+                                    {userDataError.id_birthreg}
+                                 </Form.Control.Feedback>
+                              )}
+                           </Col>
+                           <Col className='my-2' md={6}>
+                              <Form.Label className="text-secondary" htmlFor="id_passport">পাসপোর্ট নম্বর</Form.Label>
+                              <Form.Control
+                                 className='bg-transparent text-uppercase'
+                                 type="text"
+                                 maxLength={17}
+                                 id="id_passport"
+                                 value={userData.id_passport}
+                                 isInvalid={validated && !!userDataError.id_passport}
+                                 isValid={validated && userData.id_passport && !userDataError.id_passport}
+                                 onChange={(e) => handleDataChange('id_passport', e.target.value)}
+                              />
+                              {validated && userDataError.id_passport && (
+                                 <Form.Control.Feedback type="invalid">
+                                    {userDataError.id_passport}
+                                 </Form.Control.Feedback>
+                              )}
+                           </Col>
+                           <Col className='my-2' md={6}>
+                              <Form.Label className="text-secondary" htmlFor="passport_start">পাসপোর্ট ইস্যু তারিখ</Form.Label>
+                              <Form.Control
+                                 className='bg-transparent text-uppercase'
+                                 type="date"
+                                 id="passport_start"
+                                 value={userData.passport_start}
+                                 isInvalid={validated && !!userDataError.passport_start}
+                                 isValid={validated && userData.passport_start && !userDataError.passport_start}
+                                 onChange={(e) => handleDataChange('passport_start', e.target.value)}
+                              />
+                              {validated && userDataError.passport_start && (
+                                 <Form.Control.Feedback type="invalid">
+                                    {userDataError.passport_start}
+                                 </Form.Control.Feedback>
+                              )}
+                           </Col>
+                           <Col className='my-2' md={6}>
+                              <Form.Label className="text-secondary" htmlFor="passport_end">পাসপোর্ট মেয়াদোত্তীর্ণের তারিখ</Form.Label>
+                              <Form.Control
+                                 className='bg-transparent text-uppercase'
+                                 type="date"
+                                 id="passport_end"
+                                 value={userData.passport_end}
+                                 isInvalid={validated && !!userDataError.passport_end}
+                                 isValid={validated && userData.passport_end && !userDataError.passport_end}
+                                 onChange={(e) => handleDataChange('passport_end', e.target.value)}
+                              />
+                              {validated && userDataError.passport_end && (
+                                 <Form.Control.Feedback type="invalid">
+                                    {userDataError.passport_end}
+                                 </Form.Control.Feedback>
+                              )}
+                           </Col>
+                           <Col className='my-2' md={6}>
                               <Form.Group className="bg-transparent">
-                                 <Form.Label className="text-primary" htmlFor='id_quota'>কোটা</Form.Label>
+                                 <Form.Label className="text-secondary" htmlFor='id_quota'>কোটা</Form.Label>
                                  <Form.Select
                                     id="id_quota"
                                     value={userData.id_quota}
@@ -1448,7 +1714,7 @@ const UserProfile = () => {
                            </Col>
                            <Col className='my-2' md={6}>
                               <Form.Group className="bg-transparent">
-                                 <Form.Label className="text-primary" htmlFor='id_disability'>অক্ষমতা</Form.Label>
+                                 <Form.Label className="text-secondary" htmlFor='id_disability'>অক্ষমতা</Form.Label>
                                  <Form.Select
                                     id="id_disability"
                                     value={userData.id_disability}
@@ -1473,88 +1739,253 @@ const UserProfile = () => {
                                  )}
                               </Form.Group>
                            </Col>
+                        </Row>
+                     </Card.Body>
+                  </Card>
+                  <Card>
+                     <Card.Header>
+                        <h5 className="text-center w-100 card-title">যোগাযোগের তথ্য</h5>
+                     </Card.Header>
+                     <Card.Body>
+                        <Row>
+                           <Col className='m-0 p-0 pt-2' md={12}>
+                              <h6 className="text-center w-100">বর্তমান ঠিকানা</h6>
+                           </Col>
                            <Col className='my-2' md={6}>
                               <Form.Group className="bg-transparent">
-                                 <Form.Label className="text-primary" htmlFor='en_dist'>জেলা</Form.Label>
+                                 <Form.Label className="text-secondary" htmlFor='en_curr_dist'>জেলা</Form.Label>
                                  <Select
-                                    inputId="en_dist"
+                                    inputId="en_curr_dist"
                                     placeholder="--জেলা সিলেক্ট করুন--"
                                     value={
-                                       optionDistList.find(opt => opt.value === userData.en_dist) || null
+                                       optionDistList.find(opt => opt.value === userData.en_curr_dist) || null
                                     }
                                     onChange={(value) =>
-                                       value ? handleDataChange('en_dist', value.value) : handleDataChange('en_dist', '')
+                                       value ? handleDataChange('en_curr_dist', value.value) : handleDataChange('en_curr_dist', '')
                                     }
                                     options={optionDistList}
                                     isClearable={true}
                                     isSearchable={true}
                                  />
-                                 {validated && userDataError.en_dist && (
+                                 {validated && userDataError.en_curr_dist && (
                                     <p className='text-danger'>
-                                       {userDataError.en_dist}
+                                       {userDataError.en_curr_dist}
                                     </p>
                                  )}
                               </Form.Group>
                            </Col>
                            <Col className='my-2' md={6}>
                               <Form.Group className="bg-transparent">
-                                 <Form.Label className="text-primary" htmlFor='id_uzps'>উপজেলা</Form.Label>
+                                 <Form.Label className="text-secondary" htmlFor='id_curr_uzps'>উপজেলা</Form.Label>
                                  <Select
-                                    inputId="id_uzps"
+                                    inputId="id_curr_uzps"
                                     placeholder="--উপজেলা সিলেক্ট করুন--"
                                     value={
-                                       optionUpazilaList.find(opt => opt.value === userData.id_uzps) || null
+                                       optionCurrUpazilaList.find(opt => opt.value === userData.id_curr_uzps) || null
                                     }
                                     onChange={(value) =>
-                                       value ? handleDataChange('id_uzps', value.value) : handleDataChange('id_uzps', '')
+                                       value ? handleDataChange('id_curr_uzps', value.value) : handleDataChange('id_curr_uzps', '')
                                     }
-                                    options={optionUpazilaList}
+                                    options={optionCurrUpazilaList}
                                     isClearable={true}
                                     isSearchable={true}
                                  />
-                                 {validated && userDataError.id_uzps && (
+                                 {validated && userDataError.id_curr_uzps && (
                                     <p className='text-danger'>
-                                       {userDataError.id_uzps}
+                                       {userDataError.id_curr_uzps}
                                     </p>
                                  )}
                               </Form.Group>
                            </Col>
                            <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="profile_post">ডাকঘর-পোস্ট কোড</Form.Label>
+                              <Form.Label className="text-secondary" htmlFor="en_curr_postoffice">ডাকঘর (ইংরেজি)</Form.Label>
                               <Form.Control
                                  className='bg-transparent text-uppercase'
                                  type="text"
-                                 id="profile_post"
-                                 value={userData.profile_post}
-                                 isInvalid={validated && !!userDataError.profile_post}
-                                 isValid={validated && userData.profile_post && !userDataError.profile_post}
-                                 onChange={(e) => handleDataChange('profile_post', e.target.value)}
+                                 id="en_curr_postoffice"
+                                 value={userData.en_curr_postoffice}
+                                 isInvalid={validated && !!userDataError.en_curr_postoffice}
+                                 isValid={validated && userData.en_curr_postoffice && !userDataError.en_curr_postoffice}
+                                 onChange={(e) => handleDataChange('en_curr_postoffice', e.target.value)}
                               />
-                              {validated && userDataError.profile_post && (
+                              {validated && userDataError.en_curr_postoffice && (
                                  <Form.Control.Feedback type="invalid">
-                                    {userDataError.profile_post}
+                                    {userDataError.en_curr_postoffice}
                                  </Form.Control.Feedback>
                               )}
                            </Col>
                            <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="profile_address">ঠিকানা</Form.Label>
+                              <Form.Label className="text-secondary" htmlFor="bn_curr_postoffice">ডাকঘর (বাংলা)</Form.Label>
                               <Form.Control
                                  className='bg-transparent text-uppercase'
                                  type="text"
-                                 id="profile_address"
-                                 value={userData.profile_address}
-                                 isInvalid={validated && !!userDataError.profile_address}
-                                 isValid={validated && userData.profile_address && !userDataError.profile_address}
-                                 onChange={(e) => handleDataChange('profile_address', e.target.value)}
+                                 id="bn_curr_postoffice"
+                                 value={userData.bn_curr_postoffice}
+                                 isInvalid={validated && !!userDataError.bn_curr_postoffice}
+                                 isValid={validated && userData.bn_curr_postoffice && !userDataError.bn_curr_postoffice}
+                                 onChange={(e) => handleDataChange('bn_curr_postoffice', e.target.value)}
                               />
-                              {validated && userDataError.profile_address && (
+                              {validated && userDataError.bn_curr_postoffice && (
                                  <Form.Control.Feedback type="invalid">
-                                    {userDataError.profile_address}
+                                    {userDataError.bn_curr_postoffice}
                                  </Form.Control.Feedback>
                               )}
                            </Col>
                            <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="profile_email">ইমেইল</Form.Label>
+                              <Form.Label className="text-secondary" htmlFor="en_curr_address">ঠিকানা (ইংরেজি)</Form.Label>
+                              <Form.Control
+                                 className='bg-transparent text-uppercase'
+                                 type="text"
+                                 id="en_curr_address"
+                                 value={userData.en_curr_address}
+                                 isInvalid={validated && !!userDataError.en_curr_address}
+                                 isValid={validated && userData.en_curr_address && !userDataError.en_curr_address}
+                                 onChange={(e) => handleDataChange('en_curr_address', e.target.value)}
+                              />
+                              {validated && userDataError.en_curr_address && (
+                                 <Form.Control.Feedback type="invalid">
+                                    {userDataError.en_curr_address}
+                                 </Form.Control.Feedback>
+                              )}
+                           </Col>
+                           <Col className='my-2' md={6}>
+                              <Form.Label className="text-secondary" htmlFor="bn_curr_address">ঠিকানা (বাংলা)</Form.Label>
+                              <Form.Control
+                                 className='bg-transparent text-uppercase'
+                                 type="text"
+                                 id="bn_curr_address"
+                                 value={userData.bn_curr_address}
+                                 isInvalid={validated && !!userDataError.bn_curr_address}
+                                 isValid={validated && userData.bn_curr_address && !userDataError.bn_curr_address}
+                                 onChange={(e) => handleDataChange('bn_curr_address', e.target.value)}
+                              />
+                              {validated && userDataError.bn_curr_address && (
+                                 <Form.Control.Feedback type="invalid">
+                                    {userDataError.bn_curr_address}
+                                 </Form.Control.Feedback>
+                              )}
+                           </Col>
+
+                           <Col className='m-0 p-0 pt-4' md={12}>
+                              <h6 className="text-center w-100">স্থায়ী ঠিকানা</h6>
+                           </Col>
+                           <Col className='my-2' md={6}>
+                              <Form.Group className="bg-transparent">
+                                 <Form.Label className="text-secondary" htmlFor='en_parm_dist'>জেলা</Form.Label>
+                                 <Select
+                                    inputId="en_parm_dist"
+                                    placeholder="--জেলা সিলেক্ট করুন--"
+                                    value={
+                                       optionDistList.find(opt => opt.value === userData.en_parm_dist) || null
+                                    }
+                                    onChange={(value) =>
+                                       value ? handleDataChange('en_parm_dist', value.value) : handleDataChange('en_parm_dist', '')
+                                    }
+                                    options={optionDistList}
+                                    isClearable={true}
+                                    isSearchable={true}
+                                 />
+                                 {validated && userDataError.en_parm_dist && (
+                                    <p className='text-danger'>
+                                       {userDataError.en_parm_dist}
+                                    </p>
+                                 )}
+                              </Form.Group>
+                           </Col>
+                           <Col className='my-2' md={6}>
+                              <Form.Group className="bg-transparent">
+                                 <Form.Label className="text-secondary" htmlFor='id_parm_uzps'>উপজেলা</Form.Label>
+                                 <Select
+                                    inputId="id_parm_uzps"
+                                    placeholder="--উপজেলা সিলেক্ট করুন--"
+                                    value={
+                                       optionParmUpazilaList.find(opt => opt.value === userData.id_parm_uzps) || null
+                                    }
+                                    onChange={(value) =>
+                                       value ? handleDataChange('id_parm_uzps', value.value) : handleDataChange('id_parm_uzps', '')
+                                    }
+                                    options={optionParmUpazilaList}
+                                    isClearable={true}
+                                    isSearchable={true}
+                                 />
+                                 {validated && userDataError.id_parm_uzps && (
+                                    <p className='text-danger'>
+                                       {userDataError.id_parm_uzps}
+                                    </p>
+                                 )}
+                              </Form.Group>
+                           </Col>
+                           <Col className='my-2' md={6}>
+                              <Form.Label className="text-secondary" htmlFor="en_parm_postoffice">ডাকঘর (ইংরেজি)</Form.Label>
+                              <Form.Control
+                                 className='bg-transparent text-uppercase'
+                                 type="text"
+                                 id="en_parm_postoffice"
+                                 value={userData.en_parm_postoffice}
+                                 isInvalid={validated && !!userDataError.en_parm_postoffice}
+                                 isValid={validated && userData.en_parm_postoffice && !userDataError.en_parm_postoffice}
+                                 onChange={(e) => handleDataChange('en_parm_postoffice', e.target.value)}
+                              />
+                              {validated && userDataError.en_parm_postoffice && (
+                                 <Form.Control.Feedback type="invalid">
+                                    {userDataError.en_parm_postoffice}
+                                 </Form.Control.Feedback>
+                              )}
+                           </Col>
+                           <Col className='my-2' md={6}>
+                              <Form.Label className="text-secondary" htmlFor="bn_parm_postoffice">ডাকঘর (বাংলা)</Form.Label>
+                              <Form.Control
+                                 className='bg-transparent text-uppercase'
+                                 type="text"
+                                 id="bn_parm_postoffice"
+                                 value={userData.bn_parm_postoffice}
+                                 isInvalid={validated && !!userDataError.bn_parm_postoffice}
+                                 isValid={validated && userData.bn_parm_postoffice && !userDataError.bn_parm_postoffice}
+                                 onChange={(e) => handleDataChange('bn_parm_postoffice', e.target.value)}
+                              />
+                              {validated && userDataError.bn_parm_postoffice && (
+                                 <Form.Control.Feedback type="invalid">
+                                    {userDataError.bn_parm_postoffice}
+                                 </Form.Control.Feedback>
+                              )}
+                           </Col>
+                           <Col className='my-2' md={6}>
+                              <Form.Label className="text-secondary" htmlFor="en_parm_address">ঠিকানা (ইংরেজি)</Form.Label>
+                              <Form.Control
+                                 className='bg-transparent text-uppercase'
+                                 type="text"
+                                 id="en_parm_address"
+                                 value={userData.en_parm_address}
+                                 isInvalid={validated && !!userDataError.en_parm_address}
+                                 isValid={validated && userData.en_parm_address && !userDataError.en_parm_address}
+                                 onChange={(e) => handleDataChange('en_parm_address', e.target.value)}
+                              />
+                              {validated && userDataError.en_parm_address && (
+                                 <Form.Control.Feedback type="invalid">
+                                    {userDataError.en_parm_address}
+                                 </Form.Control.Feedback>
+                              )}
+                           </Col>
+                           <Col className='my-2' md={6}>
+                              <Form.Label className="text-secondary" htmlFor="bn_parm_address">ঠিকানা (বাংলা)</Form.Label>
+                              <Form.Control
+                                 className='bg-transparent text-uppercase'
+                                 type="text"
+                                 id="bn_parm_address"
+                                 value={userData.bn_parm_address}
+                                 isInvalid={validated && !!userDataError.bn_parm_address}
+                                 isValid={validated && userData.bn_parm_address && !userDataError.bn_parm_address}
+                                 onChange={(e) => handleDataChange('bn_parm_address', e.target.value)}
+                              />
+                              {validated && userDataError.bn_parm_address && (
+                                 <Form.Control.Feedback type="invalid">
+                                    {userDataError.bn_parm_address}
+                                 </Form.Control.Feedback>
+                              )}
+                           </Col>
+
+                           <Col className='my-2' md={6}>
+                              <Form.Label className="text-secondary" htmlFor="profile_email">ইমেইল</Form.Label>
                               <Form.Control
                                  className='bg-transparent text-lowercase'
                                  type="email"
@@ -1571,7 +2002,7 @@ const UserProfile = () => {
                               )}
                            </Col>
                            <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="profile_mobile">মোবাইল</Form.Label>
+                              <Form.Label className="text-secondary" htmlFor="profile_mobile">মোবাইল</Form.Label>
                               <Form.Control
                                  className='bg-transparent text-lowercase'
                                  type="text"
@@ -1603,7 +2034,7 @@ const UserProfile = () => {
                            </Col>
                            <Col className='my-2' md={6}>
                               <Form.Group className="bg-transparent">
-                                 <Form.Label className="text-primary" htmlFor='en_first_office'>অফিস</Form.Label>
+                                 <Form.Label className="text-secondary" htmlFor='en_first_office'>অফিস</Form.Label>
                                  <Select
                                     inputId="en_first_office"
                                     placeholder="--অফিস সিলেক্ট করুন--"
@@ -1626,7 +2057,7 @@ const UserProfile = () => {
                            </Col>
                            <Col className='my-2' md={6}>
                               <Form.Group className="bg-transparent">
-                                 <Form.Label className="text-primary" htmlFor='en_first_section'>শাখা</Form.Label>
+                                 <Form.Label className="text-secondary" htmlFor='en_first_section'>শাখা</Form.Label>
                                  <Select
                                     inputId="en_first_section"
                                     placeholder="--শাখা সিলেক্ট করুন--"
@@ -1649,7 +2080,7 @@ const UserProfile = () => {
                            </Col>
                            <Col className='my-2' md={6}>
                               <Form.Group className="bg-transparent">
-                                 <Form.Label className="text-primary" htmlFor='id_first_post'>পদবী</Form.Label>
+                                 <Form.Label className="text-secondary" htmlFor='id_first_post'>পদবী</Form.Label>
                                  <Select
                                     inputId="id_first_post"
                                     placeholder="--পদবী সিলেক্ট করুন--"
@@ -1671,7 +2102,7 @@ const UserProfile = () => {
                               </Form.Group>
                            </Col>
                            <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="first_post_date">যোগদানের তারিখ</Form.Label>
+                              <Form.Label className="text-secondary" htmlFor="first_post_date">যোগদানের তারিখ</Form.Label>
                               <Form.Control
                                  className='bg-transparent text-uppercase'
                                  type="date" id="first_post_date"
@@ -1692,7 +2123,7 @@ const UserProfile = () => {
                            </Col>
                            <Col className='my-2' md={6}>
                               <Form.Group className="bg-transparent">
-                                 <Form.Label className="text-primary" htmlFor='en_last_office'>অফিস</Form.Label>
+                                 <Form.Label className="text-secondary" htmlFor='en_last_office'>অফিস</Form.Label>
                                  <Select
                                     inputId="en_last_office"
                                     placeholder="--অফিস সিলেক্ট করুন--"
@@ -1715,7 +2146,7 @@ const UserProfile = () => {
                            </Col>
                            <Col className='my-2' md={6}>
                               <Form.Group className="bg-transparent">
-                                 <Form.Label className="text-primary" htmlFor='en_last_section'>শাখা</Form.Label>
+                                 <Form.Label className="text-secondary" htmlFor='en_last_section'>শাখা</Form.Label>
                                  <Select
                                     inputId="en_last_section"
                                     placeholder="--শাখা সিলেক্ট করুন--"
@@ -1738,7 +2169,7 @@ const UserProfile = () => {
                            </Col>
                            <Col className='my-2' md={6}>
                               <Form.Group className="bg-transparent">
-                                 <Form.Label className="text-primary" htmlFor='id_last_post'>পদবী</Form.Label>
+                                 <Form.Label className="text-secondary" htmlFor='id_last_post'>পদবী</Form.Label>
                                  <Select
                                     inputId="id_last_post"
                                     placeholder="--পদবী সিলেক্ট করুন--"
@@ -1760,7 +2191,7 @@ const UserProfile = () => {
                               </Form.Group>
                            </Col>
                            <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="last_post_date">যোগদানের তারিখ</Form.Label>
+                              <Form.Label className="text-secondary" htmlFor="last_post_date">যোগদানের তারিখ</Form.Label>
                               <Form.Control
                                  className='bg-transparent text-uppercase'
                                  type="date" id="last_post_date"
@@ -1786,7 +2217,7 @@ const UserProfile = () => {
                         <Row>
                            <Col className='my-2' md={6}>
                               <Form.Group className="bg-transparent">
-                                 <Form.Label className="text-primary" htmlFor='id_bank'>ব্যাংকের নাম</Form.Label>
+                                 <Form.Label className="text-secondary" htmlFor='id_bank'>ব্যাংকের নাম</Form.Label>
                                  <Select
                                     inputId="id_bank"
                                     placeholder="--ব্যাংক সিলেক্ট করুন--"
@@ -1808,57 +2239,74 @@ const UserProfile = () => {
                               </Form.Group>
                            </Col>
                            <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="profile_branch">শাখার নাম</Form.Label>
-                              <Form.Control
-                                 className='bg-transparent text-uppercase'
-                                 type="text"
-                                 id="profile_branch"
-                                 value={userData.profile_branch}
-                                 isInvalid={validated && !!userDataError.profile_branch}
-                                 isValid={validated && userData.profile_branch && !userDataError.profile_branch}
-                                 onChange={(e) => handleDataChange('profile_branch', e.target.value)}
-                              />
-                              {validated && userDataError.profile_branch && (
-                                 <Form.Control.Feedback type="invalid">
-                                    {userDataError.profile_branch}
-                                 </Form.Control.Feedback>
-                              )}
-                           </Col>
-                           <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="profile_routing">রাউটিং নম্বর</Form.Label>
+                              <Form.Label className="text-secondary" htmlFor="bank_routing">রাউটিং নম্বর</Form.Label>
                               <Form.Control
                                  className='bg-transparent text-uppercase'
                                  // minLength={9}
                                  maxLength={9}
                                  type="text"
-                                 id="profile_routing"
-                                 value={userData.profile_routing}
-                                 isInvalid={validated && !!userDataError.profile_routing}
-                                 isValid={validated && userData.profile_routing && !userDataError.profile_routing}
-                                 onChange={(e) => handleDataChange('profile_routing', e.target.value)}
+                                 id="bank_routing"
+                                 value={userData.bank_routing}
+                                 isInvalid={validated && !!userDataError.bank_routing}
+                                 isValid={validated && userData.bank_routing && !userDataError.bank_routing}
+                                 onChange={(e) => handleDataChange('bank_routing', e.target.value)}
                               />
-                              {validated && userDataError.profile_routing && (
+                              {validated && userDataError.bank_routing && (
                                  <Form.Control.Feedback type="invalid">
-                                    {userDataError.profile_routing}
+                                    {userDataError.bank_routing}
                                  </Form.Control.Feedback>
                               )}
                            </Col>
-                           <Col className='my-2' md={6}>
-                              <Form.Label className="text-primary" htmlFor="profile_account">হিসাব নম্বর</Form.Label>
+                           <Col className='my-2' md={12}>
+                              <Form.Label className="text-secondary" htmlFor="en_branch">শাখার নাম (ইংরেজি)</Form.Label>
+                              <Form.Control
+                                 className='bg-transparent text-uppercase'
+                                 type="text"
+                                 id="en_branch"
+                                 value={userData.en_branch}
+                                 isInvalid={validated && !!userDataError.en_branch}
+                                 isValid={validated && userData.en_branch && !userDataError.en_branch}
+                                 onChange={(e) => handleDataChange('en_branch', e.target.value)}
+                              />
+                              {validated && userDataError.en_branch && (
+                                 <Form.Control.Feedback type="invalid">
+                                    {userDataError.en_branch}
+                                 </Form.Control.Feedback>
+                              )}
+                           </Col>
+                           <Col className='my-2' md={12}>
+                              <Form.Label className="text-secondary" htmlFor="bn_branch">শাখার নাম (বাংলা)</Form.Label>
+                              <Form.Control
+                                 className='bg-transparent text-uppercase'
+                                 type="text"
+                                 id="bn_branch"
+                                 value={userData.bn_branch}
+                                 isInvalid={validated && !!userDataError.bn_branch}
+                                 isValid={validated && userData.bn_branch && !userDataError.bn_branch}
+                                 onChange={(e) => handleDataChange('bn_branch', e.target.value)}
+                              />
+                              {validated && userDataError.bn_branch && (
+                                 <Form.Control.Feedback type="invalid">
+                                    {userDataError.bn_branch}
+                                 </Form.Control.Feedback>
+                              )}
+                           </Col>
+                           <Col className='my-2' md={12}>
+                              <Form.Label className="text-secondary" htmlFor="bank_account">হিসাব নম্বর</Form.Label>
                               <Form.Control
                                  className='bg-transparent text-uppercase'
                                  // minLength={13}
                                  maxLength={17}
                                  type="text"
-                                 id="profile_account"
-                                 value={userData.profile_account}
-                                 isInvalid={validated && !!userDataError.profile_account}
-                                 isValid={validated && userData.profile_account && !userDataError.profile_account}
-                                 onChange={(e) => handleDataChange('profile_account', e.target.value)}
+                                 id="bank_account"
+                                 value={userData.bank_account}
+                                 isInvalid={validated && !!userDataError.bank_account}
+                                 isValid={validated && userData.bank_account && !userDataError.bank_account}
+                                 onChange={(e) => handleDataChange('bank_account', e.target.value)}
                               />
-                              {validated && userDataError.profile_account && (
+                              {validated && userDataError.bank_account && (
                                  <Form.Control.Feedback type="invalid">
-                                    {userDataError.profile_account}
+                                    {userDataError.bank_account}
                                  </Form.Control.Feedback>
                               )}
                            </Col>

@@ -90,7 +90,7 @@ export const banglaAddressCheck = (name_value) => {
             var name_char = name_value.charCodeAt(i);
             var prev_char = name_value.charCodeAt(i - 1);
 
-            if (!((name_char < 2554 && name_char > 2432) || (name_char < 58 && name_char > 47) || name_char === 2404 || name_char === 32 || name_char === 33 || name_char === 40 || name_char === 41 || name_char === 44 || name_char === 45 || name_char === 46 || name_char === 58 || name_char === 63 || name_char === 91 || name_char === 93)) {
+            if (!((name_char < 2554 && name_char > 2432) || (name_char < 60 && name_char > 43) || name_char === 2404 || name_char === 10 || name_char === 32 || name_char === 33 || name_char === 40 || name_char === 41 || name_char === 63 || name_char === 91 || name_char === 93)) {
                 return `${name_value[i]} অক্ষরটি ব্যবহার করা যাবে না। শুধুমাত্র বাংলা অক্ষর ব্যবহার করুন!`;
             }
             // Check for consecutive special characters
@@ -98,12 +98,12 @@ export const banglaAddressCheck = (name_value) => {
                 return `একই স্পেশাল অক্ষর পরপর ব্যবহার করা যাবে না`;
             }
             // // Check for sapce before special characters
-            // if ((prev_char === 32) && (name_char === 2404 || name_char === 33 || name_char === 44 || name_char === 45 || name_char === 46 || name_char === 58 || name_char === 63)) {
+            // if ((prev_char === 32) && (name_char === 2404 || name_char === 33 || name_char === 63)) {
             //     return `স্পেস এর পরে ${name_value[i]} অক্ষরটি ব্যবহার করা যাবে না`;
             // }
 
             // // Check for sapce after special characters
-            // if ((name_char !== 32) && (prev_char === 2404 || prev_char === 33 || prev_char === 44 || prev_char === 45 || prev_char === 46 || prev_char === 58 || prev_char === 63)) {
+            // if ((name_char !== 32) && (prev_char === 2404 || prev_char === 33 || prev_char === 63)) {
             //     return `অক্ষর ${name_value[i - 1]} এর পরে স্পেস দিতে হবে`;
             // }
         }
@@ -231,21 +231,20 @@ export const dateCheck = (date_value, start_date, end_date) => {
     }
 }
 
-
 //Password Validiy Check
-export const passwordCheck = (name_value) => {
-    if (String(name_value)?.length > 5 && String(name_value)?.length < 25) {
-        name_value = String(name_value).trim();
+export const passwordCheck = (password_value) => {
+    if (String(password_value)?.length > 5 && String(password_value)?.length < 25) {
+        password_value = String(password_value).trim();
         var uChar = false;
         var lChar = false;
         var nChar = false;
         var sChar = false;
-        for (let i = 0; i < name_value.length; i++) {
-            var name_char = name_value.charCodeAt(i);
+        for (let i = 0; i < password_value.length; i++) {
+            var name_char = password_value.charCodeAt(i);
             if (name_char === 32) {
                 return `পয়াসওয়ার্ডে স্পেস ব্যবহার করা যাবে না`;
             } else if (!(name_char < 127 && name_char > 32)) {
-                return `পয়াসওয়ার্ডে ${name_value[i]} অক্ষরটি ব্যবহার করা যাবে না`;
+                return `পয়াসওয়ার্ডে ${password_value[i]} অক্ষরটি ব্যবহার করা যাবে না`;
             } else {
                 if (!uChar && name_char < 91 && name_char > 64) {
                     uChar = true;
@@ -277,13 +276,13 @@ export const passwordCheck = (name_value) => {
 }
 
 //Simple Password Validiy Check
-export const simplePassCheck = (name_value) => {
-    if (String(name_value)?.length > 5 && String(name_value)?.length < 25) {
-        name_value = String(name_value).trim();
-        for (let i = 0; i < name_value.length; i++) {
-            var name_char = name_value.charCodeAt(i);
-            if (!((name_char < 91 && name_char > 64) || (name_char < 123 && name_char > 96) || (name_char < 58 && name_char > 47))) {
-                return `পয়াসওয়ার্ডে ${name_value[i]} অক্ষরটি ব্যবহার করা যাবে না`;
+export const simplePassCheck = (password_value) => {
+    password_value = String(password_value).trim();
+    if (password_value.length > 5 && password_value.length < 25) {
+        for (let i = 0; i < password_value.length; i++) {
+            var name_char = password_value.charCodeAt(i);
+            if (!(name_char >= 33 && name_char <= 126)) {
+                return `পয়াসওয়ার্ডে ${password_value[i]} অক্ষরটি ব্যবহার করা যাবে না`;
             }
         }
         return false;

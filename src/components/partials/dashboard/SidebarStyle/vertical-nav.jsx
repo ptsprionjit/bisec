@@ -3,15 +3,15 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Accordion, useAccordionButton, AccordionContext, Row, Col, Button } from 'react-bootstrap'
 
 // React Icons
-import { TbLayoutDashboard, TbReportAnalytics, TbUserCancel, TbCalendarPlus, TbCalendarCheck, TbLoader3, TbLockCode, TbUsersGroup } from "react-icons/tb";
-import { MdAddCard, MdOutlineReceiptLong, MdOutlineTimeToLeave } from "react-icons/md";
+import { TbLayoutDashboard, TbReportAnalytics, TbUserCancel, TbCalendarPlus, TbCalendarCheck, TbLoader3, TbLockCode, TbUsersGroup, TbPlaylistX } from "react-icons/tb";
+import { MdAddCard, MdOutlineReceiptLong, MdOutlineTimeToLeave, MdOutlineNewLabel, MdOutlineHomeRepairService } from "react-icons/md";
 import { HiCurrencyBangladeshi, HiOutlineAcademicCap } from "react-icons/hi2";
 import { LuListTodo, LuListX, LuSchool, LuMicroscope } from "react-icons/lu";
 import { GiTeacher, GiCaravel } from "react-icons/gi";
 import { GrCreditCard } from "react-icons/gr";
 import { FaUsersGear, FaMoneyCheck, FaUsersRectangle, FaWpforms, FaPersonArrowUpFromLine, FaPersonWalkingLuggage } from "react-icons/fa6";
-import { AiOutlineUserSwitch, AiOutlineFileText, AiOutlineFileAdd, AiOutlineFileDone, AiTwotoneIdcard } from "react-icons/ai";
-import { RiCalendar2Line, RiListRadio, RiListCheck2, RiListOrdered2, RiNumbersLine } from "react-icons/ri";
+import { AiOutlineUserSwitch, AiOutlineFileText, AiOutlineFileAdd, AiOutlineFileDone, AiTwotoneIdcard, AiTwotoneSafetyCertificate } from "react-icons/ai";
+import { RiCalendar2Line, RiListRadio, RiListCheck2, RiListOrdered2, RiNumbersLine, RiListSettingsLine } from "react-icons/ri";
 import { IoCheckmarkDoneCircleOutline } from "react-icons/io5";
 import { VscSignOut } from "react-icons/vsc";
 import { PiListMagnifyingGlassDuotone, PiUserFocusDuotone, PiUserCircleGearDuotone, PiUserCircleDuotone, PiUserCirclePlusDuotone, PiUserCircleMinusDuotone, PiUserListDuotone } from "react-icons/pi";
@@ -224,9 +224,9 @@ const VerticalNav = memo((props) => {
                             <span className="mini-icon">-</span>
                         </Link>
                     </li>
-                    <Accordion.Item as="li" eventKey="internal-app-menu" bsPrefix={`nav-item ${active === 'internal-app-menu' ? 'active' : ''} `} onClick={() => setActive('internal-app-menu')}  >
-                        <CustomToggle eventKey="internal-app-menu" active={activeMenu === 'internal-app-menu' ? true : false} onClick={(activeKey) => setActiveMenu(activeKey)}>
-                            <i title="অভ্যন্তরীণ আবেদন" className="icon">
+                    <Accordion.Item as="li" eventKey="leave-app-menu" bsPrefix={`nav-item ${active === 'leave-app-menu' ? 'active' : ''} `} onClick={() => setActive('leave-app-menu')}  >
+                        <CustomToggle eventKey="leave-app-menu" active={activeMenu === 'leave-app-menu' ? true : false} onClick={(activeKey) => setActiveMenu(activeKey)}>
+                            <i title="ছুটির আবেদন" className="icon">
                                 <GiCaravel size={"20px"} />
                             </i>
                             <span className="item-name">ছুটির আবেদন</span>
@@ -236,7 +236,7 @@ const VerticalNav = memo((props) => {
                                 </svg>
                             </i>
                         </CustomToggle>
-                        <Accordion.Collapse eventKey="internal-app-menu" >
+                        <Accordion.Collapse eventKey="leave-app-menu" >
                             <ul className="sub-nav">
                                 <li className="nav-item">
                                     <Link title='ছুটির আবেদন এন্ট্রি' className={`${location.pathname === '/leave/application/new' ? 'active' : ''} nav-link`} to="/leave/application/new">
@@ -283,7 +283,7 @@ const VerticalNav = memo((props) => {
                                                 <IoCheckmarkDoneCircleOutline size={"20px"} />
                                             </i>
                                             <i className="sidenav-mini-icon"><IoCheckmarkDoneCircleOutline size={"16px"} /></i>
-                                            <span className="item-name">অনুমোদনের তালিকা</span>
+                                            <span className="item-name">চূড়ান্ত অনুমোদন</span>
                                         </Button>
                                     </li>}
                                     {(permissionData.office === '02' || permissionData.role === '17') && <>
@@ -299,9 +299,9 @@ const VerticalNav = memo((props) => {
                                         <li className="nav-item">
                                             <Button title="বাতিলকৃত ছুটির তালিকা" className={`${location.pathname === '/leave/application/list/rejected' ? 'active' : ''} nav-link`} variant="link" onClick={() => navigate('/leave/application/list/rejected')}>
                                                 <i className="icon">
-                                                    <RiListCheck2 size={"20px"} />
+                                                    <LuListX size={"20px"} />
                                                 </i>
-                                                <i className="sidenav-mini-icon"><RiListCheck2 size={"16px"} /></i>
+                                                <i className="sidenav-mini-icon"><LuListX size={"16px"} /></i>
                                                 <span className="item-name">বাতিলকৃত তালিকা</span>
                                             </Button>
                                         </li>
@@ -316,6 +316,155 @@ const VerticalNav = memo((props) => {
                                         </li>
                                     </>}
                                 </>}
+                            </ul>
+                        </Accordion.Collapse>
+                    </Accordion.Item>
+
+                    <Accordion.Item as="li" eventKey="noc-app-menu" bsPrefix={`nav-item ${active === 'noc-app-menu' ? 'active' : ''} `} onClick={() => setActive('noc-app-menu')}  >
+                        <CustomToggle eventKey="noc-app-menu" active={activeMenu === 'noc-app-menu' ? true : false} onClick={(activeKey) => setActiveMenu(activeKey)}>
+                            <i title="পাসপোর্ট অনাপত্তিপত্রের আবেদন" className="icon">
+                                <AiTwotoneSafetyCertificate size={"20px"} />
+                            </i>
+                            <span className="item-name">পাসপোর্ট এনওসি</span>
+                            <i className="right-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </i>
+                        </CustomToggle>
+                        <Accordion.Collapse eventKey="noc-app-menu" >
+                            <ul className="sub-nav">
+                                <li className="nav-item">
+                                    <Link title='অনাপত্তিপত্রের আবেদন এন্ট্রি' className={`${location.pathname === '/passport/application/new' ? 'active' : ''} nav-link`} to="/passport/application/new">
+                                        <i className="icon">
+                                            <MdOutlineNewLabel size={"20px"} />
+                                        </i>
+                                        <i className="sidenav-mini-icon"><MdOutlineNewLabel size={"16px"} />
+                                        </i>
+                                        <span className="item-name">নতুন আবেদন</span>
+                                    </Link>
+                                </li>
+                                <li className="nav-item">
+                                    <Link title='অনাপত্তিপত্রের আবেদনের অবস্থা' className={`${location.pathname === '/passport/application/list/personal' ? 'active' : ''} nav-link`} to="/passport/application/list/personal">
+                                        <i className="icon">
+                                            <PiUserListDuotone size={"20px"} />
+                                        </i>
+                                        <i className="sidenav-mini-icon"><PiUserListDuotone size={"16px"} />
+                                        </i>
+                                        <span className="item-name">আবেদনের অবস্থা</span>
+                                    </Link>
+                                </li>
+                                {(((permissionData.role === '14' || permissionData.role === '15') && permissionData.office === '02') || permissionData.role === '16' || permissionData.role === '17') && <>
+                                    <li className="nav-item">
+                                        <Button title="অনাপত্তিপত্রের অপেক্ষমান তালিকা" className={`${location.pathname === '/passport/application/list/pending' ? 'active' : ''} nav-link`} variant="link" onClick={() => navigate('/passport/application/list/pending')}>
+                                            <i className="icon">
+                                                <RiListRadio size={"20px"} />
+                                            </i>
+                                            <i className="sidenav-mini-icon"><RiListRadio size={"16px"} /></i>
+                                            <span className="item-name">অপেক্ষমান তালিকা</span>
+                                        </Button>
+                                    </li>
+                                    <li className="nav-item">
+                                        <Button title="অনাপত্তিপত্রের প্রক্রিয়াধীন তালিকা" className={`${location.pathname === '/passport/application/list/processing' ? 'active' : ''} nav-link`} variant="link" onClick={() => navigate('/passport/application/list/processing')}>
+                                            <i className="icon">
+                                                <RiListSettingsLine size={"20px"} />
+                                            </i>
+                                            <i className="sidenav-mini-icon"><RiListSettingsLine size={"16px"} /></i>
+                                            <span className="item-name">প্রক্রিয়াধীন তালিকা</span>
+                                        </Button>
+                                    </li>
+                                    <li className="nav-item">
+                                        <Button title="অনাপত্তিপত্রের অনুমোদিত তালিকা" className={`${location.pathname === '/passport/application/list/authorized' ? 'active' : ''} nav-link`} variant="link" onClick={() => navigate('/passport/application/list/authorized')}>
+                                            <i className="icon">
+                                                <LuListTodo size={"20px"} />
+                                            </i>
+                                            <i className="sidenav-mini-icon"><LuListTodo size={"16px"} /></i>
+                                            <span className="item-name">অনুমোদিত তালিকা</span>
+                                        </Button>
+                                    </li>
+                                    <li className="nav-item">
+                                        <Button title="বাতিলকৃত অনাপত্তিপত্রের তালিকা" className={`${location.pathname === '/passport/application/list/rejected' ? 'active' : ''} nav-link`} variant="link" onClick={() => navigate('/passport/application/list/rejected')}>
+                                            <i className="icon">
+                                                <LuListX size={"20px"} />
+                                            </i>
+                                            <i className="sidenav-mini-icon"><LuListX size={"16px"} /></i>
+                                            <span className="item-name">বাতিলকৃত তালিকা</span>
+                                        </Button>
+                                    </li>
+                                </>}
+                            </ul>
+                        </Accordion.Collapse>
+                    </Accordion.Item>
+
+                    <Accordion.Item as="li" eventKey="citizen-charter-menu" bsPrefix={`nav-item ${active === 'citizen-charter-menu' ? 'active' : ''} `} onClick={() => setActive('citizen-charter-menu')}  >
+                        <CustomToggle eventKey="citizen-charter-menu" active={activeMenu === 'citizen-charter-menu' ? true : false} onClick={(activeKey) => setActiveMenu(activeKey)}>
+                            <i title="সিটিজেন চার্টার" className="icon">
+                                <MdOutlineHomeRepairService size={"20px"} />
+                            </i>
+                            <span className="item-name">সিটিজেন চার্টার</span>
+                            <i className="right-icon">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                                </svg>
+                            </i>
+                        </CustomToggle>
+                        <Accordion.Collapse eventKey="citizen-charter-menu" >
+                            <ul className="sub-nav">
+                                <li className="nav-item">
+                                    <Link title='নতুন এন্ট্রি' className={`${location.pathname === '/citizen/charter/new' ? 'active' : ''} nav-link`} to="/citizen/charter/new">
+                                        <i className="icon">
+                                            <MdOutlineNewLabel size={"20px"} />
+                                        </i>
+                                        <i className="sidenav-mini-icon"><MdOutlineNewLabel size={"16px"} />
+                                        </i>
+                                        <span className="item-name">নতুন এন্ট্রি</span>
+                                    </Link>
+                                </li>
+                                <li className="nav-item">
+                                    <Button title="সিটিজেন চার্টারের অপেক্ষমান তালিকা" className={`${location.pathname === '/citizen/charter/list/pending' ? 'active' : ''} nav-link`} variant="link" onClick={() => navigate('/citizen/charter/list/pending')}>
+                                        <i className="icon">
+                                            <RiListRadio size={"20px"} />
+                                        </i>
+                                        <i className="sidenav-mini-icon"><RiListRadio size={"16px"} /></i>
+                                        <span className="item-name">অপেক্ষমান তালিকা</span>
+                                    </Button>
+                                </li>
+                                <li className="nav-item">
+                                    <Button title="সিটিজেন চার্টারের প্রক্রিয়াধীন তালিকা" className={`${location.pathname === '/citizen/charter/list/processing' ? 'active' : ''} nav-link`} variant="link" onClick={() => navigate('/citizen/charter/list/processing')}>
+                                        <i className="icon">
+                                            <RiListSettingsLine size={"20px"} />
+                                        </i>
+                                        <i className="sidenav-mini-icon"><RiListSettingsLine size={"16px"} /></i>
+                                        <span className="item-name">প্রক্রিয়াধীন তালিকা</span>
+                                    </Button>
+                                </li>
+                                {(permissionData.role === "16" || permissionData.role === "17") && <li className="nav-item">
+                                    <Button title="সিটিজেন চার্টার অনুমোদনের অপেক্ষমান তালিকা" className={`${location.pathname === '/citizen/charter/list/verified' ? 'active' : ''} nav-link`} variant="link" onClick={() => navigate('/citizen/charter/list/verified')}>
+                                        <i className="icon">
+                                            <IoCheckmarkDoneCircleOutline size={"20px"} />
+                                        </i>
+                                        <i className="sidenav-mini-icon"><IoCheckmarkDoneCircleOutline size={"16px"} /></i>
+                                        <span className="item-name">চূড়ান্ত অনুমোদন</span>
+                                    </Button>
+                                </li>}
+                                <li className="nav-item">
+                                    <Button title="সিটিজেন চার্টারের অনুমোদিত তালিকা" className={`${location.pathname === '/citizen/charter/list/authorized' ? 'active' : ''} nav-link`} variant="link" onClick={() => navigate('/citizen/charter/list/authorized')}>
+                                        <i className="icon">
+                                            <LuListTodo size={"20px"} />
+                                        </i>
+                                        <i className="sidenav-mini-icon"><LuListTodo size={"16px"} /></i>
+                                        <span className="item-name">অনুমোদিত তালিকা</span>
+                                    </Button>
+                                </li>
+                                <li className="nav-item">
+                                    <Button title="সিটিজেন চার্টারের বাতিলকৃত তালিকা" className={`${location.pathname === '/citizen/charter/list/rejected' ? 'active' : ''} nav-link`} variant="link" onClick={() => navigate('/citizen/charter/list/rejected')}>
+                                        <i className="icon">
+                                            <LuListX size={"20px"} />
+                                        </i>
+                                        <i className="sidenav-mini-icon"><LuListX size={"16px"} /></i>
+                                        <span className="item-name">বাতিলকৃত তালিকা</span>
+                                    </Button>
+                                </li>
                             </ul>
                         </Accordion.Collapse>
                     </Accordion.Item>
@@ -463,6 +612,78 @@ const VerticalNav = memo((props) => {
                     </Link>
                 </li>
 
+                {((permissionData.office === "03" || permissionData.office === "04" || permissionData.office === "05") || ((permissionData.office === "01" || permissionData.office === "02") && (permissionData.role === "15" || permissionData.office === "16"))) && <Accordion.Item as="li" eventKey="subject-menu" bsPrefix={`nav-item ${active === 'subject-menu' ? 'active' : ''} `} onClick={() => setActive('subject-menu')}  >
+                    <CustomToggle eventKey="subject-menu" active={activeMenu === 'subject-menu' ? true : false} onClick={(activeKey) => setActiveMenu(activeKey)}>
+                        <i title="Subject Menu" className="icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 17a4 4 0 0 1-8 0V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2Z" /><path d="M16.7 13H19a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2H7" /><path d="M 7 17h.01" /><path d="m11 8 2.3-2.3a2.4 2.4 0 0 1 3.404.004L18.6 7.6a2.4 2.4 0 0 1 .026 3.434L9.9 19.8" /></svg>
+                        </i>
+                        <span className="item-name">বিষয় আপডেট</span>
+                        <i className="right-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </i>
+                    </CustomToggle>
+                    <Accordion.Collapse eventKey="subject-menu" >
+                        <ul className="sub-nav">
+                            <li className="nav-item">
+                                <Link title="New Subject" className={`${location.pathname === '/student/subject/new' ? 'active' : ''} nav-link`} to="/student/subject/new">
+                                    <i className="icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" ><path d="M12 7v6" /><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20" /><path d="M9 10h6" /></svg>
+                                    </i>
+                                    <i className="sidenav-mini-icon"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" ><path d="M12 7v6" /><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20" /><path d="M9 10h6" /></svg></i>
+                                    <span className="item-name">{permissionData.role==='13'? "বিষয় আপডেট":"অপেক্ষমান তালিকা"}</span>
+                                </Link>
+                            </li>
+                            {/* <li className="nav-item">
+                                <Link title="Subject Authorize" className={`${location.pathname === '/student/subject/authorize' ? 'active' : ''} nav-link`} to="/student/subject/authorize">
+                                    <i className="icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" ><path d="M12 7v6" /><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20" /><path d="M9 10h6" /></svg>
+                                    </i>
+                                    <i className="sidenav-mini-icon"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" ><path d="M12 7v6" /><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20" /><path d="M9 10h6" /></svg></i>
+                                    <span className="item-name">বিষয় অনুমোদন</span>
+                                </Link>
+                            </li>
+                            <li className="nav-item">
+                                <Link title="Pending Subject List" className={`${location.pathname === '/student/subject/list/temp' ? 'active' : ''} nav-link`} to="/student/subject/list/temp">
+                                    <i className="icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 17h1.5" /><path d="M12 22h1.5" /><path d="M12 2h1.5" /><path d="M17.5 22H19a1 1 0 0 0 1-1" /><path d="M17.5 2H19a1 1 0 0 1 1 1v1.5" /><path d="M20 14v3h-2.5" /><path d="M20 8.5V10" /><path d="M4 10V8.5" /><path d="M4 19.5V14" /><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H8" /><path d="M8 22H6.5a1 1 0 0 1 0-5H8" /></svg>
+                                    </i>
+                                    <i className="sidenav-mini-icon"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 17h1.5" /><path d="M12 22h1.5" /><path d="M12 2h1.5" /><path d="M17.5 22H19a1 1 0 0 0 1-1" /><path d="M17.5 2H19a1 1 0 0 1 1 1v1.5" /><path d="M20 14v3h-2.5" /><path d="M20 8.5V10" /><path d="M4 10V8.5" /><path d="M4 19.5V14" /><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H8" /><path d="M8 22H6.5a1 1 0 0 1 0-5H8" /></svg></i>
+                                    <span className="item-name">অপেক্ষমান তালিকা</span>
+                                </Link>
+                            </li> */}
+                            <li className="nav-item">
+                                <Link title="Procesing Subject List" className={`${location.pathname === '/student/subject/list/processing' ? 'active' : ''} nav-link`} to="/student/subject/list/processing">
+                                    <i className="icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6V4a2 2 0 1 0-4 0v2" /><path d="M20 15v6a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20" /><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H10" /><rect x="12" y="6" width="8" height="5" rx="1" /></svg>
+                                    </i>
+                                    <i className="sidenav-mini-icon"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6V4a2 2 0 1 0-4 0v2" /><path d="M20 15v6a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20" /><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H10" /><rect x="12" y="6" width="8" height="5" rx="1" /></svg></i>
+                                    <span className="item-name">প্রক্রিয়াধীন তালিকা</span>
+                                </Link>
+                            </li>
+                            <li className="nav-item">
+                                <Link title="Final Subject List" className={`${location.pathname === '/student/subject/list/authorized' ? 'active' : ''} nav-link`} to="/student/subject/list/authorized">
+                                    <i className="icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20" /><path d="m9 9.5 2 2 4-4" /></svg>
+                                    </i>
+                                    <i className="sidenav-mini-icon"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20" /><path d="m9 9.5 2 2 4-4" /></svg></i>
+                                    <span className="item-name">অনুমোদিত তালিকা</span>
+                                </Link>
+                            </li>
+                            <li className="nav-item">
+                                <Link title="Rejected Subject List" className={`${location.pathname === '/student/subject/list/rejected' ? 'active' : ''} nav-link`} to="/student/subject/list/rejected">
+                                    <i className="icon">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" ><path d="m14.5 7-5 5" /><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20" /><path d="m9.5 7 5 5" /></svg>
+                                    </i>
+                                    <i className="sidenav-mini-icon"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" ><path d="m14.5 7-5 5" /><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20" /><path d="m9.5 7 5 5" /></svg></i>
+                                    <span className="item-name">বাতিলকৃত তালিকা</span>
+                                </Link>
+                            </li>
+                        </ul>
+                    </Accordion.Collapse>
+                </Accordion.Item>}
+
                 {(permissionData.type === "13" || permissionData.role === "17" || permissionData.role === "18" || ((permissionData.office === "01" || permissionData.office === "02") && (permissionData.role === "15" || permissionData.role === "16")) || permissionData.office === "04" || permissionData.office === "05") && <Accordion.Item as="li" eventKey="registration-menu" bsPrefix={`nav-item ${active === 'registration-menu' ? 'active' : ''} `} onClick={() => setActive('registration-menu')}  >
                     <CustomToggle eventKey="registration-menu" active={activeMenu === 'registration-menu' ? true : false} onClick={(activeKey) => setActiveMenu(activeKey)}>
                         <i title="Registration Menu" className="icon">
@@ -504,7 +725,7 @@ const VerticalNav = memo((props) => {
                                             <LuListTodo size={"20px"} />
                                         </i>
                                         <i className="sidenav-mini-icon"><LuListTodo size={"16px"} /></i>
-                                        <span className="item-name">চুড়ান্ত তালিকা</span>
+                                        <span className="item-name">চূড়ান্ত তালিকা</span>
                                     </Link>
                                 </li>
 
@@ -556,7 +777,7 @@ const VerticalNav = memo((props) => {
                                             <LuListTodo size={"20px"} />
                                         </i>
                                         <i className="sidenav-mini-icon"><LuListTodo size={"16px"} /></i>
-                                        <span className="item-name">চুড়ান্ত তালিকা</span>
+                                        <span className="item-name">চূড়ান্ত তালিকা</span>
                                     </Link>
                                 </li>
                                 <li className="nav-item">
@@ -623,7 +844,7 @@ const VerticalNav = memo((props) => {
                                             <LuListTodo size={"20px"} />
                                         </i>
                                         <i className="sidenav-mini-icon"><LuListTodo size={"16px"} /></i>
-                                        <span className="item-name">চুড়ান্ত তালিকা</span>
+                                        <span className="item-name">চূড়ান্ত তালিকা</span>
                                     </Link>
                                 </li>
 
@@ -675,7 +896,7 @@ const VerticalNav = memo((props) => {
                                             <LuListTodo size={"20px"} />
                                         </i>
                                         <i className="sidenav-mini-icon"><LuListTodo size={"16px"} /></i>
-                                        <span className="item-name">চুড়ান্ত তালিকা</span>
+                                        <span className="item-name">চূড়ান্ত তালিকা</span>
                                     </Link>
                                 </li>
                                 <li className="nav-item">
@@ -1055,6 +1276,102 @@ const VerticalNav = memo((props) => {
                                 </li>
                                 <li className="nav-item">
                                     <Link title="Rejected Recognition List" className={`${location.pathname === '/recognition/rejected-list' ? 'active' : ''} nav-link`} to="/recognition/rejected-list">
+                                        <i className="icon">
+                                            <BsBuildingX size={"20px"} />
+                                        </i>
+                                        <i className="sidenav-mini-icon"><BsBuildingX size={"16px"} /></i>
+                                        <span className="item-name">বাতিলকৃত তালিকা</span>
+                                    </Link>
+                                </li>
+                            </>}
+                        </ul>
+                    </Accordion.Collapse>
+                </Accordion.Item>
+
+                <Accordion.Item as="li" eventKey="institute-data-update-menu" bsPrefix={`nav-item ${active === 'institute-data-update-menu' ? 'active' : ''} `} onClick={() => setActive('institute-data-update-menu')} >
+                    <CustomToggle eventKey="institute-data-update-menu" active={activeMenu === 'institute-data-update-menu' ? true : false} onClick={(activeKey) => setActiveMenu(activeKey)}>
+                        <i title="প্রতিষ্ঠানের তথ্য পরিবর্তনের আবেদন" className="icon">
+                            <HiOutlineAcademicCap size={"20px"} />
+                        </i>
+                        <span className="item-name">প্রতিষ্ঠান হালনাগাদ</span>
+                        <i className="right-icon">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </i>
+                    </CustomToggle>
+                    <Accordion.Collapse eventKey="institute-data-update-menu">
+                        <ul className="sub-nav">
+                            {(permissionData.role === "17" || permissionData.type === "13") && <>
+                                <li className="nav-item">
+                                    <Link title="New Application" className={`${location.pathname === '/institute/data/update/new' ? 'active' : ''} nav-link`} to="/institute/data/update/new">
+                                        <i className="icon">
+                                            <BsBuildingAdd size={"20px"} />
+                                        </i>
+                                        <i className="sidenav-mini-icon"><BsBuildingAdd size={"16px"} /></i>
+                                        <span className="item-name">নতুন আবেদন</span>
+                                    </Link>
+                                </li>
+                                <li className="nav-item">
+                                    <Link title="Group Subject Status Check" className={`${location.pathname === '/institute/update/app/list' ? 'active' : ''} nav-link`} to="/institute/update/app/list">
+                                        <i className="icon">
+                                            <BsBuildingExclamation size={"20px"} />
+                                        </i>
+                                        <i className="sidenav-mini-icon"><BsBuildingExclamation size={"16px"} /></i>
+                                        <span className="item-name">আবেদনের তালিকা</span>
+                                    </Link>
+                                </li>
+                            </>}
+                            {(permissionData.role === "17" || permissionData.role === "16" || permissionData.office === "04" || permissionData.office === "05") && <>
+                                <li className="nav-item">
+                                    <Link title="Group Subject Pending List" className={`${location.pathname === '/institute/update/list/pending' ? 'active' : ''} nav-link`} to="/institute/update/list/pending">
+                                        <i className="icon">
+                                            <BsBuildingGear size={"20px"} />
+                                        </i>
+                                        <i className="sidenav-mini-icon"><BsBuildingGear size={"16px"} /></i>
+                                        <span className="item-name">অপেক্ষমান তালিকা</span>
+                                    </Link>
+                                </li>
+                                <li className="nav-item">
+                                    <Link title="Group Subject Processing List" className={`${location.pathname === '/institute/update/list/process' ? 'active' : ''} nav-link`} to="/institute/update/list/process">
+                                        <i className="icon">
+                                            <TbLoader3 size={"20px"} />
+                                        </i>
+                                        <i className="sidenav-mini-icon"><TbLoader3 size={"16px"} /></i>
+                                        <span className="item-name">প্রক্রিয়াধীন তালিকা</span>
+                                    </Link>
+                                </li>
+                                {permissionData.role === "15" && <>
+                                    <li className="nav-item">
+                                        <Link title="Group Subject Inquiry List" className={`${location.pathname === '/institute/update/list/inquiry' ? 'active' : ''} nav-link`} to="/institute/update/list/inquiry">
+                                            <i className="icon">
+                                                <LuMicroscope size={"20px"} />
+                                            </i>
+                                            <i className="sidenav-mini-icon"><LuMicroscope size={"16px"} /></i>
+                                            <span className="item-name">তদন্তাধীন তালিকা</span>
+                                        </Link>
+                                    </li>
+                                    <li className="nav-item">
+                                        <Link title="Group Subject Order Generation List" className={`${location.pathname === '/institute/update/shift/generate-order' ? 'active' : ''} nav-link`} to="/institute/update/shift/generate-order">
+                                            <i className="icon">
+                                                <BsEnvelopeCheck size={"20px"} />
+                                            </i>
+                                            <i className="sidenav-mini-icon"><BsEnvelopeCheck size={"16px"} /></i>
+                                            <span className="item-name">আদেশ প্রেরণের তালিকা</span>
+                                        </Link>
+                                    </li>
+                                </>}
+                                <li className="nav-item">
+                                    <Link title="Final Group Subject List" className={`${location.pathname === '/institute/update/list/authorized' ? 'active' : ''} nav-link`} to="/institute/update/list/authorized">
+                                        <i className="icon">
+                                            <BsBuildingCheck size={"20px"} />
+                                        </i>
+                                        <i className="sidenav-mini-icon"><BsBuildingCheck size={"16px"} /></i>
+                                        <span className="item-name">অনুমোদিত তালিকা</span>
+                                    </Link>
+                                </li>
+                                <li className="nav-item">
+                                    <Link title="Rejected Group Subject List" className={`${location.pathname === '/institute/update/list/rejected' ? 'active' : ''} nav-link`} to="/institute/update/list/rejected">
                                         <i className="icon">
                                             <BsBuildingX size={"20px"} />
                                         </i>

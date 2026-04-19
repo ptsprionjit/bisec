@@ -196,6 +196,7 @@ const Index = () => {
                       <Dropdown.Item as={Link} to="/">বোর্ডের ইতিহাস</Dropdown.Item>
                       <Dropdown.Item as={Link} to="/">বোর্ড অর্ডিন্যান্স</Dropdown.Item>
                       <Dropdown.Item as={Link} to="/">প্রবিধানমালা</Dropdown.Item>
+                      <Dropdown.Item as={Link} to="/citizen-charter">সিটিজেন চার্টার</Dropdown.Item>
                       <Dropdown.Item as={Link} to="/">বোর্ডের দপ্তরসমূহ</Dropdown.Item>
                       <Dropdown.Item as={Link} to="/">বোর্ডের শাখাসমূহ</Dropdown.Item>
                     </Dropdown.Menu>

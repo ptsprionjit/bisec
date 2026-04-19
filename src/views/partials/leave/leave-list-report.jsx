@@ -481,7 +481,7 @@ const LeaveAppReport = () => {
                         <Row>
                             <Form noValidate>
                                 <Col className='my-2' md={12}>
-                                    <p style={{ 'textAlign': 'justify' }}>{activeAppAuthorize.bn_user_leave}, {activeAppAuthorize.bn_post_leave} মোট {InputValidation.E2BDigit(activeAppAuthorize.total_requested)} দিনের {activeAppAuthorize.bn_type}র আবেদন করেছেন। এই বছর তিনি মোটঃ {InputValidation.E2BDigit(activeAppAuthorize.total_availed)} দিন {activeAppAuthorize.bn_type} ছুটি ভোগ করেছেন।</p>
+                                    <p style={{ 'textAlign': 'justify' }}>{activeAppAuthorize.bn_user_leave}, {activeAppAuthorize.bn_post_leave} মোট {InputValidation.E2BDigit(activeAppAuthorize.total_requested)} দিনের {activeAppAuthorize.bn_type}র আবেদন করেছেন। এই বছর তিনি মোটঃ {InputValidation.E2BDigit(activeAppAuthorize.total_availed)} দিন {activeAppAuthorize.bn_type} হিসেবে ছুটি ভোগ করেছেন।</p>
                                     <p style={{ 'textAlign': 'justify' }}>ছুটিকালীন সময়ে {activeAppAuthorize.bn_user_duty}, {activeAppAuthorize.bn_post_duty} আবেদনকারীর দায়িত্ব পালন করবেন।</p>
                                 </Col>
 
@@ -562,7 +562,7 @@ const LeaveAppReport = () => {
                     <Modal.Body>
                         <Form noValidate>
                             <Col className='my-2' md={12}>
-                                <p style={{ 'textAlign': 'justify' }}>{activeAppReject.bn_user_leave}, {activeAppReject.bn_post_leave} মোট {InputValidation.E2BDigit(activeAppReject.total_requested)} দিনের {activeAppReject.bn_type}র আবেদন করেছেন। এই বছর তিনি মোটঃ {InputValidation.E2BDigit(activeAppReject.total_availed)} দিন {activeAppReject.bn_type} ছুটি ভোগ করেছেন।</p>
+                                <p style={{ 'textAlign': 'justify' }}>{activeAppReject.bn_user_leave}, {activeAppReject.bn_post_leave} মোট {InputValidation.E2BDigit(activeAppReject.total_requested)} দিনের {activeAppReject.bn_type}র আবেদন করেছেন। এই বছর তিনি মোটঃ {InputValidation.E2BDigit(activeAppReject.total_availed)} দিন {activeAppReject.bn_type} হিসেবে ছুটি ভোগ করেছেন।</p>
                                 <p style={{ 'textAlign': 'justify' }}>ছুটিকালীন সময়ে {activeAppReject.bn_user_duty}, {activeAppReject.bn_post_duty} আবেদনকারীর দায়িত্ব পালন করবেন।</p>
                             </Col>
                             <Col className='my-2' md={12}>

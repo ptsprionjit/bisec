@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, Fragment } from 'react'
 import { Row, Col, Form, Button, Modal } from 'react-bootstrap'
 // import { Image, ListGroup } from 'react-bootstrap'
 import { Link, useNavigate } from 'react-router-dom'
@@ -15,32 +15,31 @@ import * as ValidationInput from '../input_validation'
 
 import Error404 from '../errors/error403'
 
-// import error01 from '../../../assets/images/error/01.png'
-
 import { useAuthProvider } from "../../../context/AuthContext.jsx";
 import axiosApi from "../../../lib/axiosApi.jsx";
 
 const ResetPassword = () => {
-   const { permissionData } = useAuthProvider();
+   const { permissionData, loading } = useAuthProvider();
    const navigate = useNavigate();
 
    /* On mount: fetch profile & dashboard (use stored dashBoardData when possible) */
    useEffect(() => {
-      let mounted = true;
-      (async () => {
+      if (loading) return null;
+
+      if (!permissionData?.id) {
+         navigate('/auth/sign-out', { replace: true });
+      } else {
          if (!(permissionData.role === '17' || permissionData.role === '18')) {
-            navigate("/auth/sign-out");
+            navigate('/errors/error403', { replace: true });
          }
-      })();
-      return () => { mounted = false; };
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-   }, [permissionData]); // run only once on mount
+      }
+   }, [permissionData, loading]); // eslint-disable-next-line react-hooks/exhaustive-deps
 
    const appShortName = useSelector(SettingSelector.app_short_name);
 
    const [validated, setValidated] = useState(false);
    const [userData, setUserData] = useState({
-      user_id: '', user_name: ''
+      id_user: '', en_user: ''
    });
 
    //Data Fetch Status
@@ -58,25 +57,25 @@ const ResetPassword = () => {
          setUpdateMessage(false);
          setLoadingData(false);
          try {
-            const response = await axiosApi.post(`/auth/user-fetch`, { user_id: userData.user_id });
+            const response = await axiosApi.post(`/user/id/fetch`, { id_user: userData.id_user });
             if (response.status === 200) {
-               setUserData({ ...userData, user_name: response.data.data[0].en_user });
-               setUserDataError({ ...userDataError, user_name: '' });
+               setUserData((prev) => ({ ...prev, en_user: response.data.data[0].en_user }));
+               setUserDataError((prev) => ({ ...prev, en_user: '' }));
                setUpdateMessage(response.data.message);
             } else {
-               setUserData({ ...userData, user_name: '' });
-               setUserDataError({ ...userDataError, user_name: '' });
+               setUserData((prev) => ({ ...prev, en_user: '' }));
+               setUserDataError((prev) => ({ ...prev, en_user: '' }));
                setLoadingError(response.data.message);
             }
          } catch (err) {
             setLoadingError(err.message);
-            setUserData({ ...userData, user_name: '' });
+            setUserData((prev) => ({ ...prev, en_user: '' }));
             if (err.status === 401) {
                navigate("/auth/sign-out");
             }
          }
       }
-      if (userData.user_id) {
+      if (userData.id_user) {
          const timer = setTimeout(() => {
             fetchUserName();
          }, 1000);
@@ -84,13 +83,13 @@ const ResetPassword = () => {
          return () => clearTimeout(timer);
       }
 
-   }, [userData.user_id]); // eslint-disable-line react-hooks/exhaustive-deps
+   }, [userData.id_user]); // eslint-disable-line react-hooks/exhaustive-deps
 
    const resetPassword = (async () => {
       setLoadingData("ডাটা প্রসেস হচ্ছে... অপেক্ষা করুন...");
       setModalShow(false);
       try {
-         const response = await axiosApi.post(`/user/password/reset`, { user_id: userData.user_id });
+         const response = await axiosApi.post(`/user/password/reset`, { id_user: userData.id_user });
          if (response.status === 200) {
             setUpdateMessage(response.data.message);
          } else {
@@ -134,18 +133,18 @@ const ResetPassword = () => {
          event.stopPropagation();
       } else {
          const requiredFields = [
-            'user_id', 'user_name'
+            'id_user', 'en_user'
          ];
 
          requiredFields.forEach(field => {
             let dataError = null;
 
             switch (field) {
-               case 'user_id':
+               case 'id_user':
                   dataError = ValidationInput.alphanumCheck(userData[field]);
                   break;
 
-               case 'user_name':
+               case 'en_user':
                   dataError = ValidationInput.alphaCheck(userData[field]);
                   break;
 
@@ -179,8 +178,8 @@ const ResetPassword = () => {
       event.stopPropagation();
       setUserDataError([]);
       setUserData({
-         user_id: '',
-         user_name: ''
+         id_user: '',
+         en_user: ''
       });
       setValidated(false);
       setLoadingData(false);
@@ -189,7 +188,7 @@ const ResetPassword = () => {
    };
 
    if (permissionData.role === "17" || permissionData.role === "18") return (
-      <>
+      <Fragment>
          <section className={styles.bgImageLogin + " login-content"}>
             <Row className="m-0 d-flex justify-content-center align-items-center">
                <Col md="12">
@@ -208,35 +207,35 @@ const ResetPassword = () => {
                         <Form noValidate onSubmit={handleSubmit} onReset={handleReset}>
                            <Row>
                               <Col md={6} className='mb-3'>
-                                 <Form.Label className='text-dark text-uppercase' htmlFor="user_id">ইউজার আইডি</Form.Label>
+                                 <Form.Label className='text-dark text-uppercase' htmlFor="id_user">ইউজার আইডি</Form.Label>
                                  <Form.Control
                                     className='text-uppercase'
-                                    type="text" id="user_id"
-                                    value={userData.user_id}
-                                    isInvalid={validated && !!userDataError.user_id}
-                                    isValid={validated && userData.user_id && !userDataError.user_id}
-                                    onChange={(e) => handleDataChange('user_id', e.target.value)}
+                                    type="text" id="id_user"
+                                    value={userData.id_user}
+                                    isInvalid={validated && !!userDataError.id_user}
+                                    isValid={validated && userData.id_user && !userDataError.id_user}
+                                    onChange={(e) => handleDataChange('id_user', e.target.value)}
                                  />
-                                 {validated && userDataError.user_id && (
+                                 {validated && userDataError.id_user && (
                                     <Form.Control.Feedback type="invalid">
-                                       {userDataError.user_id}
+                                       {userDataError.id_user}
                                     </Form.Control.Feedback>
                                  )}
                               </Col>
                               <Col md={6} className='mb-3'>
-                                 <Form.Label className='text-dark text-uppercase' htmlFor="user_name">নাম</Form.Label>
+                                 <Form.Label className='text-dark text-uppercase' htmlFor="en_user">নাম</Form.Label>
                                  <Form.Control
                                     className='text-uppercase'
                                     type="text"
-                                    id="user_name"
-                                    defaultValue={userData.user_name}
+                                    id="en_user"
+                                    defaultValue={userData.en_user}
                                     disabled
-                                    isInvalid={validated && !!userDataError.user_name}
-                                    isValid={validated && userData.user_name && !userDataError.user_name}
+                                    isInvalid={validated && !!userDataError.en_user}
+                                    isValid={validated && userData.en_user && !userDataError.en_user}
                                  />
-                                 {validated && userDataError.user_name && (
+                                 {validated && userDataError.en_user && (
                                     <Form.Control.Feedback type="invalid">
-                                       {userDataError.user_name}
+                                       {userDataError.en_user}
                                     </Form.Control.Feedback>
                                  )}
                               </Col>
@@ -260,8 +259,8 @@ const ResetPassword = () => {
                <Modal.Title><span className={styles.SiyamRupaliFont}>আপনি কি পাসওয়ার্ড পরিবর্তন করতে চান?</span></Modal.Title>
             </Modal.Header>
             <Modal.Body>
-               <h6 className={styles.SiyamRupaliFont + ' text-center text-uppercase py-2'}>নামঃ {userData.user_name}</h6>
-               <h6 className={styles.SiyamRupaliFont + ' text-center text-uppercase py-2'}>আইডিঃ {userData.user_id}</h6>
+               <h6 className={styles.SiyamRupaliFont + ' text-center text-uppercase py-2'}>নামঃ {userData.en_user}</h6>
+               <h6 className={styles.SiyamRupaliFont + ' text-center text-uppercase py-2'}>আইডিঃ {userData.id_user}</h6>
             </Modal.Body>
             <Modal.Footer>
                <Button className={styles.SiyamRupaliFont} variant="success" onClick={() => resetPassword()}>
@@ -272,7 +271,7 @@ const ResetPassword = () => {
                </Button>
             </Modal.Footer>
          </Modal>
-      </>
+      </Fragment>
    )
 
    return (

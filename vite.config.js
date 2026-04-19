@@ -10,6 +10,7 @@ export default defineConfig(({ mode }) => {
   return {
     base: "/",
     plugins: [react()],
+    // plugins: [react({ fastRefresh: false })],
     root: ".", // project root (ensure index.html is here)
     build: {
       outDir: "build", // match CRA convention
@@ -22,6 +23,14 @@ export default defineConfig(({ mode }) => {
         cert: fs.readFileSync(path.resolve(env.VITE_SSL_CRT_FILE)),
       },
       open: true, // optional: set true to auto-open browser
+    },
+    css: {
+      preprocessorOptions: {
+        scss: {
+          quietDeps: true,
+          silenceDeprecations: ["import", "legacy-js-api"],
+        }
+      }
     },
   };
 });

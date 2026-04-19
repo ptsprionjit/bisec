@@ -5,7 +5,7 @@ import { Row, Col, Button, Form, Card, Modal } from 'react-bootstrap';
 
 import axiosApi from "../../../../lib/axiosApi.jsx";
 
-import { isValid, differenceInDays, set } from 'date-fns';
+import { isValid, differenceInDays } from 'date-fns';
 
 import * as InputValidation from '../../input_validation'
 

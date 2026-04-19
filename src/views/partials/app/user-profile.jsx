@@ -61,7 +61,7 @@ const UserProfile = () => {
    const fetchProfileImage = async () => {
       setStatus({ loading: "প্রোফাইল ছবি খুঁজা হচ্ছে... অপেক্ষা করুন...", success: false, error: false });
       try {
-         const response = await axiosApi.post(`/user/image-fetch`, {}, { responseType: 'blob' });
+         const response = await axiosApi.post(`/user/image/fetch`, {}, { responseType: 'blob' });
          if (response.status === 200) {
             const profile_image = URL.createObjectURL(response.data);
             setProfileImage(profile_image);
@@ -138,17 +138,17 @@ const UserProfile = () => {
                            <tr>
                               <td className='align-top text-wrap'>ইমেইল</td>
                               <td className='align-top text-wrap'>:</td>
-                              <td className='align-top text-wrap'>{userData.inst_email}</td>
+                              <td className='align-top text-wrap'>{permissionData.email}</td>
                            </tr>
                            <tr>
                               <td className='align-top text-wrap'>মোবাইল</td>
                               <td className='align-top text-wrap'>:</td>
-                              <td className='align-top text-wrap'>{userData.inst_mobile}</td>
+                              <td className='align-top text-wrap'>{InputValidation.E2BDigit(permissionData.mobile)}</td>
                            </tr>
                            <tr>
                               <td className='align-top text-wrap'>ঠিকানা</td>
                               <td className='align-top text-wrap'>:</td>
-                              <td className='align-top text-wrap'>{userData.inst_address}, {userData.inst_post}, {userData.bn_uzps}, {userData.bn_dist}</td>
+                              <td className='align-top text-wrap'>{userData.bn_address}, {userData.bn_postoffice}, {userData.bn_uzps}, {userData.bn_dist}</td>
                            </tr>
                         </tbody>
                      </table>
@@ -157,7 +157,7 @@ const UserProfile = () => {
                <Card>
                   <Card.Header>
                      <div className="header-title">
-                        <h4 className="card-title">পদোন্নতি/পদায়ন তথ্য</h4>
+                        <h4 className="card-title">প্রতিষ্ঠানের ইতিহাস</h4>
                      </div>
                   </Card.Header>
                   <Card.Body>
@@ -180,12 +180,16 @@ const UserProfile = () => {
                   <Card.Header className='d-flex flex-column justify-content-center align-items-center'>
                      {status.loading && <h6 className="text-center card-title w-100 pb-2 text-info">{status.loading}</h6>}
                      {status.error && <h6 className="text-center card-title w-100 pb-2 text-danger">{status.error}</h6>}
-                     <h5 className="text-center w-100 card-title">সাধারণ তথ্য</h5>
                   </Card.Header>
                   <Card.Body>
                      <div className='table-responsive'>
                         <Table className='table'>
                            <tbody>
+                              <tr>
+                                 <td colSpan={6} className='text-wrap align-top p-2 m-0'>
+                                    <h5 className="text-center w-100 card-title">সাধারণ তথ্য</h5>
+                                 </td>
+                              </tr>
                               <tr>
                                  <td className='text-wrap align-top p-2 m-0'>ইংরেজি নাম</td>
                                  <td className='text-wrap align-top p-2 m-0'>:</td>
@@ -213,10 +217,10 @@ const UserProfile = () => {
                               <tr>
                                  <td className='text-wrap align-top p-2 m-0'>ইআইআইএন</td>
                                  <td className='text-wrap align-top p-2 m-0'>:</td>
-                                 <td className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.user_id_number}</td>
-                                 <td className='text-wrap align-top p-2 m-0'>শুরুর তারিখ</td>
+                                 <td className='text-wrap align-top p-2 m-0 text-uppercase'>{InputValidation.E2BDigit(userData.user_id_number)}</td>
+                                 <td className='text-wrap align-top p-2 m-0'>স্থাপনের তারিখ</td>
                                  <td className='text-wrap align-top p-2 m-0'>:</td>
-                                 <td className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.first_post_date}</td>
+                                 <td className='text-wrap align-top p-2 m-0 text-uppercase'>{InputValidation.E2BDigit(InputValidation.formatedDate(userData.first_post_date))}</td>
                               </tr>
                               <tr>
                                  <td className='text-wrap align-top p-2 m-0'>জেলা</td>
@@ -229,19 +233,44 @@ const UserProfile = () => {
                               <tr>
                                  <td className='text-wrap align-top p-2 m-0'>ঠিকানা</td>
                                  <td className='text-wrap align-top p-2 m-0'>:</td>
-                                 <td colSpan={1} className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.inst_address}, {userData.inst_post}</td>
+                                 <td colSpan={1} className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.bn_address}, {userData.bn_postoffice}</td>
                                  <td className='text-wrap align-top p-2 m-0'>এলাকা</td>
                                  <td className='text-wrap align-top p-2 m-0'>:</td>
                                  {userData.inst_region === '01' && <td colSpan={1} className='text-wrap align-top p-2 m-0 text-uppercase'>সিটি কর্পোরেশন</td>}
                                  {userData.inst_region === '02' && <td colSpan={1} className='text-wrap align-top p-2 m-0 text-uppercase'>পৌরসভা (প্রথম শ্রেণী)</td>}
                                  {userData.inst_region === '03' && <td colSpan={1} className='text-wrap align-top p-2 m-0 text-uppercase'>মফস্বল</td>}
                               </tr>
+                              <tr>
+                                 <td colSpan={6} className='text-wrap align-top p-2 m-0 pt-5'>
+                                    <h5 className="text-center w-100 card-title">বিস্তারিত ব্যাংক হিসাব</h5>
+                                 </td>
+                              </tr>
+                              <tr>
+                                 <td className='text-wrap align-top p-2 m-0'>হিসাব নম্বর</td>
+                                 <td className='text-wrap align-top p-2 m-0'>:</td>
+                                 <td colSpan={4} className='text-wrap align-top p-2 m-0'>{InputValidation.E2BDigit(userData.inst_account)}</td>
+                              </tr>
+                              <tr>
+                                 <td className='text-wrap align-top p-2 m-0'>ব্যাংকের নাম</td>
+                                 <td className='text-wrap align-top p-2 m-0'>:</td>
+                                 <td colSpan={4} className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.bn_bank}</td>
+                              </tr>
+                              <tr>
+                                 <td className='text-wrap align-top p-2 m-0'>শাখার নাম</td>
+                                 <td className='text-wrap align-top p-2 m-0'>:</td>
+                                 <td colSpan={4} className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.bn_branch}</td>
+                              </tr>
+                              <tr>
+                                 <td className='text-wrap align-top p-2 m-0'>রাউটিং নম্বর</td>
+                                 <td className='text-wrap align-top p-2 m-0'>:</td>
+                                 <td colSpan={4} className='text-wrap align-top p-2 m-0'>{InputValidation.E2BDigit(userData.inst_routing)}</td>
+                              </tr>
                            </tbody>
                         </Table>
                      </div>
                   </Card.Body>
                </Card>
-               <Card>
+               {/* <Card>
                   <Card.Header>
                      <h5 className="text-center w-100 card-title">অন্যান্য তথ্য</h5>
                   </Card.Header>
@@ -269,40 +298,7 @@ const UserProfile = () => {
                         </Table>
                      </div>
                   </Card.Body>
-               </Card>
-               <Card>
-                  <Card.Header>
-                     <h5 className="text-center w-100 card-title">বিস্তারিত ব্যাংক হিসাব (English)</h5>
-                  </Card.Header>
-                  <Card.Body>
-                     <div className='table-responsive'>
-                        <Table className='table'>
-                           <tbody>
-                              <tr>
-                                 <td className='text-wrap align-top p-2 m-0'>হিসাব নম্বর</td>
-                                 <td className='text-wrap align-top p-2 m-0'>:</td>
-                                 <td colSpan={4} className='text-wrap align-top p-2 m-0'>{userData.inst_account}</td>
-                              </tr>
-                              <tr>
-                                 <td className='text-wrap align-top p-2 m-0'>ব্যাংকের নাম</td>
-                                 <td className='text-wrap align-top p-2 m-0'>:</td>
-                                 <td colSpan={4} className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.bn_bank}</td>
-                              </tr>
-                              <tr>
-                                 <td className='text-wrap align-top p-2 m-0'>শাখার নাম</td>
-                                 <td className='text-wrap align-top p-2 m-0'>:</td>
-                                 <td colSpan={4} className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.inst_branch}</td>
-                              </tr>
-                              <tr>
-                                 <td className='text-wrap align-top p-2 m-0'>রাউটিং নম্বর</td>
-                                 <td className='text-wrap align-top p-2 m-0'>:</td>
-                                 <td colSpan={4} className='text-wrap align-top p-2 m-0'>{userData.inst_routing}</td>
-                              </tr>
-                           </tbody>
-                        </Table>
-                     </div>
-                  </Card.Body>
-               </Card>
+               </Card> */}
             </Col>
          </Row>
       </Fragment>
@@ -310,10 +306,6 @@ const UserProfile = () => {
 
    return (
       <Fragment>
-         {/* <FsLightbox
-            toggler={toggler}
-            sources={profileGallery}
-         /> */}
          <Row>
             <Col lg="12">
                <Card>
@@ -349,12 +341,12 @@ const UserProfile = () => {
                            <tr>
                               <td className='align-top text-wrap'>মোবাইল</td>
                               <td className='align-top text-wrap'>:</td>
-                              <td className='align-top text-wrap'>{userData.profile_mobile}</td>
+                              <td className='align-top text-wrap'>{InputValidation.E2BDigit(userData.profile_mobile)}</td>
                            </tr>
                            <tr>
                               <td className='align-top text-wrap'>ঠিকানা</td>
                               <td className='align-top text-wrap'>:</td>
-                              <td className='align-top text-wrap'>{userData.profile_address}, {userData.profile_post}, {userData.bn_uzps}, {userData.bn_dist}</td>
+                              <td className='align-top text-wrap' style={{ 'textAlign': 'justify' }}>{userData.bn_curr_address}, {userData.bn_curr_postoffice}, {userData.bn_curr_uzps}, {userData.bn_curr_dist}</td>
                            </tr>
                         </tbody>
                      </table>
@@ -393,21 +385,37 @@ const UserProfile = () => {
                         <Table className='table'>
                            <tbody>
                               <tr>
-                                 <td className='text-wrap align-top p-2 m-0'>ইংরেজি নাম</td>
+                                 <td className='text-wrap align-top p-2 m-0'>নাম (ইংরেজি)</td>
                                  <td className='text-wrap align-top p-2 m-0'>:</td>
                                  <td className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.en_user}</td>
-                                 <td className='text-wrap align-top p-2 m-0'>বাংলা নাম</td>
+                                 <td className='text-wrap align-top p-2 m-0'>নাম (বাংলা)</td>
                                  <td className='text-wrap align-top p-2 m-0'>:</td>
                                  <td className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.bn_user}</td>
                               </tr>
                               <tr>
-                                 <td className='text-wrap align-top p-2 m-0'>পিতার নাম</td>
+                                 <td className='text-wrap align-top p-2 m-0'>পিতার নাম (ইংরেজি)</td>
                                  <td className='text-wrap align-top p-2 m-0'>:</td>
                                  <td className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.en_father}</td>
-                                 <td className='text-wrap align-top p-2 m-0'>মাতার নাম</td>
+                                 <td className='text-wrap align-top p-2 m-0'>পিতার নাম (বাংলা)</td>
+                                 <td className='text-wrap align-top p-2 m-0'>:</td>
+                                 <td className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.bn_father}</td>
+                              </tr>
+                              <tr>
+                                 <td className='text-wrap align-top p-2 m-0'>মাতার নাম (ইংরেজি)</td>
                                  <td className='text-wrap align-top p-2 m-0'>:</td>
                                  <td className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.en_mother}</td>
+                                 <td className='text-wrap align-top p-2 m-0'>মাতার নাম (বাংলা)</td>
+                                 <td className='text-wrap align-top p-2 m-0'>:</td>
+                                 <td className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.bn_mother}</td>
                               </tr>
+                              {userData.en_spouse && userData.bn_spouse && <tr>
+                                 <td className='text-wrap align-top p-2 m-0'>{userData.id_gender === '01' ? 'স্বামীর' : 'স্ত্রীর'} নাম (ইংরেজি)</td>
+                                 <td className='text-wrap align-top p-2 m-0'>:</td>
+                                 <td className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.en_spouse}</td>
+                                 <td className='text-wrap align-top p-2 m-0'>{userData.id_gender === '01' ? 'স্বামীর' : 'স্ত্রীর'} নাম (বাংলা)</td>
+                                 <td className='text-wrap align-top p-2 m-0'>:</td>
+                                 <td className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.bn_spouse}</td>
+                              </tr>}
                               <tr>
                                  <td className='text-wrap align-top p-2 m-0'>লিঙ্গ</td>
                                  <td className='text-wrap align-top p-2 m-0'>:</td>
@@ -425,6 +433,22 @@ const UserProfile = () => {
                                  <td className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.user_dob}</td>
                               </tr>
                               <tr>
+                                 <td className='text-wrap align-top p-2 m-0'>জন্মনিবন্ধন নম্বর</td>
+                                 <td className='text-wrap align-top p-2 m-0'>:</td>
+                                 <td className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.id_birthreg}</td>
+                                 <td className='text-wrap align-top p-2 m-0'>পাসপোর্ট নম্বর</td>
+                                 <td className='text-wrap align-top p-2 m-0'>:</td>
+                                 <td className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.id_passport}</td>
+                              </tr>
+                              {userData.id_passport && <tr>
+                                 <td className='text-wrap align-top p-2 m-0'>পাসপোর্ট ইস্যুর তারিখ</td>
+                                 <td className='text-wrap align-top p-2 m-0'>:</td>
+                                 <td className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.passport_start}</td>
+                                 <td className='text-wrap align-top p-2 m-0'>পাসপোর্ট মেয়াদোত্তীর্ণের তারিখ</td>
+                                 <td className='text-wrap align-top p-2 m-0'>:</td>
+                                 <td className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.passport_end}</td>
+                              </tr>}
+                              <tr>
                                  <td className='text-wrap align-top p-2 m-0'>কোটা</td>
                                  <td className='text-wrap align-top p-2 m-0'>:</td>
                                  <td className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.bn_quota}</td>
@@ -433,20 +457,24 @@ const UserProfile = () => {
                                  <td className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.bn_disability}</td>
                               </tr>
                               <tr>
-                                 <td className='text-wrap align-top p-2 m-0'>জেলা</td>
+                                 <td className='text-wrap align-top p-2 m-0'>বর্তমান ঠিকানা (ইংরেজি)</td>
                                  <td className='text-wrap align-top p-2 m-0'>:</td>
-                                 <td className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.bn_dist}</td>
-                                 <td className='text-wrap align-top p-2 m-0'>থানা</td>
-                                 <td className='text-wrap align-top p-2 m-0'>:</td>
-                                 <td className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.bn_uzps}</td>
+                                 <td colSpan={4} className='text-wrap align-top p-2 m-0 text-uppercase' style={{ 'textAlign': 'justify' }}>{userData.en_curr_address}, {userData.en_curr_postoffice}, {userData.en_curr_uzps}, {userData.en_curr_dist}</td>
                               </tr>
                               <tr>
-                                 <td className='text-wrap align-top p-2 m-0'>ডাকঘর</td>
+                                 <td className='text-wrap align-top p-2 m-0'>বর্তমান ঠিকানা (বাংলা)</td>
                                  <td className='text-wrap align-top p-2 m-0'>:</td>
-                                 <td colSpan={1} className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.profile_post}</td>
-                                 <td className='text-wrap align-top p-2 m-0'>ঠিকানা</td>
+                                 <td colSpan={4} className='text-wrap align-top p-2 m-0 text-uppercase' style={{ 'textAlign': 'justify' }}>{userData.bn_curr_address}, {userData.bn_curr_postoffice}, {userData.bn_curr_uzps}, {userData.bn_curr_dist}</td>
+                              </tr>
+                              <tr>
+                                 <td className='text-wrap align-top p-2 m-0'>স্থায়ী ঠিকানা (ইংরেজি)</td>
                                  <td className='text-wrap align-top p-2 m-0'>:</td>
-                                 <td colSpan={1} className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.profile_address}</td>
+                                 <td colSpan={4} className='text-wrap align-top p-2 m-0 text-uppercase' style={{ 'textAlign': 'justify' }}>{userData.en_parm_address}, {userData.en_parm_postoffice}, {userData.en_parm_uzps}, {userData.en_parm_dist}</td>
+                              </tr>
+                              <tr>
+                                 <td className='text-wrap align-top p-2 m-0'>স্থায়ী ঠিকানা (বাংলা)</td>
+                                 <td className='text-wrap align-top p-2 m-0'>:</td>
+                                 <td colSpan={4} className='text-wrap align-top p-2 m-0 text-uppercase' style={{ 'textAlign': 'justify' }}>{userData.bn_parm_address}, {userData.bn_parm_postoffice}, {userData.bn_parm_uzps}, {userData.bn_parm_dist}</td>
                               </tr>
                            </tbody>
                         </Table>
@@ -494,7 +522,7 @@ const UserProfile = () => {
                </Card>
                <Card>
                   <Card.Header>
-                     <h5 className="text-center w-100 card-title">বিস্তারিত হিসাব</h5>
+                     <h5 className="text-center w-100 card-title">ব্যাংক হিসাবের তথ্য</h5>
                   </Card.Header>
                   <Card.Body>
                      <div className='table-responsive'>
@@ -503,7 +531,7 @@ const UserProfile = () => {
                               <tr>
                                  <td className='text-wrap align-top p-2 m-0'>হিসাব নম্বর</td>
                                  <td className='text-wrap align-top p-2 m-0'>:</td>
-                                 <td colSpan={4} className='text-wrap align-top p-2 m-0'>{userData.profile_account}</td>
+                                 <td colSpan={4} className='text-wrap align-top p-2 m-0'>{userData.bank_account}</td>
                               </tr>
                               <tr>
                                  <td className='text-wrap align-top p-2 m-0'>ব্যাংকের নাম</td>
@@ -511,14 +539,19 @@ const UserProfile = () => {
                                  <td colSpan={4} className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.bn_bank}</td>
                               </tr>
                               <tr>
-                                 <td className='text-wrap align-top p-2 m-0'>শাখার নাম</td>
+                                 <td className='text-wrap align-top p-2 m-0'>শাখার নাম (ইংরেজি)</td>
                                  <td className='text-wrap align-top p-2 m-0'>:</td>
-                                 <td colSpan={4} className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.profile_branch}</td>
+                                 <td colSpan={4} className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.en_branch}</td>
+                              </tr>
+                              <tr>
+                                 <td className='text-wrap align-top p-2 m-0'>শাখার নাম (বাংলা)</td>
+                                 <td className='text-wrap align-top p-2 m-0'>:</td>
+                                 <td colSpan={4} className='text-wrap align-top p-2 m-0 text-uppercase'>{userData.bn_branch}</td>
                               </tr>
                               <tr>
                                  <td className='text-wrap align-top p-2 m-0'>রাউটিং নম্বর</td>
                                  <td className='text-wrap align-top p-2 m-0'>:</td>
-                                 <td colSpan={4} className='text-wrap align-top p-2 m-0'>{userData.profile_routing}</td>
+                                 <td colSpan={4} className='text-wrap align-top p-2 m-0'>{userData.bank_routing}</td>
                               </tr>
                            </tbody>
                         </Table>

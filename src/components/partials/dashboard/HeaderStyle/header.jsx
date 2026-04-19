@@ -48,7 +48,7 @@ const Header = memo((props) => {
     // Fetch Profile Image
     const fetchProfileImage = async () => {
         try {
-            const response = await axiosApi.post(`/user/image-fetch?`, {}, { responseType: 'blob' });
+            const response = await axiosApi.post(`/user/image/fetch?`, {}, { responseType: 'blob' });
             if (response.status === 200) {
                 const imageUrl = URL.createObjectURL(response.data);
                 setProfileImage(imageUrl);

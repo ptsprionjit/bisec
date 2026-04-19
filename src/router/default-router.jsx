@@ -103,6 +103,37 @@ import LeaveAppAuthorized from '../views/partials/leave/leave-list-authorized';
 import LeaveAppRejected from '../views/partials/leave/leave-list-rejected';
 import LeaveAppPersonal from '../views/partials/leave/leave-list-personal';
 
+// Passport NOC Application
+import PassportApp from '../views/partials/passport/passport-application';
+import PassportAppPending from '../views/partials/passport/passport-list-pending';
+import PassportAppReport from '../views/partials/passport/passport-list-report';
+import PassportAppProcess from '../views/partials/passport/passport-list-processing';
+import PassportAppAuthorized from '../views/partials/passport/passport-list-authorized';
+import PassportAppRejected from '../views/partials/passport/passport-list-rejected';
+import PassportAppPersonal from '../views/partials/passport/passport-list-personal';
+
+// Citizen Charter
+import CitizenCharterAuthorized from '../views/partials/citizen-charter/citizen-charter-authorized';
+import CitizenCharter from '../views/partials/citizen-charter/citizen-charter-new';
+import CitizenCharterPending from '../views/partials/citizen-charter/citizen-charter-pending';
+import CitizenCharterProcessing from '../views/partials/citizen-charter/citizen-charter-processing';
+import CitizenCharterRejected from '../views/partials/citizen-charter/citizen-charter-rejected';
+import CitizenCharterVerified from '../views/partials/citizen-charter/citizen-charter-verified';
+
+// Registration Subject Update
+import SubjectApp from '../views/partials/subjects/subject-entry-new';
+import SubjectAppProcess from '../views/partials/subjects/subject-list-processing';
+import SubjectAppAuthorized from '../views/partials/subjects/subject-list-authorized';
+import SubjectAppRejected from '../views/partials/subjects/subject-list-rejected';
+
+// Institute New Group Subject
+import InstShiftsNew from '../views/partials/institute/inst-update-new';
+import InstituteData from '../views/partials/institute/inst-data-list';
+import InstituteUpdatePending from '../views/partials/institute/inst-update-list-pending';
+import InstituteUpdateAuthorized from '../views/partials/institute/inst-update-list-authorized';
+import InstituteUpdateRejected from '../views/partials/institute/inst-update-list-rejected';
+import InstituteUpdateProcessing from '../views/partials/institute/inst-update-list-processing';
+
 // Export
 export const DefaultRouter = [
     {
@@ -157,6 +188,80 @@ export const DefaultRouter = [
             {
                 path: 'leave/application/list/personal',
                 element: <LeaveAppPersonal />
+            },
+
+            // Subject Entry
+            {
+                path: '/student/subject/new',
+                element: <SubjectApp />
+            },
+            {
+                path: '/student/subject/list/rejected',
+                element: <SubjectAppRejected />
+            },
+            {
+                path: '/student/subject/list/processing',
+                element: <SubjectAppProcess />
+            },
+            {
+                path: '/student/subject/list/authorized',
+                element: <SubjectAppAuthorized />
+            },
+
+            // Passport NOC Application
+            {
+                path: 'passport/application/new',
+                element: <PassportApp />
+            },
+            {
+                path: 'passport/application/list/report',
+                element: <PassportAppReport />
+            },
+            {
+                path: 'passport/application/list/processing',
+                element: <PassportAppProcess />
+            },
+            {
+                path: 'passport/application/list/pending',
+                element: <PassportAppPending />
+            },
+            {
+                path: 'passport/application/list/authorized',
+                element: <PassportAppAuthorized />
+            },
+            {
+                path: 'passport/application/list/rejected',
+                element: <PassportAppRejected />
+            },
+            {
+                path: 'passport/application/list/personal',
+                element: <PassportAppPersonal />
+            },
+
+            // Citizen Charter
+            {
+                path: 'citizen/charter/new',
+                element: <CitizenCharter />
+            },
+            {
+                path: 'citizen/charter/list/processing',
+                element: <CitizenCharterProcessing />
+            },
+            {
+                path: 'citizen/charter/list/pending',
+                element: <CitizenCharterPending />
+            },
+            {
+                path: 'citizen/charter/list/authorized',
+                element: <CitizenCharterAuthorized />
+            },
+            {
+                path: 'citizen/charter/list/rejected',
+                element: <CitizenCharterRejected />
+            },
+            {
+                path: 'citizen/charter/list/verified',
+                element: <CitizenCharterVerified />
             },
 
             // User Management
@@ -405,6 +510,32 @@ export const DefaultRouter = [
             {
                 path: 'recognition/generate-order',
                 element: <InstRecognitionOrder />
+            },
+
+            // Institute Group Subject Entry Menu
+            {
+                path: 'institute/data/update/new',
+                element: <InstShiftsNew />
+            },
+            {
+                path: 'institute/update/app/list',
+                element: <InstituteData />
+            },
+            {
+                path: 'institute/update/list/pending',
+                element: <InstituteUpdatePending />
+            },
+            {
+                path: 'institute/update/list/authorized',
+                element: <InstituteUpdateAuthorized />
+            },
+            {
+                path: 'institute/update/list/rejected',
+                element: <InstituteUpdateRejected />
+            },
+            {
+                path: 'institute/update/list/process',
+                element: <InstituteUpdateProcessing />
             },
 
             // Accounts Menu

@@ -181,11 +181,8 @@ const InstClassStartPayment = () => {
                     pdfFiles[field] = null;
                 }
             } catch (err) {
-
-
                 if (err.status === 401) {
                     navigate("/auth/sign-out");
-
                 }
                 // console.error(`Failed to fetch ${field}:`, err);
                 // pdfFiles[field] = demoPdf;

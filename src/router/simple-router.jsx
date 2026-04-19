@@ -48,6 +48,9 @@ import PaymentProcess from '../views/partials/public/paymet-process';
 import PrivacyPolicy from '../views/partials/extra/privacy-policy';
 import TermsofService from '../views/partials/extra/terms-of-service';
 
+// Citizen Charter
+import CitizenCharter from '../views/partials/public/citizen-charter';
+
 export const SimpleRouter = [
     {
         path: '/',
@@ -74,6 +77,10 @@ export const SimpleRouter = [
             {
                 path: 'terms-of-service',
                 element: <TermsofService />
+            },
+            {
+                path: 'citizen-charter',
+                element: <CitizenCharter />
             },
 
             {

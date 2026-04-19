@@ -15,7 +15,7 @@ const SignOut = () => {
    // Function to handle user logout
    const userLogOut = async () => {
       try {
-         await axiosApi.post(`/ceb/logout`, { ceb_user_id: permissionData ? permissionData?.id : null });
+         await axiosApi.post(`/ceb/logout`, { id: permissionData ? permissionData?.id : null });
       } catch (error) {
          console.error("Logout failed:", error);
       } finally {

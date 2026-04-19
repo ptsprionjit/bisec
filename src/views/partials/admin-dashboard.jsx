@@ -1621,10 +1621,10 @@ const AdminDashBoard = memo((props) => {
                       </div>
                     </div>
                     <div className="my-2">
-                      {profileData?.profile_account && (
+                      {profileData?.bank_account && (
                         <div className="card-number">
                           <span className="fs-5 me-2">
-                            {profileData.profile_account}
+                            {profileData.bank_account}
                           </span>
                         </div>
                       )}
